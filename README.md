@@ -41,31 +41,33 @@ For implementation details and our experimental findings, please see the accompa
 
 ## Quickstart
 
-### Training
+> We train SimpleTIR on multiple H100 nodes and tested the code with `vllm==0.8.5`. For training or evaluation across multiple nodes, we recommend submitting tasks through ray (cf. [the DAPO setup](https://github.com/volcengine/verl/tree/main/recipe/dapo))
 
-> We train SimpleTIR on multiple H100 nodes and tested the code with `vllm==0.8.5`. For training or evaluation across multiple nodes, we recommend submitting tasks through ray (cf. [the DAPO setup](https://github.com/volcengine/verl/tree/main/recipe/dapo)) and use a highly parallel sandbox for code execution.
+> We also recommend using a highly parallel sandbox for code execution. We use an internal sandbox for training by default, but we also add examples of using a local firejail sandbox. Please refer to `sandbox/` and set the environment variable `SANDBOX_ENDPOINT` to the sandbox endpoint, although we only tested it for evaluation on a single node.
+
+### Training
 
 Example command to run 7B training on an 8xH100 node:
 
 ```bash
 MODEL_PATH=... \ # the parent dir of the checkpoint
-DATA_PATH=... \ # the dir containing data like deepscaler/train
+DATA_PATH=... \ # the dir containing data like deepscaler/train (see datasets/)
 CHECKPOINT_PATH=... \ # the dir to save the checkpoint
 LOG_PATH=... \ # the dir to save the log
 NNODES=... \
 RESUME=False \
-  bash train.sh \
-    --max_response_length 8000 \
-    --max_prompt_length 16000 \
-    --rollout_tp 2 \
-    --save_freq 10 \
-    --model_name Qwen2.5-7B \
-    --max_turns 5 \
-    --train_dataset "simplelr_math_35/train deepscaler/train" \
-    --acc_filter 0.1_0.9 \
-    --remove_clip True \
-    --mask_void_turns True \
-    --oversample 3
+bash train.sh \
+  --max_response_length 8000 \
+  --max_prompt_length 16000 \
+  --rollout_tp 2 \
+  --save_freq 10 \
+  --model_name Qwen2.5-7B \
+  --max_turns 5 \
+  --train_dataset "simplelr_math_35/train deepscaler/train" \
+  --acc_filter 0.1_0.9 \
+  --remove_clip True \
+  --mask_void_turns True \
+  --oversample 3
 ```
 
 ### Inference
@@ -74,30 +76,29 @@ Example command to run 7B evaluation on an 8xH100 node:
 
 ```bash
 MODEL_PATH=... \ # the parent dir of the checkpoint
-DATA_PATH=... \ # the dir containing data like deepscaler/aime
+DATA_PATH=... \ # the dir containing data like deepscaler/aime (see datasets/)
 CHECKPOINT_PATH=... \ # the dir to save the checkpoint
 LOG_PATH=... \ # the dir to save the log
 NNODES=... \
-VAL_BEFORE_TRAIN=True \
 RESUME=False \
-  bash train.sh \
-    --max_response_length 12000 \
-    --max_prompt_length 36000 \
-    --rollout_tp 2 \
-    --model_name <MODEL_NAME> \ # the name of the checkpoint
-    --max_turns 10 \
-    --valid_dataset "deepscaler/aime" \
-    --val_only True \
-    --n_val 32 \
-    --output_acc_to_file True \
-    --val_sample_size 500 \
-    --sp_size 2
+bash train.sh \
+  --max_response_length 12000 \
+  --max_prompt_length 36000 \
+  --rollout_tp 2 \
+  --model_name <MODEL_NAME> \ # the name of the checkpoint
+  --max_turns 10 \
+  --valid_dataset "deepscaler/aime" \
+  --val_only True \
+  --n_val 32 \
+  --output_acc_to_file True \
+  --val_sample_size 500 \
+  --sp_size 2
 ```
 
 ## Roadmap
 
-- [ ]	Remove sandbox dependencies.
-- [ ]	Release model checkpoints.
+- [x]	Remove sandbox dependencies
+- [ ]	Release model checkpoints
 
 ## Acknowledgement
 We thank [verl](https://github.com/volcengine/verl) and [Search-R1](https://github.com/PeterGriffinJin/Search-R1) for the open source code.
