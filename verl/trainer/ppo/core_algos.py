@@ -125,6 +125,7 @@ def compute_grpo_outcome_advantage(token_level_rewards: torch.Tensor,
     """
     response_length = token_level_rewards.shape[-1]
     scores = token_level_rewards.sum(dim=-1)
+    valid_response_lengths = eos_mask.sum(dim=-1)
 
     id2score = defaultdict(list)
     id2mean = {}
@@ -132,8 +133,13 @@ def compute_grpo_outcome_advantage(token_level_rewards: torch.Tensor,
 
     with torch.no_grad():
         bsz = scores.shape[0]
+        skipped_items = 0
         for i in range(bsz):
+            if valid_response_lengths[i] == 0:
+                skipped_items += 1
+                continue
             id2score[index[i]].append(scores[i])
+        print(f"[debug] filtering {skipped_items}/{bsz} samples")
         for idx in id2score:
             if len(id2score[idx]) == 1:
                 id2mean[idx] = torch.tensor(0.0)
@@ -265,7 +271,7 @@ def compute_rewards(token_level_scores, old_log_prob, ref_log_prob, kl_ratio):
     return token_level_scores - kl * kl_ratio
 
 
-def compute_policy_loss(old_log_prob, log_prob, advantages, eos_mask, cliprange, clip_ratio_c=3.0):
+def compute_policy_loss(old_log_prob, log_prob, advantages, eos_mask, cliprange_low, cliprange_high, clip_ratio_c=3.0):
     """Adapted from https://github.com/huggingface/trl/blob/main/trl/trainer/ppo_trainer.py#L1122
 
     Args:
@@ -297,7 +303,7 @@ def compute_policy_loss(old_log_prob, log_prob, advantages, eos_mask, cliprange,
     ppo_kl = verl_F.masked_mean(-negative_approx_kl, eos_mask)
 
     pg_losses = -advantages * ratio
-    pg_losses2 = -advantages * torch.clamp(ratio, 1.0 - cliprange, 1.0 + cliprange)
+    pg_losses2 = -advantages * torch.clamp(ratio, 1.0 - cliprange_low, 1.0 + cliprange_high)
 
     clip_pg_losses1 = torch.max(pg_losses, pg_losses2)
     pg_clipfrac = verl_F.masked_mean(torch.gt(pg_losses2, pg_losses).float(), eos_mask)

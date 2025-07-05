@@ -227,6 +227,8 @@ class vLLMRollout(BaseRollout):
                 'temperature': self.config.val_kwargs.temperature,
                 'n': 1,  # if validate, already repeat in ray_trainer
             }
+        if prompts.meta_info.get("n", self.config.n) == 1:
+            kwargs = {"n": 1}
 
         # users can customize different sampling_params at different run
         with self.update_sampling_params(**kwargs):

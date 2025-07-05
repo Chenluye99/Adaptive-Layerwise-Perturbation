@@ -239,6 +239,8 @@ class DataParallelPPOActor(BasePPOActor):
         temperature = data.meta_info['temperature']  # temperature must be in the data.meta_info to avoid slient error
 
         select_keys = ['responses', 'input_ids', 'attention_mask', 'position_ids', 'old_log_probs', 'advantages']
+        if self.config.mask_tool_output or self.config.mask_void_turns:
+            select_keys.append("loss_mask")
         if self.config.use_kl_loss:
             select_keys.append('ref_log_prob')
         batch = data.select(batch_keys=select_keys).batch
@@ -281,11 +283,15 @@ class DataParallelPPOActor(BasePPOActor):
                     responses = data['responses']
                     response_length = responses.size(1)
                     attention_mask = data['attention_mask']
-                    response_mask = attention_mask[:, -response_length:]
+                    if self.config.mask_tool_output or self.config.mask_void_turns:
+                        response_mask = data["loss_mask"]
+                    else:
+                        response_mask = attention_mask[:, -response_length:]
                     old_log_prob = data['old_log_probs']
                     advantages = data['advantages']
 
-                    clip_ratio = self.config.clip_ratio
+                    clip_ratio_high = self.config.clip_ratio_high
+                    clip_ratio_low = self.config.clip_ratio_low
                     entropy_coeff = self.config.entropy_coeff
                     clip_ratio_c = self.config.get('clip_ratio_c', 3.0)
 
@@ -297,7 +303,8 @@ class DataParallelPPOActor(BasePPOActor):
                         log_prob=log_prob,
                         advantages=advantages,
                         eos_mask=response_mask,
-                        cliprange=clip_ratio,
+                        cliprange_high=clip_ratio_high,
+                        cliprange_low=clip_ratio_low,
                         clip_ratio_c=clip_ratio_c)
                     # compute entropy loss from entropy
                     entropy_loss = verl_F.masked_mean(entropy, response_mask)

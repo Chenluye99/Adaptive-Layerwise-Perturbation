@@ -176,8 +176,9 @@ def _flatten_dict(raw: Dict[str, Any], *, sep: str) -> Dict[str, Any]:
     return ans
 
 
-@dataclasses.dataclass
 class ValidationGenerationsLogger:
+    def __init__(self, table_name=None) -> None:
+        self.table_name = table_name
 
     def log(self, loggers, samples, step):
         if 'wandb' in loggers:
@@ -192,7 +193,7 @@ class ValidationGenerationsLogger:
         import wandb
 
         # Create column names for all samples
-        columns = ["step"] + sum([[f"input_{i+1}", f"output_{i+1}", f"score_{i+1}"] for i in range(len(samples))], [])
+        columns = ["step"] + sum([[f"input_{i+1}", f"output_{i+1}", f"score_{i+1}", f"avg_score_{i+1}"] for i in range(len(samples))], [])
 
         if not hasattr(self, 'validation_table'):
             # Initialize the table on first call
@@ -211,7 +212,12 @@ class ValidationGenerationsLogger:
         new_table.add_data(*row_data)
 
         # Update reference and log
-        wandb.log({"val/generations": new_table}, step=step)
+        wandb_log_name = (
+            "val/generations"
+            if self.table_name is None
+            else f"val/generations/{self.table_name}"
+        )
+        wandb.log({wandb_log_name: new_table}, step=step)
         self.validation_table = new_table
 
     def log_generations_to_swanlab(self, samples, step):
