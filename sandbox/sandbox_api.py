@@ -55,6 +55,7 @@ class RunCodeRequest(BaseModel):
     """Incoming JSON body from the client."""
 
     code: str
+    stdin: str = ""
     language: str = "python"
     compile_timeout: float = 1.0  # kept for sdk compatibility, unused here
     run_timeout: float = 3.0
@@ -70,7 +71,7 @@ class RunResult(BaseModel):
 
 # ---------------- Core runner ----------------
 
-async def _run_in_firejail(code: str, timeout: float) -> dict:
+async def _run_in_firejail(code: str, timeout: float, stdin_data: str = "") -> dict:
     """Execute *code* inside a fresh Firejail sandbox and return stdout/stderr."""
 
     # 1) Write user code to a tmpfs directory → zero-copy, fast cleanup
@@ -97,6 +98,7 @@ async def _run_in_firejail(code: str, timeout: float) -> dict:
     # 4) Launch subprocess under asyncio, enforce wall-clock timeout
     proc = await asyncio.create_subprocess_exec(
         *cmd,
+        stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
         cwd=workdir,
@@ -104,7 +106,11 @@ async def _run_in_firejail(code: str, timeout: float) -> dict:
     )
 
     try:
-        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
+        input_bytes = (stdin_data + "\n").encode() if len(stdin_data) > 0 else None
+        stdout, stderr = await asyncio.wait_for(
+            proc.communicate(input=input_bytes),
+            timeout=timeout
+        )
     except asyncio.TimeoutError:
         proc.kill()
         await proc.wait()
@@ -141,6 +147,6 @@ async def run_code(req: RunCodeRequest):
         raise HTTPException(400, "Only Python is supported in this minimal demo.")
 
     async with POOL:
-        result = await _run_in_firejail(req.code, req.run_timeout)
+        result = await _run_in_firejail(req.code, req.run_timeout, req.stdin)
 
     return RunResult(status=result["status"], run_result=result, created_at=datetime.utcnow())

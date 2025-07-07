@@ -17,7 +17,8 @@ async def _post_snippet(endpoint: str, payload: dict, *, client_timeout: float =
 
 async def single_sandbox(
     code: str,
-    endpoint: str,
+    stdin: str = "",
+    endpoint: str = "",
     language: str = "python",
     compile_timeout: float = 1.0,
     run_timeout: float = 3.0,
@@ -54,6 +55,7 @@ async def single_sandbox(
 
     payload = {
         "code": code,
+        "stdin": stdin,
         "language": language,
         "compile_timeout": compile_timeout,
         "run_timeout": run_timeout,
@@ -82,6 +84,7 @@ async def single_sandbox(
 
 async def parallel_sandbox(
     tasks: List[str],
+    stdin_list: List[str] = None,
     num_processes: int = 200,
 ) -> Tuple[List[bool], List[str], List[str]]:
     """Execute multiple snippets concurrently and aggregate results.
@@ -95,7 +98,10 @@ async def parallel_sandbox(
     endpoint = os.getenv("SANDBOX_ENDPOINT", None)
     assert endpoint is not None, "SANDBOX_ENDPOINT is not set"
     semaphore = asyncio.Semaphore(num_processes)
-    tasks = [single_sandbox(src, endpoint, semaphore=semaphore) for src in tasks]
+    if stdin_list is None:
+        tasks = [single_sandbox(code, endpoint, semaphore=semaphore) for code in tasks]
+    else:
+        tasks = [single_sandbox(code, stdin, endpoint, semaphore=semaphore) for code, stdin in zip(tasks, stdin_list)]
     results = await asyncio.gather(*tasks, return_exceptions=False)
 
     ok_flags: List[bool] = []
@@ -128,11 +134,15 @@ def fib(n):
     return a
 
 print([fib(i) for i in range(10)])
+""", """
+name = input("Your name:")
+print(f"Hi, {name}!")
 """]
+    stdin_list = ["", "", "Alice"]
 
-    for code in code_list:
+    for code, stdin in zip(code_list, stdin_list):
         print(f"code: {code}")
-        sandbox_success, sandbox_stdout, sandbox_stderr = asyncio.run(parallel_sandbox(tasks=[code]))
+        sandbox_success, sandbox_stdout, sandbox_stderr = asyncio.run(parallel_sandbox(tasks=[code], stdin_list=[stdin]))
 
         print(f"sandbox_success: {sandbox_success}")
         print(f"sandbox_stdout: {sandbox_stdout}")
