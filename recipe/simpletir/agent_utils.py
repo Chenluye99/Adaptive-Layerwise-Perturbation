@@ -310,6 +310,9 @@ class AgentHelper:
         batch_size = active_batch.batch["input_ids"].shape[0]
         remainder = batch_size % num_gpus
 
+        for key in active_batch.batch.keys():
+            active_batch.batch[key] = active_batch.batch[key].long()
+
         if remainder == 0:
             return self.actor_rollout_wg.generate_sequences(active_batch)
 
@@ -323,6 +326,10 @@ class AgentHelper:
             padded_batch[k] = torch.cat([v, pad_sequence], dim=0)
 
         padded_active_batch = DataProto.from_dict(padded_batch)
+
+        for key in padded_active_batch.batch.keys():
+            padded_active_batch.batch[key] = padded_active_batch.batch[key].long()
+
         if hasattr(active_batch, "meta_info"):
             padded_active_batch.meta_info = active_batch.meta_info
 
@@ -525,6 +532,9 @@ class AgentHelper:
 
         final_output = DataProto.from_dict(final_output)
         final_output.meta_info.update(meta_info)
+
+        for key in final_output.batch.keys():
+            final_output.batch[key] = final_output.batch[key].long()
 
         return final_output
 
