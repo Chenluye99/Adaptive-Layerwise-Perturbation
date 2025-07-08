@@ -20,6 +20,7 @@
 <div align="center">
 
 [![Notion](https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white)](https://simpletir.notion.site/report)
+<br><a href="https://huggingface.co/collections/ZhenghaiXue/simpletir-686ce09ae6e1db33b375f03d"><img src="https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.svg" alt="Hugging Face logo" width="80"></a>
 
 </div>
 
@@ -98,7 +99,7 @@ bash train.sh \
 ## Roadmap
 
 - [x]	Remove sandbox dependencies
-- [ ]	Release model checkpoints
+- [x]	Release model checkpoints
 
 ## Acknowledgement
 We thank [verl](https://github.com/volcengine/verl) and [Search-R1](https://github.com/PeterGriffinJin/Search-R1) for the open source code.
