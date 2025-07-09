@@ -55,7 +55,7 @@ async def single_sandbox(
 
     payload = {
         "code": code,
-        "stdin": stdin,
+        "stdin": stdin if stdin is not None else "",
         "language": language,
         "compile_timeout": compile_timeout,
         "run_timeout": run_timeout,
@@ -99,9 +99,9 @@ async def parallel_sandbox(
     assert endpoint is not None, "SANDBOX_ENDPOINT is not set"
     semaphore = asyncio.Semaphore(num_processes)
     if stdin_list is None:
-        tasks = [single_sandbox(code, endpoint, semaphore=semaphore) for code in tasks]
+        tasks = [single_sandbox(code=code, endpoint=endpoint, semaphore=semaphore) for code in tasks]
     else:
-        tasks = [single_sandbox(code, stdin, endpoint, semaphore=semaphore) for code, stdin in zip(tasks, stdin_list)]
+        tasks = [single_sandbox(code=code, stdin=stdin, endpoint=endpoint, semaphore=semaphore) for code, stdin in zip(tasks, stdin_list)]
     results = await asyncio.gather(*tasks, return_exceptions=False)
 
     ok_flags: List[bool] = []
