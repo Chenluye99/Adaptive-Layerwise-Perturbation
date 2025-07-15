@@ -540,7 +540,6 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
             apply_chat_template=self.config.data.apply_chat_template,
             return_raw_chat=self.config.data.get("return_raw_chat", False),
             truncation=self.config.data.get("truncation", "error"),
-            tool_use=self.config.agent.tool_use,
             filter_overlong_prompts=self.config.data.filter_overlong_prompts,
         )
         assert self.train_dataset.truncation == self.config.data.get(
@@ -589,7 +588,6 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
             apply_chat_template=self.config.data.apply_chat_template,
             return_raw_chat=self.config.data.get("return_raw_chat", False),
             truncation="error",
-            tool_use=self.config.agent.tool_use,
         )
         self.val_dataloader = StatefulDataLoader(
             dataset=self.val_dataset,
@@ -806,6 +804,7 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                 * self.config.trainer.nnodes,
                 rollout_n=1,
                 mask_void_turns=False,  # no void turn masking during validation
+                append_final_answer_func=self.config.agent.append_final_answer_func,
             )
             generation_manager = AgentHelper(
                 tokenizer=self.tokenizer,
@@ -867,7 +866,6 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                 test_output_gen_batch_padded = generation_manager.run_llm_loop(
                     gen_batch=test_gen_batch_padded,
                     initial_input_ids=first_input_ids,
-                    is_validation=True,
                 )
             else:
                 test_output_gen_batch_padded = self.actor_rollout_wg.generate_sequences(
@@ -1025,6 +1023,7 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                 * self.config.trainer.nnodes,
                 rollout_n=self.config.actor_rollout_ref.rollout.n,
                 mask_void_turns=self.config.actor_rollout_ref.actor.mask_void_turns,
+                append_final_answer_func=self.config.agent.append_final_answer_func,
             )
             generation_manager = AgentHelper(
                 tokenizer=self.tokenizer,

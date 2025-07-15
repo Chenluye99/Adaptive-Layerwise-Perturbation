@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import random
 import re
 from itertools import product
 
@@ -118,7 +117,7 @@ def hf_verify_with_try(gold, target):
         return False
 
 
-def compute_score(solution_str, ground_truth, method="strict"):
+def compute_score(solution_str, ground_truth):
     """The scoring function for GSM8k.
 
     Reference: Trung, Luong, et al. "Reft: Reasoning with reinforced fine-tuning." Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2024.

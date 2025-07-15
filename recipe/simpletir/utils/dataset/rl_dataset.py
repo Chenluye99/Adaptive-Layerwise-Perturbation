@@ -36,7 +36,7 @@ class RLCustomPromptDataset(RLHFDataset):
         tokenizer: PreTrainedTokenizer,
         processor: Optional[ProcessorMixin] = None,
         prompt_key="prompt",
-        prompt="",
+        prompt=None,
         image_key="images",
         max_prompt_length=1024,
         filter_prompts=True,
@@ -45,7 +45,6 @@ class RLCustomPromptDataset(RLHFDataset):
         apply_chat_template=False,
         return_raw_chat=False,
         truncation="error",
-        tool_use=False,
         # if using sample_size, trucnate every validation dataset into this to reduce the time used for evaluation each time
         sample_size=None,
         filter_overlong_prompts=True,
@@ -71,7 +70,6 @@ class RLCustomPromptDataset(RLHFDataset):
         self.truncation = truncation
         self.sample_size = sample_size
         self.filter_overlong_prompts = filter_overlong_prompts
-        self.tool_use = tool_use
 
         # whether to store the dataset in state_dict()
         # default not store
@@ -100,7 +98,7 @@ class RLCustomPromptDataset(RLHFDataset):
         tokenizer = self.tokenizer
         prompt_key = self.prompt_key
 
-        if self.tool_use:
+        if self.prompt is not None:
             self.dataframe[prompt_key] = self.dataframe[prompt_key].apply(
                 lambda prompt_array: [
                     {

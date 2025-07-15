@@ -56,20 +56,18 @@ DATA_PATH=... \ # the dir containing data like deepscaler/train (see datasets/)
 CHECKPOINT_PATH=... \ # the dir to save the checkpoint
 LOG_PATH=... \ # the dir to save the log
 NNODES=... \
+GPUS_PER_NODE=... \
 RESUME=False \
+CONFIG_NAME=simpletir_trainer \
 bash train.sh \
   --max_response_length 8000 \
   --max_prompt_length 16000 \
-  --rollout_tp 2 \
-  --save_freq 10 \
   --model_name Qwen2.5-7B \
   --max_turns 5 \
-  --train_dataset "simplelr_math_35/train deepscaler/train" \
-  --acc_filter 0.1_0.9 \
-  --remove_clip True \
-  --mask_void_turns True \
-  --oversample 3
+  --train_dataset "simplelr_math_35/train deepscaler/train"
 ```
+
+To resume a previous training run, simply set `RESUME` to `True`.
 
 ### Inference
 
@@ -81,11 +79,12 @@ DATA_PATH=... \ # the dir containing data like deepscaler/aime (see datasets/)
 CHECKPOINT_PATH=... \ # the dir to save the checkpoint
 LOG_PATH=... \ # the dir to save the log
 NNODES=... \
+GPUS_PER_NODE=... \
 RESUME=False \
+CONFIG_NAME=simpletir_trainer \
 bash train.sh \
   --max_response_length 12000 \
   --max_prompt_length 36000 \
-  --rollout_tp 2 \
   --model_name <MODEL_NAME> \ # the name of the checkpoint
   --max_turns 10 \
   --valid_dataset "deepscaler/aime" \

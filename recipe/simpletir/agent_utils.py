@@ -128,10 +128,10 @@ class GenerationConfig:
     max_prompt_length: int
     max_response_length: int
     max_obs_length: int
-    # logging: dict
     num_gpus: int
     rollout_n: int
     mask_void_turns: bool
+    append_final_answer_func: bool
 
 
 class AgentHelper:
@@ -140,14 +140,10 @@ class AgentHelper:
         tokenizer,
         actor_rollout_wg,
         config: GenerationConfig,
-        # logger: Tracking,
-        is_validation: bool = False,
     ):
         self.tokenizer = tokenizer
         self.actor_rollout_wg = actor_rollout_wg
         self.config = config
-        # self.logger = logger
-        self.is_validation = is_validation
 
         self.tensor_fn = TensorHelper(
             TensorConfig(
@@ -359,10 +355,8 @@ class AgentHelper:
         gen_batch,
         initial_input_ids: torch.Tensor,
         timeout: int = 5,
-        is_validation: bool = False,
     ) -> Tuple[Dict, Dict]:
         """Run main LLM generation loop."""
-        self.is_validation = is_validation
         batch_size = gen_batch.batch["input_ids"].shape[0]
 
         self.timeout = timeout
@@ -603,15 +597,15 @@ class AgentHelper:
                     if self.config.mask_void_turns:
                         is_void_turn[i] = 1
             else:
-                # code = fix_final_answer_code(code)
-                code = (
-                    """
+                if self.config.append_final_answer_func:
+                    code = (
+                        """
 def final_answer(result):
     print(f"\\\\boxed{{{result}}}")
 
 """
-                    + code
-                )
+                        + code
+                    )
                 tasks.append(code)
                 index_mapping.append(i)
 
