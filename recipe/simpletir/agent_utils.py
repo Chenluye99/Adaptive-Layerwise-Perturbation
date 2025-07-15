@@ -458,18 +458,11 @@ class AgentHelper:
 
             if step < self.config.max_turns - 1:
                 turns_stats[curr_active_mask] += 1
-                next_obs_ids = self._process_next_obs(next_obs)
-                rollings = self._update_rolling_state(
-                    rollings, responses_ids, next_obs_ids
-                )
-                original_right_side = self._update_right_side(
-                    original_right_side, responses_ids, next_obs_ids
-                )
-            else:
-                original_right_side = self._update_right_side(
-                    original_right_side,
-                    responses_ids,
-                )
+            next_obs_ids = self._process_next_obs(next_obs)
+            rollings = self._update_rolling_state(rollings, responses_ids, next_obs_ids)
+            original_right_side = self._update_right_side(
+                original_right_side, responses_ids, next_obs_ids
+            )
 
         meta_info["turns_stats"] = turns_stats.tolist()
         meta_info["active_mask"] = active_mask.tolist()
