@@ -133,13 +133,9 @@ def compute_grpo_outcome_advantage(token_level_rewards: torch.Tensor,
 
     with torch.no_grad():
         bsz = scores.shape[0]
-        skipped_items = 0
         for i in range(bsz):
-            if valid_response_lengths[i] == 0:
-                skipped_items += 1
-                continue
+            # if the response is valid, add it to scores
             id2score[index[i]].append(scores[i])
-        print(f"[debug] filtering {skipped_items}/{bsz} samples")
         for idx in id2score:
             if len(id2score[idx]) == 1:
                 id2mean[idx] = torch.tensor(0.0)
