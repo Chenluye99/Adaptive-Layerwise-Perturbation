@@ -19,8 +19,7 @@
 
 <div align="center">
 
-[![Notion](https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white)](https://simpletir.notion.site/report)
-<br><a href="https://huggingface.co/collections/ZhenghaiXue/simpletir-686ce09ae6e1db33b375f03d"><img src="https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.svg" alt="Hugging Face logo" width="80"></a>
+[![Notion](https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white)](https://simpletir.notion.site/report) [![Hugging Face](https://img.shields.io/badge/SimpleTIR-fcd022?style=for-the-badge&logo=Huggingface&logoColor=000)](https://huggingface.co/collections/ZhenghaiXue/simpletir-686ce09ae6e1db33b375f03d)
 
 </div>
 
@@ -95,10 +94,7 @@ bash train.sh \
   --sp_size 2
 ```
 
-## Roadmap
-
-- [x]	Remove sandbox dependencies
-- [x]	Release model checkpoints
+To evaluate a trained checkpoint, please convert the checkpoint into huggingface format using `scripts/model_merger.sh`.
 
 ## Acknowledgement
 We thank [verl](https://github.com/volcengine/verl) and [Search-R1](https://github.com/PeterGriffinJin/Search-R1) for the open source code.
