@@ -63,6 +63,9 @@ bash train.sh \
   --max_prompt_length 16000 \
   --model_name Qwen2.5-7B \
   --max_turns 5 \
+  --train_batch_size 512 \
+  --val_sample_size 50 \
+  --n_val 16 \
   --train_dataset "simplelr_math_35/train deepscaler/train"
 ```
 
