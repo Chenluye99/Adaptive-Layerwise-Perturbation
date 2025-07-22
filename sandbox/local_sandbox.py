@@ -101,6 +101,7 @@ async def parallel_sandbox(
     if stdin_list is None:
         tasks = [single_sandbox(code=code, endpoint=endpoint, semaphore=semaphore) for code in tasks]
     else:
+        assert len(tasks) == len(stdin_list), f"len(tasks) ({len(tasks)}) != len(stdin_list) ({len(stdin_list)})"
         tasks = [single_sandbox(code=code, stdin=stdin, endpoint=endpoint, semaphore=semaphore) for code, stdin in zip(tasks, stdin_list)]
     results = await asyncio.gather(*tasks, return_exceptions=False)
 
