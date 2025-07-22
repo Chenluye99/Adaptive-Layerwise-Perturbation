@@ -170,18 +170,14 @@ class TaskRunner:
             mapping[Role.RefPolicy] = global_pool_id
 
         reward_manager_name = config.reward_model.get("reward_manager", "naive")
-        if reward_manager_name == "naive":
-            from verl.workers.reward_manager import NaiveRewardManager
-
-            reward_manager_cls = NaiveRewardManager
-        elif reward_manager_name == "prime":
-            from verl.workers.reward_manager import PrimeRewardManager
-
-            reward_manager_cls = PrimeRewardManager
-        elif reward_manager_name == "math":
+        if reward_manager_name == "math":
             from recipe.simpletir.workers.reward_manager import MathRewardManager
 
             reward_manager_cls = MathRewardManager
+        elif reward_manager_name == "math_exec":
+            from recipe.simpletir.workers.reward_manager import MathRewardExecManager
+
+            reward_manager_cls = MathRewardExecManager
         else:
             raise NotImplementedError
 

@@ -69,6 +69,29 @@ bash train.sh \
   --train_dataset "simplelr_math_35/train deepscaler/train"
 ```
 
+Example command to run 7B single-turn training on an 8xH100 node:
+
+```bash
+MODEL_PATH=... \ # the parent dir of the checkpoint
+DATA_PATH=... \ # the dir containing data like deepscaler/train (see datasets/)
+CHECKPOINT_PATH=... \ # the dir to save the checkpoint
+LOG_PATH=... \ # the dir to save the log
+NNODES=... \
+GPUS_PER_NODE=... \
+RESUME=False \
+CONFIG_NAME=single_turn_math \
+bash train.sh \
+  --max_response_length 8000 \
+  --max_prompt_length 4096 \
+  --model_name Qwen2.5-7B \
+  --train_dataset "simplelr_math_35/train deepscaler/train" \
+  --tool_use False \
+  --mask_void_turns False \
+  --train_batch_size 512 \
+  --val_sample_size 50 \
+  --n_val 16
+```
+
 To resume a previous training run, simply set `RESUME` to `True`.
 
 ### Inference
