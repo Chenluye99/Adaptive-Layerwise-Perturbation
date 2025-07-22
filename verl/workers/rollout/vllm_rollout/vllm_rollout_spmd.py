@@ -218,7 +218,9 @@ class vLLMRollout(BaseRollout):
                 'top_k': -1,
                 'min_p': 0.0,
                 'temperature': 0,
-                'n': 1  # if greedy, only 1 response
+                'n': 1,  # if greedy, only 1 response
+                'detokenize': self.config.val_kwargs.get("detokenize", False),
+                'stop': self.config.val_kwargs.get("stop", None),
             }
         elif is_validate:
             # TODO: try **
@@ -227,6 +229,8 @@ class vLLMRollout(BaseRollout):
                 'top_p': self.config.val_kwargs.top_p,
                 'temperature': self.config.val_kwargs.temperature,
                 'n': 1,  # if validate, already repeat in ray_trainer
+                'detokenize': self.config.val_kwargs.get("detokenize", False),
+                'stop': self.config.val_kwargs.get("stop", None),
             }
         if prompts.meta_info.get("n", self.config.n) == 1:
             kwargs = {"n": 1}
