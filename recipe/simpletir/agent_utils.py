@@ -627,7 +627,7 @@ def final_answer(result):
                     valid_code[env_idx] = 1
                     success_code_lines.append(total_lines)
                     success_code_strip_lines.append(code_lines)
-                    
+
                     truncated_stdout = truncate_content(stdout, max_length=512)
                     obs = f"\nCode execution result: {truncated_stdout}\n"
                 else:
