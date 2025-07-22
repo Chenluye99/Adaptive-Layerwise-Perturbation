@@ -178,6 +178,10 @@ class TaskRunner:
             from recipe.simpletir.workers.reward_manager import MathRewardExecManager
 
             reward_manager_cls = MathRewardExecManager
+        elif reward_manager_name == "code":
+            from recipe.simpletir.workers.reward_manager import CodeRewardManager
+
+            reward_manager_cls = CodeRewardManager
         else:
             raise NotImplementedError
 
