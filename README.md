@@ -19,7 +19,7 @@
 
 <div align="center">
 
-[![Notion](https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white)](https://simpletir.notion.site/report) [![Hugging Face](https://img.shields.io/badge/SimpleTIR-fcd022?style=for-the-badge&logo=Huggingface&logoColor=000)](https://huggingface.co/collections/ZhenghaiXue/simpletir-686ce09ae6e1db33b375f03d)
+[![Paper](https://img.shields.io/badge/paper-A42C25?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2509.02479) [![Notion](https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white)](https://simpletir.notion.site/report) [![Hugging Face](https://img.shields.io/badge/SimpleTIR-fcd022?style=for-the-badge&logo=Huggingface&logoColor=000)](https://huggingface.co/collections/ZhenghaiXue/simpletir-686ce09ae6e1db33b375f03d)
 
 </div>
 
@@ -130,12 +130,10 @@ We thank [verl](https://github.com/volcengine/verl) and [Search-R1](https://gith
 If you find this codebase useful, please kindly give a star and cite our paper:
 
 ```bibtex
-@misc{xue2025simpletir,
+@article{xue2025simpletir,
   title={SimpleTIR: End-to-End Reinforcement Learning for Multi-Turn Tool-Integrated Reasoning},
-  author={Zhenghai Xue and Longtao Zheng and Qian Liu and Yingru Li and Zejun Ma and Bo An},
-  year={2025},
-  howpublished={\url{https://simpletir.notion.site/report}},
-  note={Notion Blog}
+  author={Xue, Zhenghai and Zheng, Longtao and Liu, Qian and Li, Yingru and Zheng, Xiaosen and Ma, Zejun and An, Bo},
+  journal={arXiv preprint arXiv:2509.02479},
   year={2025}
 }
 ```
