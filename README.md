@@ -23,6 +23,60 @@
 
 </div>
 
+## Train scripts
+simpletir
+```bash
+MODEL_PATH=Qwen \
+DATA_PATH=/home/chenluy/SimpleTIR/datasets \
+CHECKPOINT_PATH=/opt/dlami/nvme/TIR \
+LOG_PATH=./logs/TIR \
+NNODES=1 \
+GPUS_PER_NODE=8 \
+RESUME=False \
+CONFIG_NAME=simpletir_trainer \
+bash train.sh \
+  --max_response_length 8000 \
+  --max_prompt_length 16000 \
+  --model_name Qwen2.5-7B \
+  --max_turns 5 \
+  --train_batch_size 512 \
+  --val_sample_size 50 \
+  --n_val 16 \
+  --train_dataset "simplelr_math_35/train deepscaler/train" \
+  --loss_mode vanilla \
+  --clip_ratio_high 0.1 \
+  --clip_ratio_low 0.1
+```
+
+step_gspo + mask void_turn
+```bash
+MODEL_PATH=Qwen \
+DATA_PATH=/home/chenluy/SimpleTIR/datasets \
+CHECKPOINT_PATH=/opt/dlami/nvme/TIR \
+LOG_PATH=./logs/TIR \
+NNODES=1 \
+GPUS_PER_NODE=8 \
+RESUME=False \
+CONFIG_NAME=simpletir_trainer \
+bash train.sh \
+  --max_response_length 8000 \
+  --max_prompt_length 16000 \
+  --model_name Qwen2.5-7B \
+  --max_turns 5 \
+  --train_batch_size 512 \
+  --val_sample_size 50 \
+  --n_val 16 \
+  --train_dataset "simplelr_math_35/train deepscaler/train" \
+  --loss_mode step_gspo \
+  --clip_ratio_high 0.1 \
+  --clip_ratio_low 0.1
+```
+
+
+
+
+## Old
+
 This repository trains LLMs to perform multi-turn Tool-Integrated Reasoning (TIR) with RL, where LLMs iteratively generate code, execute it, and think upon the execution results. This capability enables models to tackle complex mathematical problems, conduct sophisticated data analysis, and perform multi-step reasoning that mirrors human problem-solving approaches.
 
 ![](recipe/simpletir/assets/simpletir_example.jpg)
