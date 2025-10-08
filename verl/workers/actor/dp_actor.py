@@ -298,14 +298,33 @@ class DataParallelPPOActor(BasePPOActor):
                     # all return: (bsz, response_length)
                     entropy, log_prob = self._forward_micro_batch(micro_batch=data, temperature=temperature)
 
-                    pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower = core_algos.compute_policy_loss(
-                        old_log_prob=old_log_prob,
-                        log_prob=log_prob,
-                        advantages=advantages,
-                        eos_mask=response_mask,
-                        cliprange_high=clip_ratio_high,
-                        cliprange_low=clip_ratio_low,
-                        clip_ratio_c=clip_ratio_c)
+                    if self.config.policy_loss.loss_mode == 'step_gspo':
+                        pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower = core_algos.compute_policy_loss_gspo_per_step(
+                            old_log_prob=old_log_prob,
+                            log_prob=log_prob,
+                            advantages=advantages,
+                            response_mask=response_mask,
+                            clip_ratio_high=clip_ratio_high,
+                            clip_ratio_low=clip_ratio_low,
+                            )
+                    elif self.config.policy_loss.loss_mode == 'gspo':
+                        pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower = core_algos.compute_policy_loss_gspo(
+                            old_log_prob=old_log_prob,
+                            log_prob=log_prob,
+                            advantages=advantages,
+                            response_mask=response_mask,
+                            clip_ratio_high=clip_ratio_high,
+                            clip_ratio_low=clip_ratio_low,
+                            )
+                    else:
+                        pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower = core_algos.compute_policy_loss(
+                            old_log_prob=old_log_prob,
+                            log_prob=log_prob,
+                            advantages=advantages,
+                            eos_mask=response_mask,
+                            cliprange_high=clip_ratio_high,
+                            cliprange_low=clip_ratio_low,
+                            clip_ratio_c=clip_ratio_c)
                     # compute entropy loss from entropy
                     entropy_loss = verl_F.masked_mean(entropy, response_mask)
 

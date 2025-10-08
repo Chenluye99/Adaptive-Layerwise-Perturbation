@@ -393,3 +393,209 @@ def kl_penalty(logprob: torch.FloatTensor, ref_logprob: torch.FloatTensor, kl_pe
         raise NotImplementedError
 
     raise NotImplementedError
+
+
+def compute_policy_loss_gspo(
+    old_log_prob: torch.Tensor,
+    log_prob: torch.Tensor,
+    advantages: torch.Tensor,
+    response_mask: torch.Tensor,
+    loss_agg_mode: str = "seq-mean-token-mean",
+    clip_ratio_high: float,
+    clip_ratio_low: float,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    Compute the clipped policy objective and related metrics for GSPO.
+
+    See https://arxiv.org/pdf/2507.18071 for more details.
+
+    Args:
+        old_log_prob (torch.Tensor):
+            Log-probabilities of actions under the old policy, shape (batch_size, response_length).
+        log_prob (torch.Tensor):
+            Log-probabilities of actions under the current policy, shape (batch_size, response_length).
+        advantages (torch.Tensor):
+            Advantage estimates for each action, shape (batch_size, response_length).
+        response_mask (torch.Tensor):
+            Mask indicating which tokens to include in the loss, shape (batch_size, response_length).
+        loss_agg_mode (str, optional):
+            Aggregation mode for `agg_loss`. For GSPO, it is recommended to use "seq-mean-token-mean".
+        clip_ratio_high:
+            The high clip range for the policy loss.
+        clip_ratio_low:
+            The low clip range for the policy loss.
+    """
+
+    assert clip_ratio_high is not None
+    assert clip_ratio_low is not None
+
+    negative_approx_kl = log_prob - old_log_prob
+
+    # compute sequence-level importance ratio:
+    # si(θ) = (π_θ(yi|x)/π_θold(yi|x))^(1/|yi|) =
+    # exp [(1/|y_i|) * Σ_t log(π_θ(y_i,t|x,y_i,<t)/π_θold(y_i,t|x,y_i,<t))]
+    seq_lengths = torch.sum(response_mask, dim=-1).clamp(min=1)
+    negative_approx_kl_seq = torch.sum(negative_approx_kl * response_mask, dim=-1) / seq_lengths
+
+    # Combined ratio at token level:
+    # s_i,t(θ) = sg[s_i(θ)] · π_θ(y_i,t|x, y_i,<t) / sg[π_θ(y_i,t|x, y_i,<t)]
+    # In log space: log(s_i,t(θ)) = sg[log(s_i(θ))] + log_prob - sg[log_prob]
+    log_seq_importance_ratio = log_prob - log_prob.detach() + negative_approx_kl_seq.detach().unsqueeze(-1)
+    log_seq_importance_ratio = torch.clamp(log_seq_importance_ratio, max=10.0)  # clamp for numerical stability
+
+    # finaly exp() to remove log
+    seq_importance_ratio = torch.exp(log_seq_importance_ratio)
+
+    pg_losses1 = -advantages * seq_importance_ratio
+    pg_losses2 = -advantages * torch.clamp(seq_importance_ratio, 1 - clip_ratio_low, 1 + clip_ratio_high)
+    pg_losses = torch.maximum(pg_losses1, pg_losses2)
+
+    # for GSPO, we need to aggregate the loss at the sequence level (seq-mean-token-mean)
+    pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode="seq-mean-token-mean")
+
+    # For compatibility, return zero for pg_clipfrac_lower (not used in standard GSPO)
+    pg_clipfrac = verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), response_mask)
+    pg_clipfrac_lower = torch.tensor(0.0, device=pg_loss.device)
+
+    ppo_kl = verl_F.masked_mean(-negative_approx_kl, response_mask)
+
+    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower
+
+
+def compute_policy_loss_gspo_per_step(
+    old_log_prob: torch.Tensor,
+    log_prob: torch.Tensor,
+    advantages: torch.Tensor,
+    response_mask: torch.Tensor,
+    loss_agg_mode: str = "token-mean",
+    clip_ratio_high: float,
+    clip_ratio_low: float,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    Compute the clipped policy objective and related metrics for GSPO with per-step importance weight.
+    
+    This version calculates per-step importance weight up to each step, rather than using
+    the average importance weight for the entire sequence.
+
+    Args:
+        old_log_prob (torch.Tensor):
+            Log-probabilities of actions under the old policy, shape (batch_size, response_length).
+        log_prob (torch.Tensor):
+            Log-probabilities of actions under the current policy, shape (batch_size, response_length).
+        advantages (torch.Tensor):
+            Advantage estimates for each action, shape (batch_size, response_length).
+        response_mask (torch.Tensor):
+            Mask indicating which tokens to include in the loss, shape (batch_size, response_length).
+        loss_agg_mode (str, optional):
+            Aggregation mode for `agg_loss`. For GSPO, it is recommended to use "seq-mean-token-mean".
+        clip_ratio_high:
+            The high clip range for the policy loss.
+        clip_ratio_low:
+            The low clip range for the policy loss.
+    """
+    
+    assert clip_ratio_high is not None
+    assert clip_ratio_low is not None
+
+    negative_approx_kl = log_prob - old_log_prob
+    
+    # Compute per-step importance weight for each step
+    # For each position t, we calculate the average importance weight from start to position t
+    batch_size, seq_length = negative_approx_kl.shape
+    device = negative_approx_kl.device
+    
+    # Initialize per-step importance ratios
+    per_step_importance_ratios = torch.zeros_like(negative_approx_kl)
+    
+    # Vectorized approach: handle non-contiguous masks using cumulative count
+    # Calculate cumulative sum for all sequences
+    cumulative_sum = torch.cumsum(negative_approx_kl * response_mask, dim=-1)
+    
+    # Create position indices that respect the mask
+    # The key insight: use cumulative count of valid positions
+    seq_lengths = response_mask.sum(dim=-1)
+    max_len = seq_lengths.max().item()
+    
+    if max_len > 0:
+        # Create a position matrix that respects the mask
+        # For each sequence, positions should be 1, 2, 3, ... up to the number of valid tokens
+        positions = torch.zeros_like(negative_approx_kl)
+        
+        # Calculate cumulative count of valid positions for each sequence
+        cumulative_count = torch.cumsum(response_mask, dim=-1)
+        
+        # Only use positions where we have valid tokens
+        # Convert to same dtype as negative_approx_kl for type consistency
+        positions = torch.where(response_mask > 0, cumulative_count.to(negative_approx_kl.dtype), torch.zeros_like(cumulative_count, dtype=negative_approx_kl.dtype))
+        
+        # Calculate per-step KL values with numerical stability
+        # Add small epsilon to avoid division by zero
+        eps = 1e-8
+        per_step_kl_values = torch.where(
+            response_mask > 0,
+            cumulative_sum / (positions + eps),
+            torch.zeros_like(cumulative_sum)
+        )
+        
+        # Calculate importance ratios
+        log_per_step_ratio = per_step_kl_values.detach() + log_prob - log_prob.detach()
+        log_per_step_ratio = torch.clamp(log_per_step_ratio, max=10.0)
+        
+        # Apply mask to ensure only valid positions are updated
+        per_step_importance_ratios = torch.where(
+            response_mask > 0,
+            torch.exp(log_per_step_ratio),
+            torch.zeros_like(log_per_step_ratio)
+        )
+    
+    # Compute policy losses with per-step importance ratios
+    pg_losses1 = -advantages * per_step_importance_ratios
+    pg_losses2 = -advantages * torch.clamp(per_step_importance_ratios, 1 - clip_ratio_low, 1 + clip_ratio_high)
+    pg_losses = torch.maximum(pg_losses1, pg_losses2)
+
+    # Aggregate the loss at the sequence level
+    pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
+
+    # For compatibility, return zero for pg_clipfrac_lower (not used in standard GSPO)
+    pg_clipfrac = verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), response_mask)
+    pg_clipfrac_lower = torch.tensor(0.0, device=pg_loss.device)
+
+    ppo_kl = verl_F.masked_mean(-negative_approx_kl, response_mask)
+
+    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower
+
+
+def agg_loss(loss_mat: torch.Tensor, loss_mask: torch.Tensor, loss_agg_mode: str):
+    """
+    Aggregate the loss matrix into a scalar.
+
+    Args:
+        loss_mat: `(torch.Tensor)`:
+            shape: (bs, response_length)
+        loss_mask: `(torch.Tensor)`:
+            shape: (bs, response_length)
+        loss_agg_mode: (str) choices:
+            method to aggregate the loss matrix into a scalar.
+    Returns:
+        loss: `a scalar torch.Tensor`
+            aggregated loss
+    """
+    if loss_agg_mode == "token-mean":
+        loss = verl_F.masked_mean(loss_mat, loss_mask)
+    elif loss_agg_mode == "seq-mean-token-sum":
+        seq_losses = torch.sum(loss_mat * loss_mask, dim=-1)  # token-sum
+        loss = torch.mean(seq_losses)  # seq-mean
+    elif loss_agg_mode == "seq-mean-token-mean":
+        seq_losses = torch.sum(loss_mat * loss_mask, dim=-1) / torch.sum(loss_mask, dim=-1)  # token-mean
+        loss = torch.mean(seq_losses)  # seq-mean
+    elif loss_agg_mode == "seq-mean-token-sum-norm":
+        seq_losses = torch.sum(loss_mat * loss_mask, dim=-1)
+        loss = torch.sum(seq_losses) / loss_mask.shape[-1]  # The divisor
+        # (loss_mask.shape[-1]) should ideally be constant
+        # throughout training to well-replicate the DrGRPO paper.
+        # TODO: Perhaps add user-defined normalizer argument to
+        # agg_loss to ensure divisor stays constant throughout.
+    else:
+        raise ValueError(f"Invalid loss_agg_mode: {loss_agg_mode}")
+
+    return loss

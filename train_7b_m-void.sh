@@ -13,9 +13,11 @@ MODEL_PATH='Qwen' # the parent dir of the checkpoint
 DATA_PATH='/home/chenluy/SimpleTIR/datasets' # the dir containing data like deepscaler/train (see datasets/)
 CHECKPOINT_PATH="/opt/dlami/nvme/${PROJECT_NAME}" # the dir to save the checkpoint
 LOG_PATH="./logs/${PROJECT_NAME}" # the dir to save the log
-NNODES=1 \
-GPUS_PER_NODE=8 \
-RESUME=False \
+NNODES=1
+GPUS_PER_NODE=8 
+RESUME=False 
+LOSS_MODE='step_gspo'
+
 # Default values
 MAX_TURNS=5
 TRAIN_BATCH_SIZE=4
@@ -138,6 +140,7 @@ generate_suffix() {
       --balance_batch) suffix+="_balbatch$2"; shift 2 ;;
       --mask_void_turns) suffix+="_maskvoidturns$2"; shift 2 ;;
       --oversample) suffix+="_oversample$2"; shift 2 ;;
+      --loss_mode) suffix+="_lossmode$2"; shift 2 ;;
       *) shift ;;
     esac
   done
@@ -175,6 +178,7 @@ while [[ "$#" -gt 0 ]]; do
     --save_freq) SAVE_FREQ="$2"; shift 2 ;;
     --test_freq) TEST_FREQ="$2"; shift 2 ;;
     --remove_clip) REMOVE_CLIP="$2"; shift 2 ;;
+    --loss_mode) LOSS_MODE="$2"; shift 2 ;;
     --rejection_sample) REJECTION_SAMPLE="$2"; shift 2 ;;
     --sp_size) SP_SIZE="$2"; shift 2 ;;
     --train_dataset) TRAIN_DATASET=($2); shift 2 ;;
@@ -217,6 +221,7 @@ echo "Max Response Length: $MAX_RESPONSE_LENGTH"
 echo "PPO Mini Batch Size: $PPO_MINI_BATCH_SIZE"
 echo "Total Epochs: $TOTAL_EPOCHS"
 echo "Model Name: $MODEL_NAME"
+echo "Loss Mode: $LOSS_MODE"
 echo "Remove Clip: $REMOVE_CLIP"
 echo "grad clip: $GRAD_CLIP"
 echo "balance batch: $BALANCE_BATCH"
@@ -280,6 +285,7 @@ PYTHONUNBUFFERED=1 python -m recipe.simpletir.main_simpletir \
     data.max_prompt_length=$MAX_PROMPT_LENGTH \
     data.max_response_length=$MAX_RESPONSE_LENGTH \
     actor_rollout_ref.model.path=$MODEL_PATH/$MODEL_NAME \
+    actor_rollout_ref.actor.policy_loss.loss_mode=$LOSS_MODE \
     actor_rollout_ref.actor.ppo_mini_batch_size=$PPO_MINI_BATCH_SIZE \
     actor_rollout_ref.actor.ppo_max_token_len_per_gpu=$PPO_MICRO_TOKEN \
     actor_rollout_ref.actor.grad_clip=$GRAD_CLIP \
