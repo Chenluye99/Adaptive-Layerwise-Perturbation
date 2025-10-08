@@ -306,6 +306,7 @@ class DataParallelPPOActor(BasePPOActor):
                             response_mask=response_mask,
                             clip_ratio_high=clip_ratio_high,
                             clip_ratio_low=clip_ratio_low,
+                            clip_ratio_c=clip_ratio_c,
                             )
                     elif self.config.policy_loss.loss_mode == 'gspo':
                         pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower = core_algos.compute_policy_loss_gspo(

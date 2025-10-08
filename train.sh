@@ -16,9 +16,11 @@ LOG_PATH="./logs/${PROJECT_NAME}" # the dir to save the log
 NNODES=1
 GPUS_PER_NODE=8 
 RESUME=False 
-LOSS_MODE='step_gspo'
+LOSS_MODE='vanilla' # vanilla, step_gspo, gspo
 
 # Default values
+CLIP_RATIO_HIGH=0.28
+CLIP_RATIO_LOW=0.2
 MAX_TURNS=5
 TRAIN_BATCH_SIZE=4
 VAL_SAMPLE_SIZE=4
@@ -131,6 +133,8 @@ generate_suffix() {
       --max_response_length) suffix+="_maxres$2"; shift 2 ;;
       --max_obs_length) suffix+="_maxres$2"; shift 2 ;;
       --ppo_mini_batch_size) suffix+="_ppomini$2"; shift 2 ;;
+      --clip_ratio_high) suffix+="_clipratiohigh$2"; shift 2 ;;
+      --clip_ratio_low) suffix+="_clipratiolow$2"; shift 2 ;;
       --remove_clip) suffix+="_rmclip$2"; shift 2 ;;
       --max_turns) suffix+="_maxturn$2"; shift 2;;
       --stp_on_err) suffix+="_stperr$2"; shift 2 ;;
@@ -185,6 +189,8 @@ while [[ "$#" -gt 0 ]]; do
     --valid_dataset) VALID_DATASET=($2); shift 2 ;;
     --model_name) MODEL_NAME="$2"; shift 2 ;;
     --max_turns) MAX_TURNS="$2"; shift 2 ;;
+    --clip_ratio_high) CLIP_RATIO_HIGH="$2"; shift 2 ;;
+    --clip_ratio_low) CLIP_RATIO_LOW="$2"; shift 2 ;;
     --grad_clip) GRAD_CLIP="$2"; shift 2 ;;
     --acc_filter) ACC_FILTER="$2"; shift 2 ;;
     --start_clip_step) START_CLIP_STEP="$2"; shift 2 ;;
@@ -223,6 +229,8 @@ echo "Total Epochs: $TOTAL_EPOCHS"
 echo "Model Name: $MODEL_NAME"
 echo "Loss Mode: $LOSS_MODE"
 echo "Remove Clip: $REMOVE_CLIP"
+echo "Clip Ratio High: $CLIP_RATIO_HIGH"
+echo "Clip Ratio Low: $CLIP_RATIO_LOW"
 echo "grad clip: $GRAD_CLIP"
 echo "balance batch: $BALANCE_BATCH"
 echo "Mask Void Turns: $MASK_VOID_TURNS"
@@ -289,6 +297,8 @@ PYTHONUNBUFFERED=1 python -m recipe.simpletir.main_simpletir \
     actor_rollout_ref.actor.ppo_mini_batch_size=$PPO_MINI_BATCH_SIZE \
     actor_rollout_ref.actor.ppo_max_token_len_per_gpu=$PPO_MICRO_TOKEN \
     actor_rollout_ref.actor.grad_clip=$GRAD_CLIP \
+    actor_rollout_ref.actor.clip_ratio_high=$CLIP_RATIO_HIGH \
+    actor_rollout_ref.actor.clip_ratio_low=$CLIP_RATIO_LOW \
     actor_rollout_ref.actor.fsdp_config.param_offload=$ACTOR_PARAMETER_OFFLOAD \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=$ACTOR_OPTIMIZER_OFFLOAD \
     actor_rollout_ref.actor.ulysses_sequence_parallel_size=$SP_SIZE \

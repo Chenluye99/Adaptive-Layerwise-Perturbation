@@ -401,8 +401,8 @@ def compute_policy_loss_gspo(
     advantages: torch.Tensor,
     response_mask: torch.Tensor,
     loss_agg_mode: str = "seq-mean-token-mean",
-    clip_ratio_high: float,
-    clip_ratio_low: float,
+    clip_ratio_high: float=0.28,
+    clip_ratio_low: float=0.2,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Compute the clipped policy objective and related metrics for GSPO.
@@ -468,8 +468,9 @@ def compute_policy_loss_gspo_per_step(
     advantages: torch.Tensor,
     response_mask: torch.Tensor,
     loss_agg_mode: str = "token-mean",
-    clip_ratio_high: float,
-    clip_ratio_low: float,
+    clip_ratio_high: float=0.2,
+    clip_ratio_low: float=0.2,
+    clip_ratio_c: float=3.0,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Compute the clipped policy objective and related metrics for GSPO with per-step importance weight.
@@ -492,11 +493,16 @@ def compute_policy_loss_gspo_per_step(
             The high clip range for the policy loss.
         clip_ratio_low:
             The low clip range for the policy loss.
+        clip_ratio_c:
+            The clip ratio for the policy loss.
     """
     
     assert clip_ratio_high is not None
     assert clip_ratio_low is not None
-
+    assert clip_ratio_c > 1.0, (
+        "The lower bound of the clip_ratio_c for dual-clip PPO should be greater than 1.0,"
+        + f" but get the value: {clip_ratio_c}."
+    )
     negative_approx_kl = log_prob - old_log_prob
     
     # Compute per-step importance weight for each step
@@ -551,15 +557,20 @@ def compute_policy_loss_gspo_per_step(
     # Compute policy losses with per-step importance ratios
     pg_losses1 = -advantages * per_step_importance_ratios
     pg_losses2 = -advantages * torch.clamp(per_step_importance_ratios, 1 - clip_ratio_low, 1 + clip_ratio_high)
-    pg_losses = torch.maximum(pg_losses1, pg_losses2)
+    clip_pg_losses1 = torch.maximum(pg_losses1, pg_losses2)
+
+    pg_losses3 = -advantages * clip_ratio_c
+    clip_pg_losses2 = torch.min(pg_losses3, clip_pg_losses1)
 
     # Aggregate the loss at the sequence level
+    pg_losses = torch.where(advantages < 0, clip_pg_losses2, clip_pg_losses1)
     pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
 
     # For compatibility, return zero for pg_clipfrac_lower (not used in standard GSPO)
     pg_clipfrac = verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), response_mask)
-    pg_clipfrac_lower = torch.tensor(0.0, device=pg_loss.device)
-
+    pg_clipfrac_lower = verl_F.masked_mean(
+        torch.gt(clip_pg_losses1, pg_losses3) * (advantages < 0).float(), response_mask
+    )
     ppo_kl = verl_F.masked_mean(-negative_approx_kl, response_mask)
 
     return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower
