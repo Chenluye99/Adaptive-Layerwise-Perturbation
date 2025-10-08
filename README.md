@@ -44,8 +44,6 @@ bash train.sh \
   --n_val 16 \
   --train_dataset "simplelr_math_35/train deepscaler/train" \
   --loss_mode vanilla \
-  --clip_ratio_high 0.1 \
-  --clip_ratio_low 0.1
 ```
 
 step_gspo + mask void_turn
