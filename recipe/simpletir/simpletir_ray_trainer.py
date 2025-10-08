@@ -346,11 +346,21 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
 
         # register wandb generation logger
         self.validation_generations_logger = {}
-        val_file_prefix = os.environ.get("DATA_PATH", "")
+        val_file_prefix = os.environ.get("DATA_PATH", "/home/chenluy/SimpleTIR/datasets/")
         for val_file in config.data.val_files:
-            val_file = val_file.removeprefix(val_file_prefix + "/").split(".")[0]
-            self.validation_generations_logger[val_file] = ValidationGenerationsLogger(
-                val_file
+            # Remove the data path prefix and .parquet extension to get the key
+            if val_file.startswith(val_file_prefix):
+                val_file_key = val_file[len(val_file_prefix):]
+            else:
+                val_file_key = val_file
+            # Remove leading slash if present
+            if val_file_key.startswith("/"):
+                val_file_key = val_file_key[1:]
+            # Remove .parquet extension if present
+            if val_file_key.endswith(".parquet"):
+                val_file_key = val_file_key[:-8]  # Remove .parquet
+            self.validation_generations_logger[val_file_key] = ValidationGenerationsLogger(
+                val_file_key
             )
 
         # define in-reward KL control
@@ -642,11 +652,24 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                 source_inputs = [inputs[i] for i in source_index]
                 source_outputs = [outputs[i] for i in source_index]
                 source_scores = [scores[i] for i in source_index]
+                # Generate table_name by removing data path prefix and .parquet extension
+                val_file_prefix = os.environ.get("DATA_PATH", "/home/chenluy/SimpleTIR/datasets/")
+                if source.startswith(val_file_prefix):
+                    table_name = source[len(val_file_prefix):]
+                else:
+                    table_name = source
+                # Remove leading slash if present
+                if table_name.startswith("/"):
+                    table_name = table_name[1:]
+                # Remove .parquet extension if present
+                if table_name.endswith(".parquet"):
+                    table_name = table_name[:-8]  # Remove .parquet
+                
                 self._maybe_log_val_generations(
                     source_inputs,
                     source_outputs,
                     source_scores,
-                    table_name=source.split(".")[0],
+                    table_name=table_name,
                 )
             return
 

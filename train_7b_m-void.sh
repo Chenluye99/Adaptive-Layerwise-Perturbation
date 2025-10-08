@@ -1,3 +1,21 @@
+# Sandbox configuration
+export SANDBOX_ENDPOINT=http://127.0.0.1:12345/faas/sandbox/
+export WANDB_API_KEY="a17294c76f5787d04c92fd978d0f1a29133756e2"
+export WANDB_ENTITY="machine-learning0"
+
+export RAY_TMPDIR=/opt/dlami/nvme/ray_tmp
+
+PROJECT_NAME='TIR'
+RUN_NAME="simpletir"
+CONFIG_NAME="simpletir_trainer"
+
+MODEL_PATH='Qwen' # the parent dir of the checkpoint
+DATA_PATH='/home/chenluy/SimpleTIR/datasets' # the dir containing data like deepscaler/train (see datasets/)
+CHECKPOINT_PATH="/opt/dlami/nvme/${PROJECT_NAME}" # the dir to save the checkpoint
+LOG_PATH="./logs/${PROJECT_NAME}" # the dir to save the log
+NNODES=1 \
+GPUS_PER_NODE=8 \
+RESUME=False \
 # Default values
 MAX_TURNS=5
 TRAIN_BATCH_SIZE=4
@@ -18,9 +36,9 @@ ACTOR_OPTIMIZER_OFFLOAD=False
 ACTOR_PARAMETER_OFFLOAD=False
 MODEL_NAME=Qwen2.5-7B
 SAVE_FREQ=20
-TEST_FREQ=10
+TEST_FREQ=20
 REMOVE_CLIP=True
-ROLLOUT_TENSOR_MODEL_PARALLEL_SIZE=2
+ROLLOUT_TENSOR_MODEL_PARALLEL_SIZE=1
 REJECTION_SAMPLE=True
 SP_SIZE=1
 GRAD_CLIP=1.0
@@ -129,8 +147,10 @@ generate_suffix() {
 
 echo "Arguments received: $@"
 
+
 SUFFIX=$(generate_suffix "$@")
 RUN_NAME="$RUN_NAME$SUFFIX"
+mkdir -p $LOG_PATH
 LOG_FILE_PATH=$LOG_PATH/$RUN_NAME.log
 
 # Parse named arguments
