@@ -1,5 +1,5 @@
 """
-Minimal Firejail-based sandbox HTTP API.
+Minimal Firejail-based sandbox HTTP API with logging support.
 Dependencies:
     pip install "fastapi[all]" uvicorn
 System prerequisites:
@@ -29,9 +29,16 @@ ByteIntl Seed-Sandbox. A simple curl test:
     curl -X POST http://127.0.0.1:8000/faas/sandbox/ \
          -H 'Content-Type: application/json' \
          -d '{"code":"print(2+2)","language":"python","compile_timeout":1,"run_timeout":3}'
+
+Logging features:
+    * All executions are logged to ./sandbox_logs/executions.json
+    * Single JSON file containing all execution records
+    * View logs: GET /logs/ (list all logs)
+    * Get specific log: GET /logs/{execution_id}
 """
 
 import asyncio
+import json
 import os
 import shutil
 import tempfile
@@ -41,6 +48,12 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+
+# ---------------- Logging setup ----------------
+
+# 创建日志目录
+LOG_DIR = Path("./sandbox_logs")
+LOG_DIR.mkdir(exist_ok=True)
 
 # ---------------- Pydantic models ----------------
 
@@ -58,7 +71,7 @@ class RunCodeRequest(BaseModel):
     stdin: str = ""
     language: str = "python"
     compile_timeout: float = 1.0  # kept for sdk compatibility, unused here
-    run_timeout: float = 3.0
+    run_timeout: float = 30.0
 
 
 class RunResult(BaseModel):
@@ -71,9 +84,43 @@ class RunResult(BaseModel):
 
 # ---------------- Core runner ----------------
 
+def _save_execution_log(code: str, stdin_data: str, result: dict, execution_id: str):
+    """保存执行日志到单个JSON文件"""
+    log_entry = {
+        "execution_id": execution_id,
+        "timestamp": datetime.utcnow().isoformat(),
+        "code": code,
+        "stdin": stdin_data,
+        "result": result
+    }
+    
+    # 保存到单个JSON文件，追加模式
+    log_file = LOG_DIR / "executions.json"
+    
+    # 读取现有数据
+    if log_file.exists():
+        try:
+            with open(log_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, FileNotFoundError):
+            data = []
+    else:
+        data = []
+    
+    # 添加新条目
+    data.append(log_entry)
+    
+    # 写回文件
+    with open(log_file, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
 async def _run_in_firejail(code: str, timeout: float, stdin_data: str = "") -> dict:
     """Execute *code* inside a fresh Firejail sandbox and return stdout/stderr."""
 
+    # 生成执行ID用于日志记录
+    execution_id = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")[:-3]  # 精确到毫秒
+    
     # 1) Write user code to a tmpfs directory → zero-copy, fast cleanup
     workdir = Path(tempfile.mkdtemp(prefix="fj_", dir="/dev/shm"))
     src = workdir / "main.py"
@@ -115,22 +162,30 @@ async def _run_in_firejail(code: str, timeout: float, stdin_data: str = "") -> d
         proc.kill()
         await proc.wait()
         shutil.rmtree(workdir, ignore_errors=True)
-        return {
+        result = {
             "status": RunStatus.timeout,
             "stdout": "",
             "stderr": "Timeout\n",
         }
+        # 保存超时日志
+        _save_execution_log(code, stdin_data, result, execution_id)
+        return result
 
     status = RunStatus.success if proc.returncode == 0 else RunStatus.runtime_error
 
     # 5) Clean up tmpfs directory
     shutil.rmtree(workdir, ignore_errors=True)
 
-    return {
+    result = {
         "status": status,
         "stdout": stdout.decode(),
         "stderr": stderr.decode(),
     }
+    
+    # 6) 保存执行日志
+    _save_execution_log(code, stdin_data, result, execution_id)
+    
+    return result
 
 
 # ---------------- FastAPI wiring ----------------
@@ -150,3 +205,54 @@ async def run_code(req: RunCodeRequest):
         result = await _run_in_firejail(req.code, req.run_timeout, req.stdin)
 
     return RunResult(status=result["status"], run_result=result, created_at=datetime.utcnow())
+
+
+@app.get("/logs/")
+async def list_logs():
+    """列出所有执行日志"""
+    log_file = LOG_DIR / "executions.json"
+    if not log_file.exists():
+        return {"logs": [], "total": 0}
+    
+    try:
+        with open(log_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # 返回日志摘要信息
+        logs_info = []
+        for entry in data:
+            logs_info.append({
+                "execution_id": entry["execution_id"],
+                "timestamp": entry["timestamp"],
+                "status": entry["result"]["status"],
+                "code_preview": entry["code"][:100] + "..." if len(entry["code"]) > 100 else entry["code"]
+            })
+        
+        # 按时间排序，最新的在前
+        logs_info.sort(key=lambda x: x["timestamp"], reverse=True)
+        return {"logs": logs_info, "total": len(logs_info)}
+        
+    except (json.JSONDecodeError, FileNotFoundError):
+        return {"logs": [], "total": 0}
+
+
+@app.get("/logs/{execution_id}")
+async def get_log(execution_id: str):
+    """获取特定执行ID的日志内容"""
+    log_file = LOG_DIR / "executions.json"
+    if not log_file.exists():
+        raise HTTPException(404, "Log file not found")
+    
+    try:
+        with open(log_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # 查找特定execution_id的条目
+        for entry in data:
+            if entry["execution_id"] == execution_id:
+                return entry
+        
+        raise HTTPException(404, f"Log entry for execution {execution_id} not found")
+        
+    except (json.JSONDecodeError, FileNotFoundError):
+        raise HTTPException(404, "Log file not found or corrupted")
