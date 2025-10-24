@@ -53,6 +53,7 @@ from verl.trainer.ppo.ray_trainer import (
 )
 from verl.utils.dataset.rl_dataset import collate_fn
 from verl.utils.tracking import ValidationGenerationsLogger
+from .mismatch_helper import compute_mismatch_metrics
 
 WorkerType = Type[Worker]
 
@@ -1218,15 +1219,22 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                             responses = batch.batch["responses"]
                             response_length = responses.size(1)
                             response_mask = batch.batch["loss_mask"]
-                            log_ratio = actor_old_log_probs - rollout_old_log_probs
-                            vllm_k3_kl_matrix = torch.exp(log_ratio) - log_ratio - 1
-                            vllm_k3_kl_matrix = torch.masked_select(vllm_k3_kl_matrix, response_mask.bool())
-                            vllm_k3_kl = torch.mean(vllm_k3_kl_matrix)
-                            metrics.update({"training/vllm_k3_kl": vllm_k3_kl.detach().item()})
+                            # log_ratio = actor_old_log_probs - rollout_old_log_probs
+                            # vllm_k3_kl_matrix = torch.exp(log_ratio) - log_ratio - 1
+                            # vllm_k3_kl_matrix = torch.masked_select(vllm_k3_kl_matrix, response_mask.bool())
+                            # vllm_k3_kl = torch.mean(vllm_k3_kl_matrix)
+                            # metrics.update({"training/vllm_k3_kl": vllm_k3_kl.detach().item()})
+                            mismatch_metrics = compute_mismatch_metrics(
+                                old_log_prob=actor_old_log_probs,
+                                rollout_log_prob=rollout_old_log_probs,
+                                response_mask=response_mask,
+                            )
+                            for key, value in mismatch_metrics.items():
+                                metrics[f"training/{key}"] = value
 
                             rollout_probs = torch.exp(rollout_old_log_probs)
                             actor_probs = torch.exp(actor_old_log_probs)
-                            rollout_probs_diff = torch.abs(rollout_probs - actor_probs)
+                            rollout_probs_diff = rollout_probs - actor_probs
                             rollout_probs_diff = torch.masked_select(rollout_probs_diff, response_mask.bool())
                             rollout_probs_diff_max = torch.max(rollout_probs_diff)
                             rollout_probs_diff_mean = torch.mean(rollout_probs_diff)
@@ -1510,6 +1518,18 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                         )
                         metrics.update(actor_output_metrics)
 
+                    # Save the first step batch data for debugging
+                    if self.global_steps == 1:
+                        save_dir = os.path.join(self.config.trainer.default_local_dir, "debug_data")
+                        os.makedirs(save_dir, exist_ok=True)
+                        save_path = os.path.join(save_dir, "first_step_batch.pt")
+                        print(f"Saving first step batch data to {save_path}")
+                        torch.save({
+                            'batch_tensors': batch.batch,
+                            'batch_non_tensors': batch.non_tensor_batch,
+                            'batch_meta_info': batch.meta_info,
+                        }, save_path)
+                    
                     # validate
                     if (
                         self.val_reward_fn is not None
