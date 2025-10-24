@@ -181,6 +181,33 @@ class AgentHelper:
             responses, add_special_tokens=False, return_tensors="pt", padding="longest"
         )["input_ids"]
 
+    # def _postprocess_responses(self, responses: torch.Tensor, log_probs: torch.Tensor = None) -> torch.Tensor:
+    #     """Process responses to stop at search operation or answer operation."""
+    #     responses_str = self.tokenizer.batch_decode(responses, skip_special_tokens=True)
+
+    #     # Drop the responses after the code block
+    #     for i in range(len(responses_str)):
+    #         pattern = r"^(.*?)(```(?:py|python)?\n.*?\n```)"
+    #         match = re.search(pattern, responses_str[i], re.DOTALL)
+    #         if match:
+    #             preceding_text = match.group(1).strip()
+    #             code_block = match.group(2).strip()
+    #             responses_str[i] = preceding_text + code_block
+
+    #     responses = self._batch_tokenize(responses_str)
+
+    #     final_log_probs = None
+    #     if log_probs is not None:
+    #         # create a log_probs tensor with the same shape as final_responses_ids, filled with -1.0
+    #         final_log_probs = torch.full_like(responses, -1.0, dtype=torch.float32)
+            
+    #         # fill the original log_probs to the new tensor
+    #         # take the minimum length of the two, to prevent overflow
+    #         common_length = min(log_probs.shape[1], final_log_probs.shape[1])
+    #         final_log_probs[:, :common_length] = log_probs[:, :common_length]
+
+    #     return responses, responses_str, final_log_probs
+
     def _postprocess_responses(self, responses: torch.Tensor, log_probs: torch.Tensor = None) -> torch.Tensor:
         """Process responses to stop at search operation or answer operation."""
         responses_str = self.tokenizer.batch_decode(responses, skip_special_tokens=True)
@@ -190,9 +217,8 @@ class AgentHelper:
             pattern = r"^(.*?)(```(?:py|python)?\n.*?\n```)"
             match = re.search(pattern, responses_str[i], re.DOTALL)
             if match:
-                preceding_text = match.group(1).strip()
-                code_block = match.group(2).strip()
-                responses_str[i] = preceding_text + code_block
+                end_char_index = match.end(2)  # get the end index of the code block
+                responses_str[i] = responses_str[i][:end_char_index] 
 
         responses = self._batch_tokenize(responses_str)
 
@@ -200,10 +226,12 @@ class AgentHelper:
         if log_probs is not None:
             # create a log_probs tensor with the same shape as final_responses_ids, filled with -1.0
             final_log_probs = torch.full_like(responses, -1.0, dtype=torch.float32)
-            
+
+            new_seq_len = responses.shape[1]
+            original_seq_len = log_probs.shape[1]            
             # fill the original log_probs to the new tensor
             # take the minimum length of the two, to prevent overflow
-            common_length = min(log_probs.shape[1], final_log_probs.shape[1])
+            common_length = min(original_seq_len, new_seq_len)
             final_log_probs[:, :common_length] = log_probs[:, :common_length]
 
         return responses, responses_str, final_log_probs
@@ -259,31 +287,63 @@ class AgentHelper:
 
     def _info_masked_concatenate_with_padding(
         self,
-        prompt: torch.Tensor,
-        prompt_with_mask: torch.Tensor,
-        response: torch.Tensor,
-        info: torch.Tensor = None,
+        # --- 原始张量 (来自 right_side) ---
+        prompt_resp: torch.Tensor,
+        prompt_mask: torch.Tensor,
+        prompt_logp: torch.Tensor,
+        # --- 新张量 (当前回合) ---
+        cur_resp: torch.Tensor,
+        cur_logp: torch.Tensor = None,
+        cur_info: torch.Tensor = None,
+        # --- 控制选项 ---
         pad_to_left: bool = True,
-    ) -> torch.Tensor:
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Concatenate tensors and handle padding. Additionally, create a mask (info_mask) to cover the information block if it exists."""
         pad_id = self.tokenizer.pad_token_id
-        tensors = [prompt, response]
-        tensors_with_mask = [prompt_with_mask, response]
-        if info is not None:
-            tensors.append(info)
+        tensors_resp = [prompt_resp, cur_resp]
+        if cur_info is not None:
+            tensors_resp.append(cur_info)
+
+        tensors_mask = [prompt_mask, cur_resp] # mask 也包含 cur_resp
+        if cur_info is not None:
             info_mask = torch.full(
-                info.size(), pad_id, dtype=info.dtype, device=info.device
-            )  # information mask
-            tensors_with_mask.append(info_mask)
+                cur_info.size(), pad_id, dtype=cur_info.dtype, device=cur_info.device
+            )
+            tensors_mask.append(info_mask) # 但在 info 部分使用 pad
 
-        concatenated = torch.cat(tensors, dim=1)
-        concatenated_with_info = torch.cat(tensors_with_mask, dim=1)
-        mask = concatenated != pad_id if pad_to_left else concatenated == pad_id
+        tensors_logp = [prompt_logp]
+        if cur_logp is not None:
+            tensors_logp.append(cur_logp)
+        else:
+            # 如果没有 logp，必须用 -1.0 填充 cur_resp 的空间
+            tensors_logp.append(torch.full_like(cur_resp, -1.0, dtype=torch.float32, device=prompt_logp.device))
+
+        if cur_info is not None:
+            tensors_logp.append(torch.full_like(cur_info, -1.0, dtype=torch.float32, device=prompt_logp.device))
+
+        concatenated_resp = torch.cat(tensors_resp, dim=1)
+        concatenated_mask = torch.cat(tensors_mask, dim=1)
+        concatenated_logp = torch.cat(tensors_logp, dim=1)
+
+        assert concatenated_resp.shape[1] == concatenated_mask.shape[1] == concatenated_logp.shape[1], \
+            "Concatenated tensor shapes do not match!"
+
+        if pad_to_left:
+            # 转换为左填充
+            mask = concatenated_resp != pad_id
+        else:
+            # 转换为右填充
+            mask = concatenated_resp == pad_id
+
         sorted_indices = mask.to(torch.int64).argsort(dim=1, stable=True)
-        padded_tensor = concatenated.gather(1, sorted_indices)
-        padded_tensor_with_info = concatenated_with_info.gather(1, sorted_indices)
 
-        return padded_tensor, padded_tensor_with_info
+        # --- 6. 将 *相同* 的索引应用到 *所有* 张量 ---
+        padded_tensor_resp = concatenated_resp.gather(1, sorted_indices)
+        padded_tensor_mask = concatenated_mask.gather(1, sorted_indices)
+        padded_tensor_logp = concatenated_logp.gather(1, sorted_indices)
+
+        return padded_tensor_resp, padded_tensor_mask, padded_tensor_logp
+
 
     def _update_right_side(
         self,
@@ -293,40 +353,19 @@ class AgentHelper:
         cur_log_probs: torch.Tensor = None,
     ) -> Dict:
         """Update right side state."""
-        if cur_log_probs is not None:
-            # concatenate log_probs like concatenate response
-            all_log_probs = torch.cat([right_side['rollout_log_probs'], cur_log_probs], dim=1)
-            if next_obs_ids is not None:
-                # add padding to the obs part
-                obs_padding = torch.full_like(next_obs_ids, -1.0, dtype=torch.float32)
-                all_log_probs = torch.cat([all_log_probs, obs_padding], dim=1)
-        else:
-            # if cur_log_probs is not passed, keep the original
-            all_log_probs = right_side['rollout_log_probs']
-            if next_obs_ids is not None:
-                # still need to add padding to the obs
-                obs_padding = torch.full_like(next_obs_ids, -1.0, dtype=torch.float32)
-                all_log_probs = torch.cat([all_log_probs, obs_padding], dim=1)
 
-        if next_obs_ids != None:
-            responses, responses_with_info_mask = (
-                self._info_masked_concatenate_with_padding(
-                    right_side["responses"],
-                    right_side["responses_with_info_mask"],
-                    cur_responses,
-                    next_obs_ids,
-                    pad_to_left=False,
-                )
+        responses, responses_with_info_mask, all_log_probs = (
+            self._info_masked_concatenate_with_padding(
+                prompt_resp=right_side["responses"],
+                prompt_mask=right_side["responses_with_info_mask"],
+                prompt_logp=right_side["rollout_log_probs"],
+                cur_resp=cur_responses,
+                cur_logp=cur_log_probs,
+                cur_info=next_obs_ids,
+                pad_to_left=False,  # 转换为右填充
             )
-        else:
-            responses, responses_with_info_mask = (
-                self._info_masked_concatenate_with_padding(
-                    right_side["responses"],
-                    right_side["responses_with_info_mask"],
-                    cur_responses,
-                    pad_to_left=False,
-                )
-            )
+        )
+
         effective_len = self.tensor_fn.create_attention_mask(responses).sum(dim=1).max()
         max_len = min(self.config.max_prompt_length, effective_len)
 
@@ -694,6 +733,15 @@ def final_answer(result):
                 if "\\boxed{" in stdout:
                     dones[env_idx] = 1
 
+                if obs != "" and random.random() < 0.01:
+                    print(f"[DEBUG] Active sample {env_idx}:")
+                    print(f"  Prediction: {predictions[env_idx][:200]}...")
+                    print(f"  Use code: {use_code[env_idx]}")
+                    print(f"  Valid code: {valid_code[env_idx]}")
+                    print(f"  Done: {dones[env_idx]}")
+                    print(f"  Is void turn: {is_void_turn[env_idx]}")
+                    print(f"  Next obs: {next_obs[env_idx][:256]}...")
+
         code_info = {
             "use_code": use_code,
             "valid_code": valid_code,
@@ -705,19 +753,6 @@ def final_answer(result):
         print(
             f"[debug] void turn number: {sum(is_void_turn)} out of {active_mask.sum()} samples"
         )
-
-        # Random sample printing for debugging
-        active_indices = [i for i, active in enumerate(active_mask) if active]
-        if active_indices and random.random() < 0.1:  # 10% chance to print
-            sample_idx = random.choice(active_indices)
-            print(f"[RANDOM_SAMPLE] Active sample {sample_idx}:")
-            print(f"  Prediction: {predictions[sample_idx][:200]}...")
-            print(f"  Use code: {use_code[sample_idx]}")
-            print(f"  Valid code: {valid_code[sample_idx]}")
-            print(f"  Done: {dones[sample_idx]}")
-            print(f"  Is void turn: {is_void_turn[sample_idx]}")
-            if next_obs[sample_idx]:
-                print(f"  Next obs: {next_obs[sample_idx][:256]}...")
 
         return next_obs, dones, is_void_turn, code_info
 
