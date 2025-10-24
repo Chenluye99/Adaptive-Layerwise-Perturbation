@@ -168,7 +168,7 @@ async def _run_in_firejail(code: str, timeout: float, stdin_data: str = "") -> d
             "stderr": "Timeout\n",
         }
         # 保存超时日志
-        _save_execution_log(code, stdin_data, result, execution_id)
+        #_save_execution_log(code, stdin_data, result, execution_id)
         return result
 
     status = RunStatus.success if proc.returncode == 0 else RunStatus.runtime_error
@@ -183,7 +183,7 @@ async def _run_in_firejail(code: str, timeout: float, stdin_data: str = "") -> d
     }
     
     # 6) 保存执行日志
-    _save_execution_log(code, stdin_data, result, execution_id)
+    #_save_execution_log(code, stdin_data, result, execution_id)
     
     return result
 

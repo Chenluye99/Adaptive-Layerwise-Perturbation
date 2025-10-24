@@ -132,7 +132,7 @@ class vLLMRollout(BaseRollout):
 
         kwargs = dict(
             n=1,
-            logprobs=0,  # can be set to 0 and let actor to recompute
+            logprobs=1 if config.calculate_log_probs else 0,  # 根据配置设置logprobs
             max_tokens=config.response_length,
         )
 
@@ -246,12 +246,25 @@ class vLLMRollout(BaseRollout):
             # if n = 1: (bs, response_length) ; if n > 1: (bs * n, response_length)
 
             response = []
+            rollout_log_probs = []
             for output in outputs:
                 for sample_id in range(len(output.outputs)):
-                    response.append(output.outputs[sample_id].token_ids)
+                    response_ids = output.outputs[sample_id].token_ids
+                    response.append(response_ids)
+                    if self.config.calculate_log_probs:
+                        curr_log_prob = []
+                        for i, logprob in enumerate(output.outputs[sample_id].logprobs):
+                            curr_log_prob.append(logprob[response_ids[i]].logprob)
+                        rollout_log_probs.append(curr_log_prob)
 
-            response = pad_2d_list_to_length(response, self.pad_token_id,
-                                             max_length=self.config.response_length).to(idx.device)
+            response = pad_2d_list_to_length(response, self.pad_token_id, max_length=self.config.response_length).to(
+                idx.device
+            )
+            if self.config.calculate_log_probs:
+                rollout_log_probs = pad_2d_list_to_length(
+                    rollout_log_probs, -1, max_length=self.config.response_length
+                ).to(idx.device)
+                rollout_log_probs = rollout_log_probs.to(torch.float32)
 
             if self.sampling_params.n > 1 and do_sample:
                 idx = _repeat_interleave(idx, self.sampling_params.n)
@@ -274,7 +287,7 @@ class vLLMRollout(BaseRollout):
         # prompt: left pad + response: right pad
         # attention_mask: [0,0,0,0,1,1,1,1, | 1,1,1,0,0,0,0,0]
         # position_ids:   [0,0,0,0,0,1,2,3, | 4,5,6,7,8,9,10,11]
-        response_position_ids = position_ids[:, -1:] + delta_position_id
+        response_position_ids = position_ids[..., -1:] + delta_position_id
         position_ids = torch.cat([position_ids, response_position_ids], dim=-1)
         response_attention_mask = get_eos_mask(response_id=response, eos_token=eos_token_id, dtype=attention_mask.dtype)
         attention_mask = torch.cat((attention_mask, response_attention_mask), dim=-1)
@@ -282,17 +295,73 @@ class vLLMRollout(BaseRollout):
         # all the tp ranks should contain the same data here. data in all ranks are valid
         batch = TensorDict(
             {
-                'prompts': idx,
-                'responses': response,
-                'input_ids': seq,  # here input_ids become the whole sentences
-                # 'old_log_probs': log_probs, # we will recompute old log prob with actor
-                'attention_mask': attention_mask,
-                'position_ids': position_ids
+                "prompts": idx,
+                "responses": response,
+                "input_ids": seq,  # here input_ids become the whole sentences
+                "attention_mask": attention_mask,
+                "position_ids": position_ids,
             },
-            batch_size=batch_size)
+            batch_size=batch_size,
+        )
+        if self.config.calculate_log_probs:
+            # we will recompute old log prob with actor
+            batch["rollout_log_probs"] = rollout_log_probs
 
         # free vllm cache engine
         if vllm_version in ('0.3.1', '0.4.2', '0.5.4', '0.6.3') and self.config.free_cache_engine:
             self.inference_engine.free_cache_engine()
 
         return DataProto(batch=batch, non_tensor_batch=non_tensor_batch)
+
+
+        #     response = []
+        #     for output in outputs:
+        #         for sample_id in range(len(output.outputs)):
+        #             response.append(output.outputs[sample_id].token_ids)
+
+        #     response = pad_2d_list_to_length(response, self.pad_token_id,
+        #                                      max_length=self.config.response_length).to(idx.device)
+
+        #     if self.sampling_params.n > 1 and do_sample:
+        #         idx = _repeat_interleave(idx, self.sampling_params.n)
+        #         attention_mask = _repeat_interleave(attention_mask, self.sampling_params.n)
+        #         position_ids = _repeat_interleave(position_ids, self.sampling_params.n)
+        #         batch_size = batch_size * self.sampling_params.n
+        #         if 'multi_modal_inputs' in non_tensor_batch.keys():
+        #             non_tensor_batch['multi_modal_inputs'] = _repeat_interleave(non_tensor_batch['multi_modal_inputs'],
+        #                                                                         self.sampling_params.n)
+
+        #     seq = torch.cat([idx, response], dim=-1)
+
+        # response_length = response.size(1)
+        # delta_position_id = torch.arange(1, response_length + 1, device=position_ids.device)
+        # delta_position_id = delta_position_id.unsqueeze(0).expand(batch_size, -1)
+        # if position_ids.dim() == 3:  # qwen2vl mrope
+        #     delta_position_id = delta_position_id.view(batch_size, 1, -1).expand(batch_size, 3, -1)
+
+        # # TODO(sgm): fix position_ids on right_pad
+        # # prompt: left pad + response: right pad
+        # # attention_mask: [0,0,0,0,1,1,1,1, | 1,1,1,0,0,0,0,0]
+        # # position_ids:   [0,0,0,0,0,1,2,3, | 4,5,6,7,8,9,10,11]
+        # response_position_ids = position_ids[:, -1:] + delta_position_id
+        # position_ids = torch.cat([position_ids, response_position_ids], dim=-1)
+        # response_attention_mask = get_eos_mask(response_id=response, eos_token=eos_token_id, dtype=attention_mask.dtype)
+        # attention_mask = torch.cat((attention_mask, response_attention_mask), dim=-1)
+
+        # # all the tp ranks should contain the same data here. data in all ranks are valid
+        # batch = TensorDict(
+        #     {
+        #         'prompts': idx,
+        #         'responses': response,
+        #         'input_ids': seq,  # here input_ids become the whole sentences
+        #         # 'old_log_probs': log_probs, # we will recompute old log prob with actor
+        #         'attention_mask': attention_mask,
+        #         'position_ids': position_ids
+        #     },
+        #     batch_size=batch_size)
+
+        # # free vllm cache engine
+        # if vllm_version in ('0.3.1', '0.4.2', '0.5.4', '0.6.3') and self.config.free_cache_engine:
+        #     self.inference_engine.free_cache_engine()
+
+        # return DataProto(batch=batch, non_tensor_batch=non_tensor_batch)

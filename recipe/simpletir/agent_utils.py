@@ -1,6 +1,7 @@
 import asyncio
 import os
 import re
+import random
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
@@ -91,7 +92,8 @@ class TensorHelper:
         responses: torch.Tensor,
         responses_str: List[str],
         active_mask: torch.Tensor,
-    ) -> Tuple[torch.Tensor, List[str]]:
+        log_probs: torch.Tensor = None,
+    ) -> Tuple[torch.Tensor, List[str], torch.Tensor]:
         """
         Pad responses for non-active examples with pad tokens.
         """
@@ -118,7 +120,20 @@ class TensorHelper:
                 padded_responses_str[i] = responses_str[s]
                 s += 1
 
-        return padded_responses, padded_responses_str
+        padded_log_probs = None
+        if log_probs is not None:
+            # log_probs shape should match responses shape after postprocessing
+            assert log_probs.shape[0] == responses.shape[0], "Active log_probs batch size mismatch"
+            assert log_probs.shape[1] == responses.shape[1], "Log_probs and responses seq_len mismatch"
+            
+            padded_log_probs = torch.full(
+                (batch_size, seq_len), # Use full batch_size and same seq_len
+                -1.0, # Pad value for log_probs
+                dtype=log_probs.dtype,
+                device=log_probs.device,
+            )
+            padded_log_probs[active_mask] = log_probs
+        return padded_responses, padded_responses_str, padded_log_probs
 
 
 @dataclass
@@ -166,7 +181,7 @@ class AgentHelper:
             responses, add_special_tokens=False, return_tensors="pt", padding="longest"
         )["input_ids"]
 
-    def _postprocess_responses(self, responses: torch.Tensor) -> torch.Tensor:
+    def _postprocess_responses(self, responses: torch.Tensor, log_probs: torch.Tensor = None) -> torch.Tensor:
         """Process responses to stop at search operation or answer operation."""
         responses_str = self.tokenizer.batch_decode(responses, skip_special_tokens=True)
 
@@ -181,7 +196,17 @@ class AgentHelper:
 
         responses = self._batch_tokenize(responses_str)
 
-        return responses, responses_str
+        final_log_probs = None
+        if log_probs is not None:
+            # create a log_probs tensor with the same shape as final_responses_ids, filled with -1.0
+            final_log_probs = torch.full_like(responses, -1.0, dtype=torch.float32)
+            
+            # fill the original log_probs to the new tensor
+            # take the minimum length of the two, to prevent overflow
+            common_length = min(log_probs.shape[1], final_log_probs.shape[1])
+            final_log_probs[:, :common_length] = log_probs[:, :common_length]
+
+        return responses, responses_str, final_log_probs
 
     def _process_next_obs(self, next_obs: List[str]) -> torch.Tensor:
         """Process next observations from environment."""
@@ -265,8 +290,24 @@ class AgentHelper:
         right_side: Dict,
         cur_responses: torch.Tensor,
         next_obs_ids: torch.Tensor = None,
+        cur_log_probs: torch.Tensor = None,
     ) -> Dict:
         """Update right side state."""
+        if cur_log_probs is not None:
+            # concatenate log_probs like concatenate response
+            all_log_probs = torch.cat([right_side['rollout_log_probs'], cur_log_probs], dim=1)
+            if next_obs_ids is not None:
+                # add padding to the obs part
+                obs_padding = torch.full_like(next_obs_ids, -1.0, dtype=torch.float32)
+                all_log_probs = torch.cat([all_log_probs, obs_padding], dim=1)
+        else:
+            # if cur_log_probs is not passed, keep the original
+            all_log_probs = right_side['rollout_log_probs']
+            if next_obs_ids is not None:
+                # still need to add padding to the obs
+                obs_padding = torch.full_like(next_obs_ids, -1.0, dtype=torch.float32)
+                all_log_probs = torch.cat([all_log_probs, obs_padding], dim=1)
+
         if next_obs_ids != None:
             responses, responses_with_info_mask = (
                 self._info_masked_concatenate_with_padding(
@@ -292,6 +333,7 @@ class AgentHelper:
         return {
             "responses": responses[:, :max_len],
             "responses_with_info_mask": responses_with_info_mask[:, :max_len],
+            'rollout_log_probs': all_log_probs[:, :max_len]
         }
 
     def _generate_with_gpu_padding(self, active_batch: DataProto) -> DataProto:
@@ -367,6 +409,7 @@ class AgentHelper:
         original_right_side = {
             "responses": initial_input_ids[:, []],
             "responses_with_info_mask": initial_input_ids[:, []],
+            'rollout_log_probs': initial_input_ids[:, []],
         }
 
         active_mask = torch.ones(batch_size * self.config.rollout_n, dtype=torch.bool)
@@ -424,11 +467,11 @@ class AgentHelper:
 
             # Post-process responses
             meta_info = gen_output.meta_info
-            responses_ids, responses_str = self._postprocess_responses(
-                gen_output.batch["responses"]
+            responses_ids, responses_str, cur_log_probs = self._postprocess_responses(
+                gen_output.batch["responses"], gen_output.batch.get('rollout_log_probs', None)
             )
-            responses_ids, responses_str = self.tensor_fn._example_level_pad(
-                responses_ids, responses_str, active_mask
+            responses_ids, responses_str, cur_log_probs = self.tensor_fn._example_level_pad(
+                responses_ids, responses_str, active_mask, cur_log_probs
             )
 
             # Execute code and get next inputs
@@ -461,7 +504,7 @@ class AgentHelper:
             next_obs_ids = self._process_next_obs(next_obs)
             rollings = self._update_rolling_state(rollings, responses_ids, next_obs_ids)
             original_right_side = self._update_right_side(
-                original_right_side, responses_ids, next_obs_ids
+                original_right_side, responses_ids, next_obs_ids, cur_log_probs
             )
 
         meta_info["turns_stats"] = turns_stats.tolist()
@@ -513,6 +556,15 @@ class AgentHelper:
             ],
             dim=1,
         )
+
+        if 'rollout_log_probs' in final_output:
+            # pad rollout_log_probs like padding responses
+            pad_length = min(final_output["responses"].shape[1], self.config.max_prompt_length)
+            if final_output['rollout_log_probs'].shape[1] < pad_length:
+                batch_size, seq_len = final_output['rollout_log_probs'].shape
+                padded_tensor = torch.full((batch_size, pad_length), -1.0, dtype=final_output['rollout_log_probs'].dtype, device=final_output['rollout_log_probs'].device)
+                padded_tensor[:, :seq_len] = final_output['rollout_log_probs']
+                final_output['rollout_log_probs'] = padded_tensor
 
         # create void turn mask
         final_output["void_turn_mask"] = void_turn_mask
@@ -653,6 +705,19 @@ def final_answer(result):
         print(
             f"[debug] void turn number: {sum(is_void_turn)} out of {active_mask.sum()} samples"
         )
+
+        # Random sample printing for debugging
+        active_indices = [i for i, active in enumerate(active_mask) if active]
+        if active_indices and random.random() < 0.1:  # 10% chance to print
+            sample_idx = random.choice(active_indices)
+            print(f"[RANDOM_SAMPLE] Active sample {sample_idx}:")
+            print(f"  Prediction: {predictions[sample_idx][:200]}...")
+            print(f"  Use code: {use_code[sample_idx]}")
+            print(f"  Valid code: {valid_code[sample_idx]}")
+            print(f"  Done: {dones[sample_idx]}")
+            print(f"  Is void turn: {is_void_turn[sample_idx]}")
+            if next_obs[sample_idx]:
+                print(f"  Next obs: {next_obs[sample_idx][:256]}...")
 
         return next_obs, dones, is_void_turn, code_info
 

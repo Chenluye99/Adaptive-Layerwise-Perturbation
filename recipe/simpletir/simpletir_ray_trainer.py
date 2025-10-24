@@ -1211,6 +1211,39 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                         old_log_prob = self.actor_rollout_wg.compute_log_prob(batch)
                         batch = batch.union(old_log_prob)
 
+                        if "rollout_log_probs" in batch.batch.keys():
+                            # TODO: we may want to add diff of probs too.
+                            rollout_old_log_probs = batch.batch["rollout_log_probs"]
+                            actor_old_log_probs = batch.batch["old_log_probs"]
+                            responses = batch.batch["responses"]
+                            response_length = responses.size(1)
+                            response_mask = batch.batch["loss_mask"]
+                            log_ratio = actor_old_log_probs - rollout_old_log_probs
+                            vllm_k3_kl_matrix = torch.exp(log_ratio) - log_ratio - 1
+                            vllm_k3_kl_matrix = torch.masked_select(vllm_k3_kl_matrix, response_mask.bool())
+                            vllm_k3_kl = torch.mean(vllm_k3_kl_matrix)
+                            metrics.update({"training/vllm_k3_kl": vllm_k3_kl.detach().item()})
+
+                            rollout_probs = torch.exp(rollout_old_log_probs)
+                            actor_probs = torch.exp(actor_old_log_probs)
+                            rollout_probs_diff = torch.abs(rollout_probs - actor_probs)
+                            rollout_probs_diff = torch.masked_select(rollout_probs_diff, response_mask.bool())
+                            rollout_probs_diff_max = torch.max(rollout_probs_diff)
+                            rollout_probs_diff_mean = torch.mean(rollout_probs_diff)
+                            rollout_probs_diff_std = torch.std(rollout_probs_diff)
+                            metrics.update(
+                                {
+                                    "training/rollout_probs_diff_max": rollout_probs_diff_max.detach().item(),
+                                    "training/rollout_probs_diff_mean": rollout_probs_diff_mean.detach().item(),
+                                    "training/rollout_probs_diff_std": rollout_probs_diff_std.detach().item(),
+                                }
+                            )
+                            is_ratio = torch.exp(actor_old_log_probs - rollout_old_log_probs)
+                            is_ratio_token_wise = torch.masked_select(is_ratio, response_mask.bool())
+                            metrics["training/is_ratio_token_wise_max"] = torch.max(is_ratio_token_wise).detach().item()
+                            metrics["training/is_ratio_token_wise_mean"] = torch.mean(is_ratio_token_wise).detach().item()
+
+
                     if self.use_reference_policy:
                         # compute reference log_prob
                         with _timer("ref", timing_raw):
