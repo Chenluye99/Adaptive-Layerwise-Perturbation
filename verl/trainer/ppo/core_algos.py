@@ -395,6 +395,239 @@ def compute_policy_loss(
 
     return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, rollout_is_metrics, original_rollout_is_metrics
 
+def compute_policy_loss_various_level(
+    old_log_prob: torch.Tensor,
+    log_prob: torch.Tensor,
+    advantages: torch.Tensor,
+    response_mask: torch.Tensor,
+    loss_agg_mode: str = "token-mean",
+    loss_mode: str = "sequence",
+    turn_end_indicator: torch.Tensor = None,
+    rollout_log_probs: torch.Tensor = None,
+    void_turn_mask: torch.Tensor = None,
+    config = None,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict, dict, dict, dict]:
+    """
+    Compute the clipped policy objective and related metrics for GSPO with per-step importance weight.
+    
+    This version calculates per-step importance weight up to each step, rather than using
+    the average importance weight for the entire sequence.
+
+    Args:
+        old_log_prob (torch.Tensor):
+            Log-probabilities of actions under the old policy, shape (batch_size, response_length).
+        log_prob (torch.Tensor):
+            Log-probabilities of actions under the current policy, shape (batch_size, response_length).
+        advantages (torch.Tensor):
+            Advantage estimates for each action, shape (batch_size, response_length).
+        response_mask (torch.Tensor):
+            Mask indicating which tokens to include in the loss, shape (batch_size, response_length).
+        loss_agg_mode (str, optional):
+            Aggregation mode for `agg_loss`. For GSPO, it is recommended to use "seq-mean-token-mean".
+        loss_mode (str, optional):
+            Loss mode for the policy loss. Available modes: "sequence", "cum-token", "cum-turn".
+        turn_end_indicator (torch.Tensor, optional):
+            Turn end indicator, shape (batch_size, response_length).
+        rollout_log_probs (torch.Tensor, optional):
+            Rollout log probabilities, shape (batch_size, response_length).
+        void_turn_mask (torch.Tensor, optional):
+            Mask indicating which turns are void, shape (batch_size, response_length).
+        config:
+            Algorithm configuration object
+    """
+    # DEBUG: Entry log to verify function is being called
+    import sys
+    if not torch.distributed.is_initialized() or torch.distributed.get_rank() == 0:
+        print(f"[DEBUG] compute_policy_loss_various_level CALLED with loss_mode={loss_mode}", flush=True)
+        sys.stdout.flush()
+    
+    assert config is not None
+    clip_ratio_low = config.clip_ratio_low if config.clip_ratio_low is not None else config.clip_ratio
+    clip_ratio_high = config.clip_ratio_high if config.clip_ratio_high is not None else config.clip_ratio
+    clip_ratio_c = config.clip_ratio_c if config.clip_ratio_c is not None else 3.0
+    is_geometric = config.policy_loss.is_geometric if config.policy_loss.is_geometric is not None else False
+    assert clip_ratio_c > 1.0, (
+        "The lower bound of the clip_ratio_c for dual-clip PPO should be greater than 1.0,"
+        + f" but get the value: {clip_ratio_c}."
+    )
+    original_response_mask = response_mask.clone()
+    if config.mask_void_turns and void_turn_mask is not None:
+        void_turn_mask_float = void_turn_mask.float().reshape(-1, 1)
+        response_mask = response_mask * void_turn_mask_float
+
+    negative_approx_kl = log_prob - old_log_prob
+    importance_ratios = torch.zeros_like(negative_approx_kl)
+    if loss_mode == "sequence":
+        seq_lengths = torch.sum(response_mask, dim=-1).clamp(min=1)
+        kl_values = torch.sum(negative_approx_kl * response_mask, dim=-1)
+        if is_geometric:
+            kl_values = kl_values / seq_lengths
+        log_importance_ratio = kl_values.detach().unsqueeze(-1) + log_prob - log_prob.detach()
+
+    elif loss_mode == "cum-token":        
+        # Vectorized approach: handle non-contiguous masks using cumulative count
+        # Calculate cumulative sum for all sequences
+        cumulative_sum = torch.cumsum(negative_approx_kl * response_mask, dim=-1)
+    
+        # Create position indices that respect the mask
+        # The key insight: use cumulative count of valid positions
+        seq_lengths = response_mask.sum(dim=-1)
+        max_len = seq_lengths.max().item()
+    
+        if max_len > 0:
+            # Create a position matrix that respects the mask
+            # For each sequence, positions should be 1, 2, 3, ... up to the number of valid tokens
+            positions = torch.zeros_like(negative_approx_kl)
+        
+            # Calculate cumulative count of valid positions for each sequence
+            cumulative_count = torch.cumsum(response_mask, dim=-1)
+        
+            # Only use positions where we have valid tokens
+            # Convert to same dtype as negative_approx_kl for type consistency
+            positions = torch.where(response_mask > 0, cumulative_count.to(negative_approx_kl.dtype), torch.zeros_like(cumulative_count, dtype=negative_approx_kl.dtype))
+        
+            # Calculate per-step KL values with numerical stability
+            # Add small epsilon to avoid division by zero
+            eps = 1e-8
+            if is_geometric:
+                kl_values = torch.where(
+                    response_mask > 0,
+                    cumulative_sum / (positions + eps),
+                    torch.zeros_like(cumulative_sum)
+                )
+            else:
+                kl_values = torch.where(
+                    response_mask > 0,
+                    cumulative_sum,
+                    torch.zeros_like(cumulative_sum)
+                )
+        log_importance_ratio = kl_values.detach() + log_prob - log_prob.detach()
+
+    elif loss_mode == "cum-turn":
+        assert turn_end_indicator is not None, "Turn end indicator is required for cum-turn loss mode."
+        B, L = old_log_prob.shape
+        device = old_log_prob.device
+
+        valid_token_nums = torch.cumsum(response_mask, dim=-1)
+        cumulative_sum = torch.cumsum(negative_approx_kl * response_mask, dim=-1)
+
+        turn_end_mask = turn_end_indicator.bool()
+        turn_end_mask[:, -1] = True
+        indices = torch.arange(L, device=device).expand(B, -1)
+        masked_indices = torch.where(turn_end_mask, indices, L)
+
+        rev_masked_indices = torch.flip(masked_indices, dims=[-1])
+        rev_end_indices, _ = torch.cummin(rev_masked_indices, dim=-1)
+        end_indices = torch.flip(rev_end_indices, dims=[-1])
+
+        turn_cumulative_sums = torch.gather(cumulative_sum, -1, end_indices)
+        turn_cumulative_counts = torch.gather(valid_token_nums, -1, end_indices)
+
+        # geomatric mean
+        if is_geometric:
+            log_ratio_mean = turn_cumulative_sums / (turn_cumulative_counts + 1e-8)
+        else:
+            log_ratio_mean = turn_cumulative_sums
+        kl_values = torch.where(
+            response_mask > 0,
+            log_ratio_mean,
+            torch.zeros_like(cumulative_sum)
+        )  
+        log_importance_ratio = kl_values.detach() + log_prob - log_prob.detach()
+
+
+    # Calculate importance ratios
+    log_importance_ratio = torch.clamp(log_importance_ratio, max=10.0)
+        
+    # Apply mask to ensure only valid positions are updated
+    importance_ratios = torch.where(
+        response_mask > 0,
+        torch.exp(log_importance_ratio),
+        torch.zeros_like(log_importance_ratio)
+    )
+
+    # Compute token-level statistics for importance_ratios (only valid tokens)
+    with torch.no_grad():
+        ppo_is_metrics = compute_ppo_is_metrics(log_importance_ratio, response_mask, advantages, clip_ratio_low, clip_ratio_high)
+        original_ppo_is_metrics = compute_original_ppo_is_metrics_with_mask(
+            old_log_prob=old_log_prob,
+            log_prob=log_prob,
+            advantages=advantages,
+            original_response_mask=original_response_mask,
+            loss_mode=loss_mode,
+            is_geometric=is_geometric,
+            clip_ratio_low=clip_ratio_low,
+            clip_ratio_high=clip_ratio_high,
+            turn_end_indicator=turn_end_indicator,
+        )
+    
+    # Compute policy losses with per-step importance ratios
+    pg_losses1 = -advantages * importance_ratios
+    pg_losses2 = -advantages * torch.clamp(importance_ratios, 1 - clip_ratio_low, 1 + clip_ratio_high)
+    clip_pg_losses1 = torch.maximum(pg_losses1, pg_losses2)
+
+    pg_losses3 = -advantages * clip_ratio_c
+    clip_pg_losses2 = torch.min(pg_losses3, clip_pg_losses1)
+
+    pg_losses = torch.where(advantages < 0, clip_pg_losses2, clip_pg_losses1)
+    
+    # Compute dual clip statistics (applies to negative advantages)
+    valid_importance_ratios = importance_ratios[response_mask > 0]
+    if valid_importance_ratios.numel() > 0:
+        dual_clip_mask = torch.gt(clip_pg_losses1, pg_losses3) * (advantages < 0)
+        dual_clip_mask_valid = dual_clip_mask[response_mask > 0]
+        ppo_is_metrics["pg_dual_clip_frac"] = dual_clip_mask_valid.float().mean().item()
+
+    # For compatibility, return zero for pg_clipfrac_lower (not used in standard GSPO)
+    pg_clipfrac = verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), response_mask)
+    pg_clipfrac_lower = verl_F.masked_mean(
+        torch.gt(clip_pg_losses1, pg_losses3) * (advantages < 0).float(), response_mask
+    )
+    ppo_kl = verl_F.masked_mean(-negative_approx_kl, response_mask)
+    
+    # Apply rollout importance sampling if threshold is set
+    # Initialize metrics dictionaries (will remain empty if rollout_is is disabled)
+    rollout_is_metrics: dict = {}
+    original_rollout_is_metrics: dict = {}
+    if config.get("rollout_is") and rollout_log_probs is not None:
+
+        rollout_is_weights, rollout_is_metrics = compute_rollout_importance_weights(
+            old_log_prob=old_log_prob,
+            rollout_log_prob=rollout_log_probs,
+            eos_mask=response_mask,
+            rollout_is_level=config.get("rollout_is_level", "token"),
+            rollout_is_mode=config.get("rollout_is_mode", "truncate"),
+            rollout_is_threshold=config.rollout_is_threshold,
+            rollout_is_threshold_lower=config.get("rollout_is_threshold_lower"),
+            rollout_is_veto_threshold=config.get("rollout_is_veto_threshold"),
+            geometric=config.get("rollout_is_geometric", False),
+            turn_end_indicator=turn_end_indicator,
+            void_turn_mask=void_turn_mask,
+        )
+        _, original_rollout_is_metrics = compute_rollout_importance_weights(
+            old_log_prob=old_log_prob,
+            rollout_log_prob=rollout_log_probs,
+            eos_mask=original_response_mask,
+            rollout_is_level=config.get("rollout_is_level", "token"),
+            rollout_is_mode=config.get("rollout_is_mode", "truncate"),
+            rollout_is_threshold=config.rollout_is_threshold,
+            rollout_is_threshold_lower=config.get("rollout_is_threshold_lower"),
+            rollout_is_veto_threshold=config.get("rollout_is_veto_threshold"),
+            geometric=config.get("rollout_is_geometric", False),
+            turn_end_indicator=turn_end_indicator,
+            void_turn_mask=void_turn_mask,
+        )
+
+        # Apply IS correction to loss if enabled
+        if config.get("rollout_is", False) and rollout_is_weights is not None:
+            pg_losses = pg_losses * rollout_is_weights
+    # Aggregate the loss at the sequence level
+    pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
+    
+    # Return two separate metrics dictionaries
+    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics, original_rollout_is_metrics, original_ppo_is_metrics
+
+
 
 def compute_entropy_loss(logits, eos_mask):
     """Compute Categorical entropy loss

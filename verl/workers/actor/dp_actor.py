@@ -323,28 +323,24 @@ class DataParallelPPOActor(BasePPOActor):
                     entropy, log_prob = self._forward_micro_batch(micro_batch=data, temperature=temperature)
 
                     # Initialize metrics to avoid undefined variable errors
+                    ppo_is_metrics = {}
+                    original_ppo_is_metrics = {}
                     rollout_is_metrics = {}
                     original_rollout_is_metrics = {}
 
-                    if self.config.policy_loss.loss_mode == 'step_gspo':
-                        pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower = core_algos.compute_policy_loss_gspo_per_step(
+                    if self.config.policy_loss.loss_mode in ["sequence", "cum-token", "cum-turn"]:
+                        pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics, original_rollout_is_metrics, original_ppo_is_metrics = core_algos.compute_policy_loss_various_level(
                             old_log_prob=old_log_prob,
                             log_prob=log_prob,
                             advantages=advantages,
                             response_mask=response_mask,
-                            clip_ratio_high=clip_ratio_high,
-                            clip_ratio_low=clip_ratio_low,
-                            clip_ratio_c=clip_ratio_c,
-                            )
-                    elif self.config.policy_loss.loss_mode == 'gspo':
-                        pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower = core_algos.compute_policy_loss_gspo(
-                            old_log_prob=old_log_prob,
-                            log_prob=log_prob,
-                            advantages=advantages,
-                            response_mask=response_mask,
-                            clip_ratio_high=clip_ratio_high,
-                            clip_ratio_low=clip_ratio_low,
-                            )
+                            loss_agg_mode=self.config.get("loss_agg_mode", "token-mean"),
+                            loss_mode=self.config.policy_loss.loss_mode,
+                            turn_end_indicator=data.get('critic_response_mask', None),
+                            rollout_log_probs=rollout_log_probs,
+                            void_turn_mask=void_turn_mask,
+                            config=self.config,
+                        )
                     else:
                         pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, rollout_is_metrics, original_rollout_is_metrics = core_algos.compute_policy_loss(
                             old_log_prob=old_log_prob,
@@ -360,11 +356,14 @@ class DataParallelPPOActor(BasePPOActor):
                             void_turn_mask=void_turn_mask,
                             config=self.config,
                         )
-                    # compute entropy loss from entropy
-                    entropy_loss = verl_F.masked_mean(entropy, response_mask)
-
-                    # compute policy loss
-                    policy_loss = pg_loss - entropy_loss * entropy_coeff
+                    
+                    # Add ppo_is_metrics with ppo_update/ prefix
+                    if ppo_is_metrics:
+                        for key, value in ppo_is_metrics.items():
+                            if isinstance(value, torch.Tensor):
+                                metrics[f"ppo_update/{key}"] = value.detach().item()
+                            else:
+                                metrics[f"ppo_update/{key}"] = value
                     
                     # Add rollout_is_metrics with rollout_mismatch/ prefix
                     if rollout_is_metrics:
@@ -372,7 +371,7 @@ class DataParallelPPOActor(BasePPOActor):
                             if isinstance(value, torch.Tensor):
                                 metrics[f"rollout_mismatch/{key}"] = value.detach().item()
                             else:
-                                metrics[f"rollout_mismatch/{key}"] = value
+                                metrics[f"rollout_mismatch/{key}"] = value                        
                     
                     if original_rollout_is_metrics:
                         for key, value in original_rollout_is_metrics.items():
@@ -380,6 +379,19 @@ class DataParallelPPOActor(BasePPOActor):
                                 metrics[f"original_rollout_mismatch/{key}"] = value.detach().item()
                             else:
                                 metrics[f"original_rollout_mismatch/{key}"] = value
+                    
+                    if original_ppo_is_metrics:
+                        for key, value in original_ppo_is_metrics.items():
+                            if isinstance(value, torch.Tensor):
+                                metrics[f"original_ppo_update/{key}"] = value.detach().item()
+                            else:
+                                metrics[f"original_ppo_update/{key}"] = value
+
+                    # compute entropy loss from entropy
+                    entropy_loss = verl_F.masked_mean(entropy, response_mask)
+
+                    # compute policy loss
+                    policy_loss = pg_loss - entropy_loss * entropy_coeff
 
                     if self.config.use_kl_loss:
                         ref_log_prob = data['ref_log_prob']
