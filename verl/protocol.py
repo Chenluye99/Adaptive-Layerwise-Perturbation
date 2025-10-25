@@ -520,9 +520,9 @@ class DataProto:
         return output
 
     @staticmethod
-    def concat(data: List['DataProto']) -> 'DataProto':
+    def concat(data: list["DataProto"]) -> "DataProto":
         """Concat a list of DataProto. The batch is concatenated among dim=0.
-        The meta_info is assumed to be identical and will use the first one.
+        The meta_info is merged, with special handling for metrics from different workers.
 
         Args:
             data (List[DataProto]): list of DataProto
@@ -533,16 +533,38 @@ class DataProto:
         batch_lst = []
         for batch in data:
             batch_lst.append(batch.batch)
-        if batch_lst[0] is not None:
-            new_batch = torch.cat(batch_lst, dim=0)
-        else:
-            new_batch = None
+        new_batch = torch.cat(batch_lst, dim=0) if batch_lst[0] is not None else None
 
         non_tensor_batch = list_of_dict_to_dict_of_list(list_of_dict=[d.non_tensor_batch for d in data])
         for key, val in non_tensor_batch.items():
             non_tensor_batch[key] = np.concatenate(val, axis=0)
 
-        return DataProto(batch=new_batch, non_tensor_batch=non_tensor_batch, meta_info=data[0].meta_info)
+        # Merge meta_info with special handling for metrics
+        merged_meta_info = {}
+        if data:
+            # Merge non-metric meta_info and aggregate metrics from all workers.
+            all_metrics = []
+            for d in data:
+                for k, v in d.meta_info.items():
+                    if k == "metrics":
+                        if v is not None:
+                            if isinstance(v, list):
+                                all_metrics.extend(v)
+                            else:
+                                all_metrics.append(v)
+                    else:
+                        if k in merged_meta_info:
+                            # Ensure consistency for overlapping non-metric keys
+                            assert merged_meta_info[k] == v, f"Conflicting values for meta_info key '{k}'"
+                        else:
+                            merged_meta_info[k] = v
+
+            # Flatten list of dicts to dict of lists for consistent metrics structure
+            if all_metrics:
+                merged_meta_info["metrics"] = list_of_dict_to_dict_of_list(all_metrics)
+
+        cls = type(data[0]) if len(data) > 0 else DataProto
+        return cls(batch=new_batch, non_tensor_batch=non_tensor_batch, meta_info=merged_meta_info)
 
     def reorder(self, indices):
         """
