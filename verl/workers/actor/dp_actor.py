@@ -246,7 +246,7 @@ class DataParallelPPOActor(BasePPOActor):
             "position_ids",
             "old_log_probs",
             "advantages",
-            "critic_response_mask",
+            #"critic_response_mask",
             'token_level_rewards',
         ]
         if self.config.mask_tool_output or self.config.mask_void_turns:

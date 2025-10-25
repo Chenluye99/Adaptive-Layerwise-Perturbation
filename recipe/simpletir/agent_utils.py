@@ -744,14 +744,14 @@ def final_answer(result):
                 if "\\boxed{" in stdout:
                     dones[env_idx] = 1
 
-                if obs != "" and random.random() < 0.01:
-                    print(f"[DEBUG] Active sample {env_idx}:")
-                    print(f"  Prediction: {predictions[env_idx][:200]}...")
-                    print(f"  Use code: {use_code[env_idx]}")
-                    print(f"  Valid code: {valid_code[env_idx]}")
-                    print(f"  Done: {dones[env_idx]}")
-                    print(f"  Is void turn: {is_void_turn[env_idx]}")
-                    print(f"  Next obs: {next_obs[env_idx][:256]}...")
+                # if obs != "" and random.random() < 0.01:
+                #     print(f"[DEBUG] Active sample {env_idx}:")
+                #     print(f"  Prediction: {predictions[env_idx][:200]}...")
+                #     print(f"  Use code: {use_code[env_idx]}")
+                #     print(f"  Valid code: {valid_code[env_idx]}")
+                #     print(f"  Done: {dones[env_idx]}")
+                #     print(f"  Is void turn: {is_void_turn[env_idx]}")
+                #     print(f"  Next obs: {next_obs[env_idx][:256]}...")
 
         code_info = {
             "use_code": use_code,

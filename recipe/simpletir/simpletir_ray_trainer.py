@@ -1519,11 +1519,11 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                         metrics.update(actor_output_metrics)
 
                     # Save the first step batch data for debugging
-                    if self.global_steps == 1:
-                        save_dir = os.path.join(self.config.trainer.default_local_dir, "debug_data")
+                    if self.global_steps % 5 == 0:
+                        save_dir = os.path.join(self.config.trainer.default_local_dir, "batch_data")
                         os.makedirs(save_dir, exist_ok=True)
-                        save_path = os.path.join(save_dir, "first_step_batch.pt")
-                        print(f"Saving first step batch data to {save_path}")
+                        save_path = os.path.join(save_dir, f"global_steps_{self.global_steps}_batch.pt")
+                        print(f"Saving global_steps_{self.global_steps} batch data to {save_path}")
                         torch.save({
                             'batch_tensors': batch.batch,
                             'batch_non_tensors': batch.non_tensor_batch,

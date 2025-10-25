@@ -197,8 +197,24 @@ class MathRewardManager:
 
             if already_print_data_sources[data_source] < self.num_examine:
                 already_print_data_sources[data_source] += 1
-
-            if already_print_data_sources[data_source] < self.num_examine:
-                already_print_data_sources[data_source] += 1
+                
+                # Print sample information
+                prompt_str = self.tokenizer.decode(prompt_ids[i], skip_special_tokens=True)
+                response_str = sequences_strs[i]
+                ground_truth = ground_truths[i]
+                score = scores[i]
+                
+                print("=" * 80)
+                print(f"[data_source] {data_source}")
+                print(f"[prompt] {prompt_str}")
+                print(f"[response] {response_str}")
+                print(f"[ground_truth] {ground_truth}")
+                print(f"[score] {score}")
+                
+                # Print extra info if available
+                for key in extra_info_dict:
+                    if i < len(extra_info_dict[key]):
+                        print(f"[{key}] {extra_info_dict[key][i]}")
+                print("=" * 80)
 
         return {"reward_tensor": reward_tensor, "extra_info": extra_info_dict}
