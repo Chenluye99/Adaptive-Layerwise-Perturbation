@@ -357,36 +357,6 @@ class DataParallelPPOActor(BasePPOActor):
                             config=self.config,
                         )
                     
-                    # Add ppo_is_metrics with ppo_update/ prefix
-                    if ppo_is_metrics:
-                        for key, value in ppo_is_metrics.items():
-                            if isinstance(value, torch.Tensor):
-                                metrics[f"ppo_update/{key}"] = value.detach().item()
-                            else:
-                                metrics[f"ppo_update/{key}"] = value
-                    
-                    # Add rollout_is_metrics with rollout_mismatch/ prefix
-                    if rollout_is_metrics:
-                        for key, value in rollout_is_metrics.items():
-                            if isinstance(value, torch.Tensor):
-                                metrics[f"rollout_mismatch/{key}"] = value.detach().item()
-                            else:
-                                metrics[f"rollout_mismatch/{key}"] = value                        
-                    
-                    if original_rollout_is_metrics:
-                        for key, value in original_rollout_is_metrics.items():
-                            if isinstance(value, torch.Tensor):
-                                metrics[f"original_rollout_mismatch/{key}"] = value.detach().item()
-                            else:
-                                metrics[f"original_rollout_mismatch/{key}"] = value
-                    
-                    if original_ppo_is_metrics:
-                        for key, value in original_ppo_is_metrics.items():
-                            if isinstance(value, torch.Tensor):
-                                metrics[f"original_ppo_update/{key}"] = value.detach().item()
-                            else:
-                                metrics[f"original_ppo_update/{key}"] = value
-
                     # compute entropy loss from entropy
                     entropy_loss = verl_F.masked_mean(entropy, response_mask)
 
@@ -402,8 +372,6 @@ class DataParallelPPOActor(BasePPOActor):
                         kl_loss = masked_mean(kld, response_mask)
 
                         policy_loss = policy_loss + kl_loss * self.config.kl_loss_coef
-                        metrics['actor/kl_loss'] = kl_loss.detach().item()
-                        metrics['actor/kl_coef'] = self.config.kl_loss_coef
 
                     if self.config.use_dynamic_bsz:
                         # relative to the dynamic bsz
@@ -419,6 +387,41 @@ class DataParallelPPOActor(BasePPOActor):
                         'actor/ppo_kl': ppo_kl.detach().item(),
                         'actor/pg_clipfrac_lower': pg_clipfrac_lower.detach().item(),
                     }
+                    
+                    if self.config.use_kl_loss:
+                        data['actor/kl_loss'] = kl_loss.detach().item()
+                        data['actor/kl_coef'] = self.config.kl_loss_coef
+                    
+                    # Add ppo_is_metrics with ppo_update/ prefix
+                    if ppo_is_metrics:
+                        for key, value in ppo_is_metrics.items():
+                            if isinstance(value, torch.Tensor):
+                                data[f"ppo_update/{key}"] = value.detach().item()
+                            else:
+                                data[f"ppo_update/{key}"] = value
+                    
+                    # Add rollout_is_metrics with rollout_mismatch/ prefix
+                    if rollout_is_metrics:
+                        for key, value in rollout_is_metrics.items():
+                            if isinstance(value, torch.Tensor):
+                                data[f"rollout_mismatch/{key}"] = value.detach().item()
+                            else:
+                                data[f"rollout_mismatch/{key}"] = value
+                    
+                    if original_rollout_is_metrics:
+                        for key, value in original_rollout_is_metrics.items():
+                            if isinstance(value, torch.Tensor):
+                                data[f"original_rollout_mismatch/{key}"] = value.detach().item()
+                            else:
+                                data[f"original_rollout_mismatch/{key}"] = value
+                    
+                    if original_ppo_is_metrics:
+                        for key, value in original_ppo_is_metrics.items():
+                            if isinstance(value, torch.Tensor):
+                                data[f"original_ppo_update/{key}"] = value.detach().item()
+                            else:
+                                data[f"original_ppo_update/{key}"] = value
+                    
                     append_to_dict(metrics, data)
 
                 grad_norm = self._optimizer_step()

@@ -16,11 +16,11 @@ LOG_PATH="./logs/${PROJECT_NAME}" # the dir to save the log
 NNODES=1
 GPUS_PER_NODE=8 
 RESUME=False 
-LOSS_MODE='vanilla' # vanilla, step_gspo, gspo
+LOSS_MODE='cum-token' # vanilla, cum-token, cum-turn, sequence
 
 # Default values
-CLIP_RATIO_HIGH=0.28
-CLIP_RATIO_LOW=0.2
+CLIP_RATIO_HIGH=3.0
+CLIP_RATIO_LOW=0.5
 MAX_TURNS=5
 TRAIN_BATCH_SIZE=128
 VAL_SAMPLE_SIZE=50
@@ -57,7 +57,7 @@ VAL_ONLY=False
 LOG_VAL_GENERATIONS=64
 OUTPUT_ACC_TO_FILE=False
 
-rollout_is=True
+rollout_is=False
 rollout_is_threshold=5.0
 rollout_is_threshold_lower=0.0
 rollout_is_level="sequence" # "sequence", "cum-token", "cum-turn", "token"
@@ -147,6 +147,7 @@ generate_suffix() {
       --ppo_mini_batch_size) suffix+="_ppomini$2"; shift 2 ;;
       --clip_ratio_high) suffix+="_clipratiohigh$2"; shift 2 ;;
       --clip_ratio_low) suffix+="_clipratiolow$2"; shift 2 ;;
+      --clip_ratio_c) suffix+="_clipc$2"; shift 2 ;;
       --remove_clip) suffix+="_rmclip$2"; shift 2 ;;
       --max_turns) suffix+="_maxturn$2"; shift 2;;
       --stp_on_err) suffix+="_stperr$2"; shift 2 ;;
@@ -157,7 +158,6 @@ generate_suffix() {
       --mask_void_turns) suffix+="_maskvoidturns$2"; shift 2 ;;
       --oversample) suffix+="_oversample$2"; shift 2 ;;
       --loss_mode) suffix+="_lossmode$2"; shift 2 ;;
-      --clip_ratio_c) suffix+="_clipc$2"; shift 2 ;;
       --ppo_is_geometric) suffix+="_ppogeo$2"; shift 2 ;;
       --rollout_is) suffix+="_ris$2"; shift 2 ;;
       --rollout_is_threshold) suffix+="_isth$2"; shift 2 ;;
@@ -225,6 +225,8 @@ while [[ "$#" -gt 0 ]]; do
     --rollout_is_mode) rollout_is_mode="$2"; shift 2 ;;
     --rollout_is_veto_threshold) rollout_is_veto_threshold="$2"; shift 2 ;;
     --rollout_is_geometric) rollout_is_geometric="$2"; shift 2 ;;
+    --ppo_is_geometric) ppo_is_geometric="$2"; shift 2 ;;
+    --clip_ratio_c) clip_ratio_c="$2"; shift 2 ;;
     *)
       echo "Unknown option: $1"
       exit 1
