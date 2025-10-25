@@ -113,12 +113,6 @@ def apply_kl_penalty(
     return data, metrics
 
 
-def reduce_metrics(metrics: dict):
-    for key, val in metrics.items():
-        metrics[key] = np.mean(val)
-    return metrics
-
-
 def _compute_response_info(batch):
     response_length = batch.batch["responses"].shape[-1]
 

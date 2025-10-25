@@ -23,7 +23,10 @@ from verl import DataProto
 
 def reduce_metrics(metrics: Dict[str, List[Any]]) -> Dict[str, Any]:
     for key, val in metrics.items():
-        metrics[key] = np.mean(val)
+        if isinstance(val, list) and len(val) == 0:
+            metrics[key] = 0.0
+        else:
+            metrics[key] = np.mean(val)
     return metrics
 
 

@@ -25,6 +25,139 @@ from collections import defaultdict
 import verl.utils.torch_functional as verl_F
 from verl.trainer.ppo.rollout_is import compute_rollout_importance_weights, compute_is_metrics, compute_mismatch_metrics
 
+def compute_ppo_is_metrics(importance_ratios, response_mask, advantages, clip_ratio_low, clip_ratio_high):
+    """Compute PPO importance sampling metrics."""
+    ppo_is_metrics = {}
+    # Extract all valid importance_ratios (where response_mask > 0)
+    importance_ratios = torch.exp(importance_ratios)
+    valid_importance_ratios = importance_ratios[response_mask > 0]
+    
+    # Only compute statistics if we have valid tokens
+    if valid_importance_ratios.numel() > 0:
+        ppo_is_metrics["is_ratio/mean"] = valid_importance_ratios.mean().item()
+        ppo_is_metrics["is_ratio/std"] = valid_importance_ratios.std().item()
+        ppo_is_metrics["is_ratio/var"] = valid_importance_ratios.var().item()
+
+        ppo_is_metrics["is_ratio/min"] = valid_importance_ratios.min().item()
+        ppo_is_metrics["is_ratio/max"] = valid_importance_ratios.max().item()
+        # Compute quantiles using torch.quantile
+        ppo_is_metrics["is_ratio/q01"] = torch.quantile(valid_importance_ratios, 0.01).item()        
+        ppo_is_metrics["is_ratio/q05"] = torch.quantile(valid_importance_ratios, 0.05).item()
+        ppo_is_metrics["is_ratio/q25"] = torch.quantile(valid_importance_ratios, 0.25).item()
+        ppo_is_metrics["is_ratio/q50"] = torch.quantile(valid_importance_ratios, 0.50).item()
+        ppo_is_metrics["is_ratio/q75"] = torch.quantile(valid_importance_ratios, 0.75).item()
+        ppo_is_metrics["is_ratio/q95"] = torch.quantile(valid_importance_ratios, 0.95).item()
+        ppo_is_metrics["is_ratio/q99"] = torch.quantile(valid_importance_ratios, 0.99).item()
+        
+        # Compute clipping statistics based on advantage sign
+        clip_lower_bound = 1 - clip_ratio_low
+        clip_upper_bound = 1 + clip_ratio_high
+        
+        # Extract advantages for valid tokens
+        valid_advantages = advantages[response_mask > 0]
+        
+        # Clipping is applied when:
+        # 1. ratio < lower_bound AND advantage < 0 (limiting penalty increase)
+        # 2. ratio > upper_bound AND advantage > 0 (limiting reward increase)
+        clipped_lower = (valid_importance_ratios < clip_lower_bound) & (valid_advantages < 0)
+        clipped_upper = (valid_importance_ratios > clip_upper_bound) & (valid_advantages > 0)
+        
+        ppo_is_metrics["pg_clip_lower_frac"] = clipped_lower.float().mean().item()
+        ppo_is_metrics["pg_clip_upper_frac"] = clipped_upper.float().mean().item()
+        ppo_is_metrics["pg_clip_frac"] = (clipped_lower | clipped_upper).float().mean().item()
+    
+    return ppo_is_metrics
+
+@torch.no_grad()
+def compute_original_ppo_is_metrics_with_mask(
+    old_log_prob: torch.Tensor,
+    log_prob: torch.Tensor,
+    advantages: torch.Tensor,
+    original_response_mask: torch.Tensor,
+    loss_mode: str,
+    is_geometric: bool,
+    clip_ratio_low: float,
+    clip_ratio_high: float,
+    turn_end_indicator: torch.Tensor = None,
+) -> dict:
+    """
+    Compute PPO IS metrics using original_response_mask (before void turn masking).
+    
+    This function is purely for metrics computation and does not affect loss calculation.
+    All computations are done without gradient tracking.
+    """
+    # Detach all input tensors to ensure no gradient leakage
+    old_log_prob = old_log_prob.detach()
+    log_prob = log_prob.detach()
+    advantages = advantages.detach()
+    original_response_mask = original_response_mask.detach()
+    if turn_end_indicator is not None:
+        turn_end_indicator = turn_end_indicator.detach()
+    
+    negative_approx_kl = log_prob - old_log_prob
+    
+    if loss_mode == "sequence":
+        seq_lengths = torch.sum(original_response_mask, dim=-1).clamp(min=1)
+        kl_values = torch.sum(negative_approx_kl * original_response_mask, dim=-1)
+        if is_geometric:
+            kl_values = kl_values / seq_lengths
+        log_importance_ratio = kl_values.unsqueeze(-1) + torch.zeros_like(negative_approx_kl)
+        
+    elif loss_mode == "cum-token":
+        cumulative_sum = torch.cumsum(negative_approx_kl * original_response_mask, dim=-1)
+        seq_lengths = original_response_mask.sum(dim=-1)
+        max_len = seq_lengths.max().item()
+        
+        if max_len > 0:
+            cumulative_count = torch.cumsum(original_response_mask, dim=-1)
+            positions = torch.where(
+                original_response_mask > 0, 
+                cumulative_count.to(negative_approx_kl.dtype), 
+                torch.zeros_like(cumulative_count, dtype=negative_approx_kl.dtype)
+            )
+            
+            eps = 1e-8
+            if is_geometric:
+                log_importance_ratio = cumulative_sum / (positions + eps)
+            else:
+                log_importance_ratio = cumulative_sum
+        else:
+            log_importance_ratio = torch.zeros_like(negative_approx_kl)
+            
+    elif loss_mode == "cum-turn":
+        B, L = old_log_prob.shape
+        device = old_log_prob.device
+        
+        valid_token_nums = torch.cumsum(original_response_mask, dim=-1)
+        cumulative_sum = torch.cumsum(negative_approx_kl * original_response_mask, dim=-1)
+        
+        turn_end_mask = turn_end_indicator.bool() if turn_end_indicator is not None else torch.zeros_like(original_response_mask, dtype=torch.bool)
+        turn_end_mask[:, -1] = True
+        indices = torch.arange(L, device=device).expand(B, -1)
+        masked_indices = torch.where(turn_end_mask, indices, L)
+        
+        rev_masked_indices = torch.flip(masked_indices, dims=[-1])
+        rev_end_indices, _ = torch.cummin(rev_masked_indices, dim=-1)
+        end_indices = torch.flip(rev_end_indices, dims=[-1])
+        
+        turn_cumulative_sums = torch.gather(cumulative_sum, -1, end_indices)
+        turn_cumulative_counts = torch.gather(valid_token_nums, -1, end_indices)
+        
+        if is_geometric:
+            log_importance_ratio = turn_cumulative_sums / (turn_cumulative_counts + 1e-8)
+        else:
+            log_importance_ratio = turn_cumulative_sums
+    else:
+        # Default: token-level or other modes
+        log_importance_ratio = negative_approx_kl
+    
+    # Clamp for numerical stability
+    log_importance_ratio = torch.clamp(log_importance_ratio, max=10.0)
+    
+    # Compute metrics using the shared function
+    return compute_ppo_is_metrics(log_importance_ratio, original_response_mask, advantages, clip_ratio_low, clip_ratio_high)
+
+
 
 class AdaptiveKLController:
     """
