@@ -1182,10 +1182,10 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                         else:
                             batch.batch["loss_mask"] = response_mask
 
-                        if self.config.actor_rollout_ref.actor.mask_void_turns:
-                            batch.batch["loss_mask"] = batch.batch[
-                                "loss_mask"
-                            ] * batch.batch["void_turn_mask"].reshape(-1, 1)
+                        # if self.config.actor_rollout_ref.actor.mask_void_turns:
+                        #     batch.batch["loss_mask"] = batch.batch[
+                        #         "loss_mask"
+                        #     ] * batch.batch["void_turn_mask"].reshape(-1, 1)
 
                         metrics.update(
                             {
