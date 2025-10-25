@@ -56,7 +56,7 @@ def load_and_inspect_batch(file_path, tokenizer_path=None, verbose=False):
         return
     
     # Load the data
-    data = torch.load(file_path, map_location='cpu')
+    data = torch.load(file_path, map_location='cpu', weights_only=False)
     
     print(f"\n📦 Batch Data Structure:")
     print(f"  - Keys: {list(data.keys())}")

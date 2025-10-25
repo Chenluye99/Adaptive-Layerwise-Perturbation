@@ -38,6 +38,11 @@ class TensorConfig:
     max_start_length: int
 
 
+# Fields that should remain as float dtype (not converted to int64)
+FLOAT_FIELDS = {'rollout_log_probs', 'old_log_probs', 'token_level_scores', 
+                'token_level_rewards', 'advantages', 'returns', 'values'}
+
+
 class TensorHelper:
     def __init__(self, config: TensorConfig):
         self.config = config
@@ -390,7 +395,9 @@ class AgentHelper:
         remainder = batch_size % num_gpus
 
         for key in active_batch.batch.keys():
-            active_batch.batch[key] = active_batch.batch[key].long()
+            # Only convert to long if not a float field (like log_probs)
+            if key not in FLOAT_FIELDS:
+                active_batch.batch[key] = active_batch.batch[key].long()
 
         if remainder == 0:
             return self.actor_rollout_wg.generate_sequences(active_batch)
@@ -407,7 +414,9 @@ class AgentHelper:
         padded_active_batch = DataProto.from_dict(padded_batch)
 
         for key in padded_active_batch.batch.keys():
-            padded_active_batch.batch[key] = padded_active_batch.batch[key].long()
+            # Only convert to long if not a float field (like log_probs)
+            if key not in FLOAT_FIELDS:
+                padded_active_batch.batch[key] = padded_active_batch.batch[key].long()
 
         if hasattr(active_batch, "meta_info"):
             padded_active_batch.meta_info = active_batch.meta_info
@@ -616,7 +625,9 @@ class AgentHelper:
         final_output.meta_info.update(meta_info)
 
         for key in final_output.batch.keys():
-            final_output.batch[key] = final_output.batch[key].long()
+            # Only convert to long if not a float field (like log_probs)
+            if key not in FLOAT_FIELDS:
+                final_output.batch[key] = final_output.batch[key].long()
 
         return final_output
 
