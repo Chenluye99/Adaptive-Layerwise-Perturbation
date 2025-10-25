@@ -16,7 +16,7 @@ LOG_PATH="./logs/${PROJECT_NAME}" # the dir to save the log
 NNODES=1
 GPUS_PER_NODE=8 
 RESUME=False 
-LOSS_MODE='vanilla' # vanilla, step_gspo, gspo
+LOSS_MODE='vanilla' # vanilla, cum-token, cum-turn, sequence
 
 # Default values
 CLIP_RATIO_HIGH=0.28
@@ -33,7 +33,7 @@ MAX_OBS_LENGTH=256
 PPO_MINI_BATCH_SIZE=32
 PPO_MICRO_TOKEN=24000
 TOTAL_EPOCHS=100
-TRAIN_DATASET=("simplelr_math_35/train")
+TRAIN_DATASET=("simplelr_math_35/train" "deepscaler/train")
 VALID_DATASET=("simplelr_math_35/test" "deepscaler/aime" "deepscaler/aime25")
 ROLLOUT_GPU_MEMORY_UTIL=0.75
 ACTOR_OPTIMIZER_OFFLOAD=False
