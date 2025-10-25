@@ -238,12 +238,30 @@ class DataParallelPPOActor(BasePPOActor):
 
         temperature = data.meta_info['temperature']  # temperature must be in the data.meta_info to avoid slient error
 
-        select_keys = ['responses', 'input_ids', 'attention_mask', 'position_ids', 'old_log_probs', 'advantages']
-        if self.config.mask_tool_output or self.config.mask_void_turns:
-            select_keys.append("loss_mask")
+        select_keys = [
+            "responses",
+            "response_mask",
+            "input_ids",
+            "attention_mask",
+            "position_ids",
+            "old_log_probs",
+            "advantages",
+            "critic_response_mask",
+            'token_level_rewards',
+        ]
         if self.config.use_kl_loss:
-            select_keys.append('ref_log_prob')
+            select_keys.append("ref_log_prob")
+        if self.config.rollout_is:
+            assert "rollout_log_probs" in data.batch.keys(), (
+                "Rollout Importance Sampling requires to configure "
+                "`actor_rollout_ref.rollout.calculate_log_probs=True` "
+                "and is not currently supported in Server mode (agent loop)."
+            )
+            select_keys.append("rollout_log_probs")
+        if data.batch.get("void_turn_mask", None) is not None:
+            select_keys.append("void_turn_mask")
         batch = data.select(batch_keys=select_keys).batch
+
         has_multi_modal_inputs = 'multi_modal_inputs' in data.non_tensor_batch.keys()
 
         # Split to make minibatch iterator for updating the actor
@@ -289,6 +307,10 @@ class DataParallelPPOActor(BasePPOActor):
                         response_mask = attention_mask[:, -response_length:]
                     old_log_prob = data['old_log_probs']
                     advantages = data['advantages']
+                    
+                    # Extract rollout IS related fields
+                    rollout_log_probs = data["rollout_log_probs"] if self.config.rollout_is else None
+                    void_turn_mask = data["void_turn_mask"] if "void_turn_mask" in data.keys() else None
 
                     clip_ratio_high = self.config.clip_ratio_high
                     clip_ratio_low = self.config.clip_ratio_low
@@ -297,6 +319,10 @@ class DataParallelPPOActor(BasePPOActor):
 
                     # all return: (bsz, response_length)
                     entropy, log_prob = self._forward_micro_batch(micro_batch=data, temperature=temperature)
+
+                    # Initialize metrics to avoid undefined variable errors
+                    rollout_is_metrics = {}
+                    original_rollout_is_metrics = {}
 
                     if self.config.policy_loss.loss_mode == 'step_gspo':
                         pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower = core_algos.compute_policy_loss_gspo_per_step(
@@ -318,19 +344,40 @@ class DataParallelPPOActor(BasePPOActor):
                             clip_ratio_low=clip_ratio_low,
                             )
                     else:
-                        pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower = core_algos.compute_policy_loss(
+                        pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, rollout_is_metrics, original_rollout_is_metrics = core_algos.compute_policy_loss(
                             old_log_prob=old_log_prob,
                             log_prob=log_prob,
                             advantages=advantages,
                             eos_mask=response_mask,
-                            cliprange_high=clip_ratio_high,
                             cliprange_low=clip_ratio_low,
-                            clip_ratio_c=clip_ratio_c)
+                            cliprange_high=clip_ratio_high,
+                            clip_ratio_c=clip_ratio_c,
+                            loss_agg_mode=self.config.get("loss_agg_mode", "token-mean"),
+                            rollout_log_probs=rollout_log_probs,
+                            turn_end_indicator=data.get('critic_response_mask', None),
+                            void_turn_mask=void_turn_mask,
+                            config=self.config,
+                        )
                     # compute entropy loss from entropy
                     entropy_loss = verl_F.masked_mean(entropy, response_mask)
 
                     # compute policy loss
                     policy_loss = pg_loss - entropy_loss * entropy_coeff
+                    
+                    # Add rollout_is_metrics with rollout_mismatch/ prefix
+                    if rollout_is_metrics:
+                        for key, value in rollout_is_metrics.items():
+                            if isinstance(value, torch.Tensor):
+                                metrics[f"rollout_mismatch/{key}"] = value.detach().item()
+                            else:
+                                metrics[f"rollout_mismatch/{key}"] = value
+                    
+                    if original_rollout_is_metrics:
+                        for key, value in original_rollout_is_metrics.items():
+                            if isinstance(value, torch.Tensor):
+                                metrics[f"original_rollout_mismatch/{key}"] = value.detach().item()
+                            else:
+                                metrics[f"original_rollout_mismatch/{key}"] = value
 
                     if self.config.use_kl_loss:
                         ref_log_prob = data['ref_log_prob']

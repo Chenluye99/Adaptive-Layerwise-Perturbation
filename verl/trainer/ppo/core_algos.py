@@ -23,6 +23,7 @@ import torch
 from collections import defaultdict
 
 import verl.utils.torch_functional as verl_F
+from verl.trainer.ppo.rollout_is import compute_rollout_importance_weights, compute_is_metrics, compute_mismatch_metrics
 
 
 class AdaptiveKLController:
@@ -267,52 +268,132 @@ def compute_rewards(token_level_scores, old_log_prob, ref_log_prob, kl_ratio):
     return token_level_scores - kl * kl_ratio
 
 
-def compute_policy_loss(old_log_prob, log_prob, advantages, eos_mask, cliprange_low, cliprange_high, clip_ratio_c=3.0):
-    """Adapted from https://github.com/huggingface/trl/blob/main/trl/trainer/ppo_trainer.py#L1122
+def compute_policy_loss(
+    old_log_prob,
+    log_prob,
+    advantages,
+    eos_mask,
+    cliprange_low,
+    cliprange_high,
+    clip_ratio_c=3.0,
+    loss_agg_mode: str = "token-mean",
+    rollout_log_probs=None,
+    turn_end_indicator=None,
+    void_turn_mask=None,
+    config=None,
+):
+    """
+    Compute the clipped policy objective and related metrics for PPO.
+    
+    Adapted from https://github.com/huggingface/trl/blob/main/trl/trainer/ppo_trainer.py#L1122
 
     Args:
-        old_log_prob: `(torch.Tensor)`
-            shape: (bs, response_length)
-        log_prob: `(torch.Tensor)`
-            shape: (bs, response_length)
-        advantages: `(torch.Tensor)`
-            shape: (bs, response_length)
-        eos_mask: `(torch.Tensor)`
-            shape: (bs, response_length)
-        cliprange: (float)
-            The clip range used in PPO. See https://arxiv.org/abs/1707.06347
-        clip_ratio_c: (float)
-            THe lower bound of the ratio for dual-clip PPO, defalut 3. See https://arxiv.org/pdf/1912.09729
+        old_log_prob (torch.Tensor):
+            Log-probabilities of actions under the old policy, shape (batch_size, response_length).
+        log_prob (torch.Tensor):
+            Log-probabilities of actions under the current policy, shape (batch_size, response_length).
+        advantages (torch.Tensor):
+            Advantage estimates for each action, shape (batch_size, response_length).
+        eos_mask (torch.Tensor):
+            Mask indicating which tokens to include in the loss, shape (batch_size, response_length).
+        cliprange_low (float):
+            Lower clip range for dual-clip PPO.
+        cliprange_high (float):
+            Upper clip range for dual-clip PPO.
+        clip_ratio_c (float, optional):
+            Lower bound of the ratio for dual-clip PPO. See https://arxiv.org/pdf/1912.09729.
+            Defaults to 3.0.
+        loss_agg_mode (str, optional):
+            Aggregation mode for loss. Defaults to "token-mean".
+        rollout_log_probs (torch.Tensor, optional):
+            Log-probabilities of actions under the rollout policy, shape (batch_size, response_length).
+            Defaults to None.
+        turn_end_indicator (torch.Tensor, optional):
+            Indicator of turn end, shape (batch_size, response_length).
+            Defaults to None.
+        void_turn_mask (torch.Tensor, optional):
+            Mask indicating which turns are void, shape (batch_size, response_length).
+            Defaults to None.
+        config (AlgoConfig, optional):
+            Configuration for the algorithm. Defaults to None.
 
     Returns:
-        pg_loss: `a scalar torch.Tensor`
-            policy gradient loss computed via PPO
-        pg_clipfrac: (float)
-            a float number indicating the fraction of policy gradient loss being clipped
-        ppo_kl: (float)
-            the estimated KL divergence between the latest updating policy and the old sampling policy
+        pg_loss: scalar torch.Tensor - policy gradient loss computed via PPO
+        pg_clipfrac: float - fraction of policy gradient loss being clipped
+        ppo_kl: float - estimated KL divergence between latest policy and old policy
+        pg_clipfrac_lower: float - fraction of lower clip being applied
+        rollout_is_metrics: dict - rollout importance sampling metrics
+        original_rollout_is_metrics: dict - rollout IS metrics without void turn masking
     """
-    assert clip_ratio_c > 1.0, f"The lower bound of the clip_ratio_c for dual-clip PPO should be greater than 1.0, but get the value: {clip_ratio_c}."
+    assert clip_ratio_c > 1.0, (
+        "The lower bound of the clip_ratio_c for dual-clip PPO should be greater than 1.0,"
+        + f" but get the value: {clip_ratio_c}."
+    )
+
+    original_response_mask = eos_mask.clone()
+    if config is not None and config.get("mask_void_turns") and void_turn_mask is not None:
+        void_turn_mask_float = void_turn_mask.float().reshape(-1, 1)
+        eos_mask = eos_mask * void_turn_mask_float
 
     negative_approx_kl = log_prob - old_log_prob
+    # Clamp negative_approx_kl for stability
+    negative_approx_kl = torch.clamp(negative_approx_kl, min=-20.0, max=20.0)
     ratio = torch.exp(negative_approx_kl)
     ppo_kl = verl_F.masked_mean(-negative_approx_kl, eos_mask)
 
-    pg_losses = -advantages * ratio
+    pg_losses1 = -advantages * ratio
     pg_losses2 = -advantages * torch.clamp(ratio, 1.0 - cliprange_low, 1.0 + cliprange_high)
 
-    clip_pg_losses1 = torch.max(pg_losses, pg_losses2)
-    pg_clipfrac = verl_F.masked_mean(torch.gt(pg_losses2, pg_losses).float(), eos_mask)
+    clip_pg_losses1 = torch.max(pg_losses1, pg_losses2)
+    pg_clipfrac = verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), eos_mask)
 
     pg_losses3 = -advantages * clip_ratio_c
     clip_pg_losses2 = torch.min(pg_losses3, clip_pg_losses1)
-    pg_clipfrac_lower = verl_F.masked_mean(torch.gt(clip_pg_losses2, pg_losses3) * (advantages < 0).float(), eos_mask)
+    pg_clipfrac_lower = verl_F.masked_mean(
+        torch.gt(clip_pg_losses2, pg_losses3) * (advantages < 0).float(), eos_mask
+    )
+    
     # We only apply the dual-clip when the advantage is negative.
     pg_losses = torch.where(advantages < 0, clip_pg_losses2, clip_pg_losses1)
 
-    pg_loss = verl_F.masked_mean(pg_losses, eos_mask)
+    # Apply rollout importance sampling if threshold is set
+    rollout_is_metrics: dict = {}
+    original_rollout_is_metrics: dict = {}
+    if config is not None and config.get("rollout_is") and rollout_log_probs is not None:
+        rollout_is_weights, rollout_is_metrics = compute_rollout_importance_weights(
+            old_log_prob=old_log_prob,
+            rollout_log_prob=rollout_log_probs,
+            eos_mask=eos_mask,
+            rollout_is_level=config.get("rollout_is_level", "token"),
+            rollout_is_mode=config.get("rollout_is_mode", "truncate"),
+            rollout_is_threshold=config.get("rollout_is_threshold"),
+            rollout_is_threshold_lower=config.get("rollout_is_threshold_lower"),
+            rollout_is_veto_threshold=config.get("rollout_is_veto_threshold"),
+            geometric=config.get("rollout_is_geometric", False),
+            turn_end_indicator=turn_end_indicator,
+            void_turn_mask=void_turn_mask,
+        )
+        _, original_rollout_is_metrics = compute_rollout_importance_weights(
+            old_log_prob=old_log_prob,
+            rollout_log_prob=rollout_log_probs,
+            eos_mask=original_response_mask,
+            rollout_is_level=config.get("rollout_is_level", "token"),
+            rollout_is_mode=config.get("rollout_is_mode", "truncate"),
+            rollout_is_threshold=config.get("rollout_is_threshold"),
+            rollout_is_threshold_lower=config.get("rollout_is_threshold_lower"),
+            rollout_is_veto_threshold=config.get("rollout_is_veto_threshold"),
+            geometric=config.get("rollout_is_geometric", False),
+            turn_end_indicator=turn_end_indicator,
+            void_turn_mask=void_turn_mask,
+        )
 
-    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower
+        # Apply IS correction to loss if enabled
+        if config.get("rollout_is", False) and rollout_is_weights is not None:
+            pg_losses = pg_losses * rollout_is_weights
+
+    pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=eos_mask, loss_agg_mode=loss_agg_mode)
+
+    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, rollout_is_metrics, original_rollout_is_metrics
 
 
 def compute_entropy_loss(logits, eos_mask):
@@ -471,12 +552,19 @@ def compute_policy_loss_gspo_per_step(
     clip_ratio_high: float=0.2,
     clip_ratio_low: float=0.2,
     clip_ratio_c: float=3.0,
+    rollout_log_probs: torch.Tensor = None,
+    turn_end_indicator: torch.Tensor = None,
+    void_turn_mask: torch.Tensor = None,
+    config = None,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Compute the clipped policy objective and related metrics for GSPO with per-step importance weight.
     
     This version calculates per-step importance weight up to each step, rather than using
     the average importance weight for the entire sequence.
+    
+    Supports rollout importance sampling (IS) to correct for distribution mismatch between
+    rollout policy (e.g., vLLM) and training policy (e.g., FSDP).
 
     Args:
         old_log_prob (torch.Tensor):
@@ -495,6 +583,16 @@ def compute_policy_loss_gspo_per_step(
             The low clip range for the policy loss.
         clip_ratio_c:
             The clip ratio for the policy loss.
+        rollout_log_probs (torch.Tensor, optional):
+            Log probabilities from rollout policy, shape (batch_size, response_length).
+            Required if rollout IS is enabled.
+        turn_end_indicator (torch.Tensor, optional):
+            Turn end indicator, shape (batch_size, response_length).
+            Required for cum-turn rollout IS level.
+        void_turn_mask (torch.Tensor, optional):
+            Mask indicating which turns are void, shape (batch_size, response_length).
+        config (optional):
+            Algorithm configuration object containing rollout IS settings.
     """
     
     assert clip_ratio_high is not None
@@ -564,6 +662,27 @@ def compute_policy_loss_gspo_per_step(
 
     # Aggregate the loss at the sequence level
     pg_losses = torch.where(advantages < 0, clip_pg_losses2, clip_pg_losses1)
+    
+    # Apply rollout importance sampling if threshold is set
+    if config is not None and config.get("rollout_is") and rollout_log_probs is not None:
+        rollout_is_weights, rollout_is_metrics = compute_rollout_importance_weights(
+            old_log_prob=old_log_prob,
+            rollout_log_prob=rollout_log_probs,
+            eos_mask=response_mask,
+            rollout_is_level=config.get("rollout_is_level", "token"),
+            rollout_is_mode=config.get("rollout_is_mode", "truncate"),
+            rollout_is_threshold=config.rollout_is_threshold,
+            rollout_is_threshold_lower=config.get("rollout_is_threshold_lower"),
+            rollout_is_veto_threshold=config.get("rollout_is_veto_threshold"),
+            geometric=config.get("rollout_is_geometric", False),
+            turn_end_indicator=turn_end_indicator,
+            void_turn_mask=void_turn_mask,
+        )
+        
+        # Apply IS correction to loss
+        if rollout_is_weights is not None:
+            pg_losses = pg_losses * rollout_is_weights
+    
     pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
 
     # For compatibility, return zero for pg_clipfrac_lower (not used in standard GSPO)
