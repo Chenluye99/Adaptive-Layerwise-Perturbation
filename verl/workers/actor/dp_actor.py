@@ -249,6 +249,8 @@ class DataParallelPPOActor(BasePPOActor):
             "critic_response_mask",
             'token_level_rewards',
         ]
+        if self.config.mask_tool_output or self.config.mask_void_turns:
+            select_keys.append("loss_mask")
         if self.config.use_kl_loss:
             select_keys.append("ref_log_prob")
         if self.config.rollout_is:
@@ -300,11 +302,8 @@ class DataParallelPPOActor(BasePPOActor):
                         data = data.to(torch.cuda.current_device())  # actor device is cpu when using offload
                     responses = data['responses']
                     response_length = responses.size(1)
-                    attention_mask = data['attention_mask']
-                    if self.config.mask_tool_output or self.config.mask_void_turns:
-                        response_mask = data["loss_mask"]
-                    else:
-                        response_mask = attention_mask[:, -response_length:]
+                    attention_mask = data['loss_mask']
+                    response_mask = data["response_mask"]
                     old_log_prob = data['old_log_probs']
                     advantages = data['advantages']
                     
