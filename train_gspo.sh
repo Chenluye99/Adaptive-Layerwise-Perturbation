@@ -135,44 +135,29 @@ generate_model_micro_token() {
   fi
 }
 
-generate_suffix() {
-  local suffix=""
-
-  while [[ "$#" -gt 0 ]]; do
-    case $1 in
-      --train_batch_size) suffix+="_batch$2"; shift 2 ;;
-      --max_prompt_length) suffix+="_maxpro$2"; shift 2 ;;
-      --max_response_length) suffix+="_maxres$2"; shift 2 ;;
-      --max_obs_length) suffix+="_maxres$2"; shift 2 ;;
-      --ppo_mini_batch_size) suffix+="_ppomini$2"; shift 2 ;;
-      --clip_ratio_high) suffix+="_clipratiohigh$2"; shift 2 ;;
-      --clip_ratio_low) suffix+="_clipratiolow$2"; shift 2 ;;
-      --clip_ratio_c) suffix+="_clipc$2"; shift 2 ;;
-      --remove_clip) suffix+="_rmclip$2"; shift 2 ;;
-      --max_turns) suffix+="_maxturn$2"; shift 2;;
-      --stp_on_err) suffix+="_stperr$2"; shift 2 ;;
-      --grad_clip) suffix+="_gradclip$2"; shift 2 ;;
-      --acc_filter) suffix+="_accfilter$2"; shift 2 ;;
-      --start_clip_step) suffix+="_startclip$2"; shift 2 ;;
-      --balance_batch) suffix+="_balbatch$2"; shift 2 ;;
-      --mask_void_turns) suffix+="_maskvoidturns$2"; shift 2 ;;
-      --oversample) suffix+="_oversample$2"; shift 2 ;;
-      --loss_mode) suffix+="_lossmode$2"; shift 2 ;;
-      --ppo_is_geometric) suffix+="_ppogeo$2"; shift 2 ;;
-      --rollout_is) suffix+="_ris$2"; shift 2 ;;
-      --rollout_is_threshold) suffix+="_isth$2"; shift 2 ;;
-      --rollout_is_level) suffix+="_islvl$2"; shift 2 ;;
-      *) shift ;;
-    esac
-  done
-
-  echo "$suffix"
-}
-
 echo "Arguments received: $@"
 
+# Force include important parameters (regardless of command line)
+# Excluded: grad_clip, acc_filter, remove_clip, stp_on_err, balance_batch, start_clip_step
+SUFFIX=""
+SUFFIX+="_batch${TRAIN_BATCH_SIZE}"
+SUFFIX+="_maxpro${MAX_PROMPT_LENGTH}"
+SUFFIX+="_maxres${MAX_RESPONSE_LENGTH}"
+SUFFIX+="_ppomini${PPO_MINI_BATCH_SIZE}"
+SUFFIX+="_cliph${CLIP_RATIO_HIGH}"
+SUFFIX+="_clipl${CLIP_RATIO_LOW}"
+SUFFIX+="_clipc${clip_ratio_c}"
+SUFFIX+="_maxturn${MAX_TURNS}"
+SUFFIX+="_maskvoid${MASK_VOID_TURNS}"
+SUFFIX+="_oversample${OVERSAMPLE}"
+SUFFIX+="_loss${LOSS_MODE}"
+SUFFIX+="_ppogeo${ppo_is_geometric}"
+SUFFIX+="_ris${rollout_is}"
+SUFFIX+="_isth${rollout_is_threshold}"
+SUFFIX+="_islvl${rollout_is_level}"
 
-SUFFIX=$(generate_suffix "$@")
+echo "Generated SUFFIX: $SUFFIX"
+
 RUN_NAME="$RUN_NAME$SUFFIX"
 mkdir -p $LOG_PATH
 LOG_FILE_PATH=$LOG_PATH/$RUN_NAME.log
