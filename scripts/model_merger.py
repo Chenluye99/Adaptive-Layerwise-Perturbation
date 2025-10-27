@@ -22,7 +22,8 @@ from concurrent.futures import ThreadPoolExecutor
 from torch.distributed._tensor import DTensor, Shard, Placement
 from safetensors.torch import load_file
 
-from verl.utils.megatron_utils import get_model_checkpoint_path, get_hf_model_checkpoint_path
+# 延迟导入megatron相关工具，只在使用megatron backend时导入
+# from verl.utils.megatron_utils import get_model_checkpoint_path, get_hf_model_checkpoint_path
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--backend', type = str, required=True, help="The backend of the model")
@@ -206,6 +207,9 @@ def check_megatron_checkpoint_path(model_path):
     return sharded_dirs, tp_size, pp_size
 
 def convert_megatron_checkpoints_to_hfmodes():
+    # 在megatron backend下才导入相关工具
+    from verl.utils.megatron_utils import get_model_checkpoint_path, get_hf_model_checkpoint_path
+    
     local_path = args.local_dir
     
     model_ckpt_path = get_model_checkpoint_path(local_path)
