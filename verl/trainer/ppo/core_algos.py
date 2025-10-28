@@ -634,7 +634,10 @@ def compute_policy_loss_various_level(
                     cumulative_sum,
                     torch.zeros_like(cumulative_sum)
                 )
-        log_importance_ratio = kl_values.detach() + log_prob - log_prob.detach()
+            log_importance_ratio = kl_values.detach() + log_prob - log_prob.detach()
+        else:
+            # If max_len == 0, all tokens are masked, set log_importance_ratio to 0
+            log_importance_ratio = torch.zeros_like(negative_approx_kl)
 
     elif loss_mode == "cum-turn":
         assert turn_end_indicator is not None, "Turn end indicator is required for cum-turn loss mode."
@@ -1082,7 +1085,7 @@ def agg_loss(loss_mat: torch.Tensor, loss_mask: torch.Tensor, loss_agg_mode: str
         seq_losses = torch.sum(loss_mat * loss_mask, dim=-1)  # token-sum
         loss = torch.mean(seq_losses)  # seq-mean
     elif loss_agg_mode == "seq-mean-token-mean":
-        seq_losses = torch.sum(loss_mat * loss_mask, dim=-1) / torch.sum(loss_mask, dim=-1)  # token-mean
+        seq_losses = torch.sum(loss_mat * loss_mask, dim=-1) / torch.sum(loss_mask, dim=-1).clamp(min=1)  # token-mean
         loss = torch.mean(seq_losses)  # seq-mean
     elif loss_agg_mode == "seq-mean-token-sum-norm":
         seq_losses = torch.sum(loss_mat * loss_mask, dim=-1)
