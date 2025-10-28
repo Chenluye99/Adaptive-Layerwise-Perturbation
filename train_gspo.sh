@@ -10,7 +10,7 @@ RUN_NAME="simpletir"
 CONFIG_NAME="simpletir_trainer"
 
 MODEL_PATH='Qwen' # the parent dir of the checkpoint
-DATA_PATH='/home/chenluy/SimpleTIR/datasets' # the dir containing data like deepscaler/train (see datasets/)
+DATA_PATH=$(pwd)/datasets # the dir containing data like deepscaler/train (see datasets/)
 CHECKPOINT_PATH="/opt/dlami/nvme/${PROJECT_NAME}" # the dir to save the checkpoint
 LOG_PATH="./logs/${PROJECT_NAME}" # the dir to save the log
 NNODES=1
@@ -137,30 +137,6 @@ generate_model_micro_token() {
 
 echo "Arguments received: $@"
 
-# Force include important parameters (regardless of command line)
-# Excluded: grad_clip, acc_filter, remove_clip, stp_on_err, balance_batch, start_clip_step
-SUFFIX=""
-SUFFIX+="_batch${TRAIN_BATCH_SIZE}"
-SUFFIX+="_maxpro${MAX_PROMPT_LENGTH}"
-SUFFIX+="_maxres${MAX_RESPONSE_LENGTH}"
-SUFFIX+="_ppomini${PPO_MINI_BATCH_SIZE}"
-SUFFIX+="_cliph${CLIP_RATIO_HIGH}"
-SUFFIX+="_clipl${CLIP_RATIO_LOW}"
-SUFFIX+="_clipc${clip_ratio_c}"
-SUFFIX+="_maxturn${MAX_TURNS}"
-SUFFIX+="_maskvoid${MASK_VOID_TURNS}"
-SUFFIX+="_oversample${OVERSAMPLE}"
-SUFFIX+="_loss${LOSS_MODE}"
-SUFFIX+="_ppogeo${ppo_is_geometric}"
-SUFFIX+="_ris${rollout_is}"
-SUFFIX+="_isth${rollout_is_threshold}"
-SUFFIX+="_islvl${rollout_is_level}"
-
-echo "Generated SUFFIX: $SUFFIX"
-
-RUN_NAME="$RUN_NAME$SUFFIX"
-mkdir -p $LOG_PATH
-LOG_FILE_PATH=$LOG_PATH/$RUN_NAME.log
 
 # Parse named arguments
 while [[ "$#" -gt 0 ]]; do
@@ -224,6 +200,31 @@ if [ ${#TRAIN_DATASET[@]} -gt 0 ]; then
     train_dataset_str+="_$(echo $dataset | sed 's/\//_/g')"  # replace '/' to '_'
   done
 fi
+
+# Force include important parameters (regardless of command line)
+# Excluded: grad_clip, acc_filter, remove_clip, stp_on_err, balance_batch, start_clip_step
+SUFFIX=""
+SUFFIX+="_cliph${CLIP_RATIO_HIGH}"
+SUFFIX+="_clipl${CLIP_RATIO_LOW}"
+SUFFIX+="_clipc${clip_ratio_c}"
+SUFFIX+="_maxturn${MAX_TURNS}"
+SUFFIX+="_maskvoid${MASK_VOID_TURNS}"
+SUFFIX+="_oversample${OVERSAMPLE}"
+SUFFIX+="_loss${LOSS_MODE}"
+SUFFIX+="_ppogeo${ppo_is_geometric}"
+SUFFIX+="_ris${rollout_is}"
+SUFFIX+="_isth${rollout_is_threshold}"
+SUFFIX+="_islvl${rollout_is_level}"
+SUFFIX+="_maxpro${MAX_PROMPT_LENGTH}"
+SUFFIX+="_maxres${MAX_RESPONSE_LENGTH}"
+SUFFIX+="_batch${TRAIN_BATCH_SIZE}"
+SUFFIX+="_ppomini${PPO_MINI_BATCH_SIZE}"
+
+echo "Generated SUFFIX: $SUFFIX"
+
+RUN_NAME="$RUN_NAME$SUFFIX"
+mkdir -p $LOG_PATH
+LOG_FILE_PATH=$LOG_PATH/$RUN_NAME.log
 
 RUN_NAME+="$train_dataset_str"
 RUN_NAME+="_$MODEL_NAME"
