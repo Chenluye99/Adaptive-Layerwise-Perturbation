@@ -1511,6 +1511,11 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                             actor_output.meta_info["metrics"]
                         )
                         metrics.update(actor_output_metrics)
+                        
+                        # Store updated log_probs and micro_indices back to batch
+                        if "updated_log_probs" in actor_output.meta_info["metrics"]:
+                            batch.batch["updated_log_probs"] = actor_output.meta_info["metrics"]["updated_log_probs"]
+                            batch.batch["ppo_micro_indices"] = actor_output.meta_info["metrics"]["ppo_micro_indices"]
 
                     # Save the first step batch data for debugging
                     if self.global_steps % 5 == 0:

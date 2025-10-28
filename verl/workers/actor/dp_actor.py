@@ -276,6 +276,11 @@ class DataParallelPPOActor(BasePPOActor):
             dataloader = batch.split(self.config.ppo_mini_batch_size)
 
         metrics = {}
+        
+        # Storage for log_probs and micro_idx
+        all_log_probs = []
+        all_micro_indices = []
+        
         for epoch in range(self.config.ppo_epochs):
             for batch_idx, data in enumerate(dataloader):
                 # split batch into micro_batches
@@ -321,6 +326,11 @@ class DataParallelPPOActor(BasePPOActor):
 
                     # all return: (bsz, response_length)
                     entropy, log_prob = self._forward_micro_batch(micro_batch=data, temperature=temperature)
+                    
+                    # Store log_prob and micro_idx
+                    batch_size = log_prob.size(0)
+                    all_log_probs.append(log_prob.detach().cpu())
+                    all_micro_indices.append(torch.full((batch_size,), micro_idx, dtype=torch.long))
 
                     # Initialize metrics to avoid undefined variable errors
                     ppo_is_metrics = {}
@@ -446,4 +456,10 @@ class DataParallelPPOActor(BasePPOActor):
                 data = {'actor/grad_norm': grad_norm.detach().item()}
                 append_to_dict(metrics, data)
         self.actor_optimizer.zero_grad()
+        
+        # Concatenate all log_probs and micro_indices
+        if len(all_log_probs) > 0:
+            metrics['updated_log_probs'] = torch.cat(all_log_probs, dim=0)  # (batch_size, response_length)
+            metrics['ppo_micro_indices'] = torch.cat(all_micro_indices, dim=0)  # (batch_size,)
+        
         return metrics
