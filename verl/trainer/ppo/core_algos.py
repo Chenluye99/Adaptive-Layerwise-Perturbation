@@ -568,11 +568,11 @@ def compute_policy_loss_various_level(
         config:
             Algorithm configuration object
     """
-    # DEBUG: Entry log to verify function is being called
-    import sys
-    if not torch.distributed.is_initialized() or torch.distributed.get_rank() == 0:
-        print(f"[DEBUG] compute_policy_loss_various_level CALLED with loss_mode={loss_mode}", flush=True)
-        sys.stdout.flush()
+    # # DEBUG: Entry log to verify function is being called
+    # import sys
+    # if not torch.distributed.is_initialized() or torch.distributed.get_rank() == 0:
+    #     print(f"[DEBUG] compute_policy_loss_various_level CALLED with loss_mode={loss_mode}", flush=True)
+    #     sys.stdout.flush()
     
     assert config is not None
     clip_ratio_low = config.clip_ratio_low if config.clip_ratio_low is not None else config.clip_ratio

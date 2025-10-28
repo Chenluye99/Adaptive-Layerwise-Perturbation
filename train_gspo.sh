@@ -16,7 +16,7 @@ LOG_PATH="./logs/${PROJECT_NAME}" # the dir to save the log
 NNODES=1
 GPUS_PER_NODE=8 
 RESUME=False 
-LOSS_MODE='cum-token' # vanilla, cum-token, cum-turn, sequence
+LOSS_MODE='sequence' # vanilla, cum-token, cum-turn, sequence
 
 # Default values
 CLIP_RATIO_HIGH=3.0

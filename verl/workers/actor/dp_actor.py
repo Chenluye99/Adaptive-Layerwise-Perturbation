@@ -410,23 +410,23 @@ class DataParallelPPOActor(BasePPOActor):
                             else:
                                 data[f"ppo_update/{key}"] = value
                         
-                        # Print key statistics from all GPUs (only local rank 0 within each worker)
-                        should_print = True
-                        gpu_id = "?"
-                        if torch.distributed.is_initialized():
-                            should_print = torch.distributed.get_rank() == 0
-                            if should_print:
-                                # Get worker/gpu identifier
-                                gpu_id = str(torch.cuda.current_device()) if torch.cuda.is_available() else "CPU"
+                        # # Print key statistics from all GPUs (only local rank 0 within each worker)
+                        # should_print = True
+                        # gpu_id = "?"
+                        # if torch.distributed.is_initialized():
+                        #     should_print = torch.distributed.get_rank() == 0
+                        #     if should_print:
+                        #         # Get worker/gpu identifier
+                        #         gpu_id = str(torch.cuda.current_device()) if torch.cuda.is_available() else "CPU"
                         
-                        if should_print:
-                            mean_val = ppo_is_metrics.get('is_ratio/mean', None)
-                            min_val = ppo_is_metrics.get('is_ratio/min', None)
-                            max_val = ppo_is_metrics.get('is_ratio/max', None)
-                            if mean_val is not None:
-                                print(f"[PPO-IS GPU{gpu_id}] E{epoch}|Mini{batch_idx}|Micro{micro_idx} → mean={mean_val:.4f} min={min_val:.4f} max={max_val:.4f}")
-                            else:
-                                print(f"[PPO-IS GPU{gpu_id}] E{epoch}|Mini{batch_idx}|Micro{micro_idx} → Empty")
+                        # if should_print:
+                        #     mean_val = ppo_is_metrics.get('is_ratio/mean', None)
+                        #     min_val = ppo_is_metrics.get('is_ratio/min', None)
+                        #     max_val = ppo_is_metrics.get('is_ratio/max', None)
+                        #     if mean_val is not None:
+                        #         print(f"[PPO-IS GPU{gpu_id}] E{epoch}|Mini{batch_idx}|Micro{micro_idx} → mean={mean_val:.4f} min={min_val:.4f} max={max_val:.4f}")
+                        #     else:
+                        #         print(f"[PPO-IS GPU{gpu_id}] E{epoch}|Mini{batch_idx}|Micro{micro_idx} → Empty")
                     
                     # Add rollout_is_metrics with rollout_mismatch/ prefix
                     if rollout_is_metrics:

@@ -1507,15 +1507,30 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                         # update actor
                         with _timer("update_actor", timing_raw):
                             actor_output = self.actor_rollout_wg.update_actor(batch)
-                        actor_output_metrics = reduce_metrics(
-                            actor_output.meta_info["metrics"]
-                        )
-                        metrics.update(actor_output_metrics)
                         
-                        # Store updated log_probs and micro_indices back to batch
-                        if "updated_log_probs" in actor_output.meta_info["metrics"]:
-                            batch.batch["updated_log_probs"] = actor_output.meta_info["metrics"]["updated_log_probs"]
-                            batch.batch["ppo_micro_indices"] = actor_output.meta_info["metrics"]["ppo_micro_indices"]
+                        # Extract raw tensors before reduce_metrics
+                        raw_metrics = actor_output.meta_info["metrics"]
+                        if "updated_log_probs" in raw_metrics:
+                            # Check if it's a list or tensor
+                            if isinstance(raw_metrics["updated_log_probs"], (list, tuple)):
+                                # Concatenate the list of tensors
+                                updated_log_probs = torch.cat(raw_metrics["updated_log_probs"], dim=0).flatten(0, -2)
+                                ppo_micro_indices = torch.cat(raw_metrics["ppo_micro_indices"], dim=0).flatten(0, -1)
+                            else:
+                                # Already a tensor
+                                updated_log_probs = raw_metrics["updated_log_probs"].flatten(0, -2)
+                                ppo_micro_indices = raw_metrics["ppo_micro_indices"].flatten(0, -1)
+                            
+                            batch.batch["updated_log_probs"] = updated_log_probs
+                            batch.batch["ppo_micro_indices"] = ppo_micro_indices
+                        
+                        # Separate metrics for reduction (exclude tensors)
+                        metrics_to_reduce = {
+                            k: v for k, v in raw_metrics.items() 
+                            if k not in ["updated_log_probs", "ppo_micro_indices"]
+                        }
+                        actor_output_metrics = reduce_metrics(metrics_to_reduce)
+                        metrics.update(actor_output_metrics)
 
                     # Save the first step batch data for debugging
                     if self.global_steps % 5 == 0:
