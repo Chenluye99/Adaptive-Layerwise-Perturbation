@@ -32,12 +32,24 @@ async def parallel_sandbox(tasks, stdin_list=None, num_processes=200):
     else:
         assert len(tasks) == len(stdin_list), f"len(tasks) ({len(tasks)}) != len(stdin_list) ({len(stdin_list)})"
         tasks_async = [single_sandbox(code, stdin, semaphore=semaphore) for code, stdin in zip(tasks, stdin_list)]
-    results = await asyncio.gather(*tasks_async, return_exceptions=False)
-    return (
-        [r["status"] == RunStatus.Success for r in results],
-        [r["run_result"]["stdout"] for r in results],
-        [r["run_result"]["stderr"] for r in results],
-    )
+    results = await asyncio.gather(*tasks_async, return_exceptions=True)
+    
+    ok_flags = []
+    stdouts = []
+    stderrs = []
+    
+    for r in results:
+        if isinstance(r, Exception):
+            # 处理异常情况：单个sandbox失败不影响其他
+            ok_flags.append(False)
+            stdouts.append("")
+            stderrs.append(f"Sandbox error: {str(r)}")
+        else:
+            ok_flags.append(r["status"] == RunStatus.Success)
+            stdouts.append(r["run_result"]["stdout"])
+            stderrs.append(r["run_result"]["stderr"])
+    
+    return ok_flags, stdouts, stderrs
 
 
 if __name__ == "__main__":
