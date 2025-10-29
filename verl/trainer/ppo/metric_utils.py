@@ -26,7 +26,14 @@ def reduce_metrics(metrics: Dict[str, List[Any]]) -> Dict[str, Any]:
         if isinstance(val, list) and len(val) == 0:
             metrics[key] = 0.0
         else:
-            metrics[key] = np.mean(val)
+            try:
+                # 尝试将 val 视为数值列表
+                metrics[key] = np.mean(val)
+            except ValueError:
+                # 如果失败（说明是锯齿数组），则展平它
+                # np.atleast_1d 确保即使actor返回单个数字也能被concatenate
+                all_values = np.concatenate([np.atleast_1d(v) for v in val])
+                metrics[key] = np.mean(all_values)
     return metrics
 
 

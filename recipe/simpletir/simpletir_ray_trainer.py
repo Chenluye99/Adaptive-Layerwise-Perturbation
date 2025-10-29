@@ -1181,6 +1181,9 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                         #         "loss_mask"
                         #     ] * batch.batch["void_turn_mask"].reshape(-1, 1)
 
+                        if "format_mask" in batch.batch.keys():
+                            batch.batch["loss_mask"] = batch.batch["loss_mask"] * batch.batch["format_mask"]
+
                         metrics.update(
                             {
                                 "env/response_length": loss_mask.sum(axis=1)
@@ -1282,6 +1285,27 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                                 extra_rewards_info = reward_result["extra_info"]
                         else:
                             batch.batch["token_level_scores"] = reward_result
+
+                        # format mask to mask over repeat
+                        format_mask_tensor = None  # 初始化
+                        
+                        # 检查 extra_rewards_info 是否存在且包含 "format_mask"
+                        if extra_rewards_info and "format_mask" in extra_rewards_info:
+                            
+                            # 1. 从字典中提取 "format_mask" 的 Python 列表
+                            format_mask_list = extra_rewards_info["format_mask"]
+                            
+                            # 2. 将列表转换为 torch.Tensor
+                            #    我们使用 reward_tensor 的 .device 和 .dtype 来确保一致性
+                            #    (假设 format_mask 应该像奖励一样使用浮点数)
+                            format_mask_tensor = torch.tensor(
+                                format_mask_list, 
+                                dtype=torch.float32,  # 或 torch.int32，取决于您的用途
+                                device=reward_tensor.device
+                            )
+                            
+                            # 3. (推荐) 将其添加回 batch 字典中，以便后续步骤使用
+                            batch.batch["format_mask"] = format_mask_tensor
 
                         reward_tensor = batch.batch["token_level_scores"]
 

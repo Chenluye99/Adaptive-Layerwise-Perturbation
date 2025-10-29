@@ -24,15 +24,122 @@ from recipe.simpletir.utils.reward_score.qwen_math_eval_toolkit.parser import (
 )
 
 
-def extract_last_boxed(text):
-    pattern = r"\\boxed\{((?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*)\}"
+# def extract_last_boxed(text):
+#     pattern = r"\\boxed\{((?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*)\}"
 
-    matches = list(re.finditer(pattern, text))
+#     matches = list(re.finditer(pattern, text))
 
-    if matches:
-        return matches[-1].group(0)
-    return None
+#     if matches:
+#         return matches[-1].group(0)
+#     return None
 
+# def extract_last_boxed(text):
+#     """
+#     根据新规则提取最后一个 \boxed{...} 的 *完整字符串* (group 0)。
+
+#     规则:
+#     1. 只考虑最后一个 "```" 之后的内容 (如果存在 "```")。
+#     2. 如果该部分内容中 \boxed{...} 的 *总数* 超过 3 个, 返回 None。
+#     3. 否则, 仅在该部分内容的 *最后300个字符* 中搜索。
+#     4. 返回这300个字符中的 *最后* 一个 \boxed{...} 的 *完整匹配项* (group 0)。
+#     5. 如果在任何步骤中未找到匹配项, 返回 None。
+#     """
+    
+#     # 1. 找到最后一个 "```" 后面的内容
+#     format_mask = 1
+#     parts = text.split("```")
+#     if len(parts) > 1:
+#         content_to_check = parts[-1]
+#     else:
+#         content_to_check = text
+
+#     # 您的原始正则表达式
+#     pattern = r"\\boxed\{((?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*)\}"
+
+#     # 2. 检查此 *整个* 子字符串中 \boxed{...} 的总数
+#     try:
+#         all_matches = list(re.finditer(pattern, content_to_check))
+#     except (re.error, TypeError):
+#         return None
+
+#     # 3. 如果总数超过3个, 则返回 None
+#     if len(all_matches) > 3:
+#         format_mask = 0
+        
+#     # 4. 截取最后300个字符用于 *提取* (作为 "tokens" 的近似)
+#     extraction_area = content_to_check[-300:]
+
+#     # 5. 在这300个字符里找到 *所有* \boxed{...}
+#     try:
+#         matches_in_window = list(re.finditer(pattern, extraction_area))
+#     except (re.error, TypeError):
+#         format_mask = 0
+
+#     # 6. 如果在最后300个字符里 *没有* 找到, 则返回 None
+#     if not matches_in_window:
+#         return None
+    
+#     # 7. 提取 *最后* 一个匹配项的 *完整字符串* (group 0)
+#     #    (这是按照您的要求改回来的)
+#     return matches_in_window[-1].group(0)
+
+def extract_last_boxed(text: str) -> (str | None, int):
+    """
+    分离提取逻辑和格式化掩码逻辑。
+
+    返回:
+    1. extraction_result (str | None): 按照 *原始* 逻辑提取的最后一个 \boxed{...} (group 0)。
+    2. format_mask (int): 按照 *新* 规则计算的格式掩码 (1=通过, 0=失败)。
+    """
+    
+    # 您的原始正则表达式
+    pattern = r"\\boxed\{((?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\}"
+
+    # --- 1. 提取逻辑 (原始、简单逻辑) ---
+    # 这部分只关心整个 'text'
+    extraction_result = None
+    try:
+        # 搜索 *整个* text
+        all_matches_in_text = list(re.finditer(pattern, text))
+        if all_matches_in_text:
+            # 找到最后一个匹配项的 group(0)
+            extraction_result = all_matches_in_text[-1].group(0)
+    except (re.error, TypeError):
+        extraction_result = None # 捕获
+        
+    # --- 2. 掩码逻辑 (新的、复杂的规则) ---
+    format_mask = 1  # 默认通过 (1)
+
+    # 2a. 找到最后一个 "```" 后面的内容
+    parts = text.split("```")
+    if len(parts) > 1:
+        content_to_check = parts[-1]
+    else:
+        content_to_check = text
+
+    # 2b. 检查此 *整个* 子字符串中 \boxed{...} 的总数
+    try:
+        all_matches_in_content = list(re.finditer(pattern, content_to_check))
+        if len(all_matches_in_content) > 3:
+            format_mask = 0  # 失败 (0)
+    except (re.error, TypeError):
+        format_mask = 0  # 失败 (0)
+
+    # 2c. 检查最后300个字符
+    # 即使上面的检查失败了 (format_mask=0)，我们仍然要检查这一项
+    # 因为您希望这两个条件都设置 format_mask=0
+    try:
+        extraction_area = content_to_check[-300:]
+        matches_in_window = list(re.finditer(pattern, extraction_area))
+        
+        if not matches_in_window:
+            format_mask = 0  # 失败 (0)
+            
+    except (re.error, TypeError):
+        format_mask = 0  # 失败 (0)
+
+    # --- 3. 返回两个结果 ---
+    return extraction_result, format_mask
 
 def extract_solution(solution_str):
     model_output = re.sub(
@@ -48,12 +155,12 @@ def extract_solution(solution_str):
             model_output = model_output.split(stop_word)[0].strip()
 
     predict_answer = qwen_extract_answer(model_output, data_name="math")
-    extract_boxed_answer = extract_last_boxed(model_output)
+    extract_boxed_answer, format_mask = extract_last_boxed(model_output)
     # True means the boxed answer is correct
     if extract_boxed_answer is not None:
-        return predict_answer, True
+        return predict_answer, True, format_mask
     else:
-        return predict_answer, False
+        return predict_answer, False, format_mask
 
 
 def verify_without_timeout(
@@ -129,7 +236,7 @@ def compute_score(solution_str, ground_truth):
         format_score: the score for the format
         score: the score for the correct answer
     """
-    extract_answer, is_boxed_matched = extract_solution(solution_str=solution_str)
+    extract_answer, is_boxed_matched, format_mask = extract_solution(solution_str=solution_str)
     if "\\boxed" not in extract_answer:
         boxed_answer = f"\\boxed{{{extract_answer}}}"
     else:
@@ -167,5 +274,6 @@ def compute_score(solution_str, ground_truth):
             "is_boxed_ratio": format_reward,
             "score": total_score,
             "valid_code": 1 if has_code_piece else 0,
+            "format_mask": format_mask,
         },
     }
