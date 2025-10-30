@@ -18,9 +18,14 @@ from typing import Any, Callable, Dict, List
 import ray
 import torch
 from ray.exceptions import GetTimeoutError
+from pathlib import Path
 
 from recipe.simpletir.utils.reward_score import _default_compute_score
 from verl import DataProto
+
+import os
+import json
+import re
 
 
 # Keep this outside the main wrapper function for clarity and efficiency.
@@ -61,11 +66,14 @@ class MathRewardManager:
     The Reward Manager is borrowed from https://github.com/PRIME-RL/PRIME
     """
 
-    def __init__(self, tokenizer, num_examine, compute_score=None) -> None:
+    def __init__(self, tokenizer, num_examine, compute_score=None, record_dir=None) -> None:
         self.tokenizer = tokenizer
         self.num_examine = num_examine  # the number of batches of decoded responses to print to the console
         self.compute_score = compute_score or _default_compute_score
+        self.step = None
         self.timeout_seconds = 5
+        self.record_dir = Path(record_dir) / "step_records"
+        self.record_dir.mkdir(parents=True, exist_ok=True)
 
     def math_compute_score_parallel_with_ray(
         self, data_sources, solution_strs, ground_truths, extra_infos
@@ -151,6 +159,23 @@ class MathRewardManager:
 
     def __call__(self, data: DataProto):
         """We will expand this function gradually based on the available datasets"""
+        # check the last step index
+        if self.step is None:
+            last_step_idx = 0
+            for file in os.listdir(self.record_dir):
+                if self.num_examine == 1:
+                    if re.search(r"step-val-\d+\.json", file):
+                        step_idx = int(file[:-len(".json")].split("-")[-1])
+                        if step_idx > last_step_idx:
+                            last_step_idx = step_idx
+                else:
+                    if re.search(r"step-\d+\.json", file):
+                        step_idx = int(file[:-len(".json")].split("-")[-1])
+                        if step_idx > last_step_idx:
+                            last_step_idx = step_idx
+            self.step = last_step_idx + 1
+        if data.meta_info.get('global_step', None) is not None:
+            self.step = data.meta_info['global_step']
 
         # If there is rm score, we directly return rm score. Otherwise, we compute via rm_score_fn
         if "rm_scores" in data.batch.keys():
@@ -159,6 +184,7 @@ class MathRewardManager:
         reward_tensor = torch.zeros_like(data.batch["responses"], dtype=torch.float32)
 
         already_print_data_sources = {}
+        to_save_records = []
 
         response_ids = data.batch["responses"]
         sequences_strs = self.tokenizer.batch_decode(
@@ -195,14 +221,20 @@ class MathRewardManager:
             if data_source not in already_print_data_sources:
                 already_print_data_sources[data_source] = 0
 
+            prompt_str = self.tokenizer.decode(prompt_ids[i], skip_special_tokens=True)
+            response_str = sequences_strs[i]
+            ground_truth = ground_truths[i]
+            score = scores[i]
+
+            sample_extra_info = {}
+            for key, value_list in extra_info_dict.items():
+                if i < len(value_list):
+                    sample_extra_info[key] = value_list[i]
+
             if already_print_data_sources[data_source] < self.num_examine:
                 already_print_data_sources[data_source] += 1
                 
                 # Print sample information
-                prompt_str = self.tokenizer.decode(prompt_ids[i], skip_special_tokens=True)
-                response_str = sequences_strs[i]
-                ground_truth = ground_truths[i]
-                score = scores[i]
                 
                 print("=" * 80)
                 print(f"[data_source] {data_source}")
@@ -216,5 +248,33 @@ class MathRewardManager:
                     if i < len(extra_info_dict[key]):
                         print(f"[{key}] {extra_info_dict[key][i]}")
                 print("=" * 80)
+
+            to_save_records.append({
+                "data_source": data_source,
+                "prompt": prompt_str,
+                "response": response_str,
+                "ground_truth": ground_truth,
+                "score": score,
+                "extra_info": sample_extra_info,
+            })
+        
+        save_record=True
+        if save_record:
+            # Save the records to a file
+            if self.num_examine == 1:
+                temp_file = self.record_dir / f"step-val-{self.step}.json"
+            else:
+                temp_file = self.record_dir / f"step-{self.step}.json"  
+            self.step += 1
+            if temp_file.exists():
+                with open(temp_file, "r") as f:
+                    existing_records = json.load(f)
+                existing_records.extend(to_save_records)
+                with open(temp_file, "w") as f:
+                    json.dump(existing_records, f, indent=4)
+            else:
+                with open(temp_file, "w") as f:
+                    json.dump(to_save_records, f, indent=4)
+            print(f"Saved records to {temp_file}")          
 
         return {"reward_tensor": reward_tensor, "extra_info": extra_info_dict}

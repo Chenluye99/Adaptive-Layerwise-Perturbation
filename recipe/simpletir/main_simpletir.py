@@ -187,12 +187,12 @@ class TaskRunner:
 
         compute_score = get_custom_reward_fn(config)
         reward_fn = reward_manager_cls(
-            tokenizer=tokenizer, num_examine=0, compute_score=compute_score
+            tokenizer=tokenizer, num_examine=0, compute_score=compute_score, record_dir=config.trainer.default_local_dir
         )
 
         # Note that we always use function-based RM for validation
         val_reward_fn = reward_manager_cls(
-            tokenizer=tokenizer, num_examine=1, compute_score=compute_score
+            tokenizer=tokenizer, num_examine=1, compute_score=compute_score, record_dir=config.trainer.default_local_dir
         )
 
         resource_pool_manager = ResourcePoolManager(
