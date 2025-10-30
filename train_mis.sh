@@ -67,7 +67,7 @@ rollout_is_geometric=False
 
 # Policy loss specific parameters
 ppo_is_geometric=False  # Whether to use geometric aggregation for PPO IS
-clip_ratio_c=3.0  # Lower bound for dual-clip PPO
+clip_ratio_c=5.0  # Lower bound for dual-clip PPO
 
 
 # if resume is True, then set resume_mode to auto

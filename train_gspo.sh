@@ -67,7 +67,7 @@ rollout_is_geometric=False
 
 # Policy loss specific parameters
 ppo_is_geometric=False  # Whether to use geometric aggregation for PPO IS
-clip_ratio_c=3.0  # Lower bound for dual-clip PPO
+clip_ratio_c=5.0  # Lower bound for dual-clip PPO
 
 
 # if resume is True, then set resume_mode to auto
@@ -203,7 +203,7 @@ fi
 
 # Force include important parameters (regardless of command line)
 # Excluded: grad_clip, acc_filter, remove_clip, stp_on_err, balance_batch, start_clip_step
-SUFFIX=""
+SUFFIX="mask_format_"
 SUFFIX+="_cliph${CLIP_RATIO_HIGH}"
 SUFFIX+="_clipl${CLIP_RATIO_LOW}"
 SUFFIX+="_clipc${clip_ratio_c}"
