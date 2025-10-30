@@ -25,15 +25,12 @@ from recipe.simpletir.utils.reward_score.qwen_math_eval_toolkit.parser import (
 
 
 def extract_last_boxed(text):
-    tokens = text.split()
-    if len(tokens) <= 300:
-        search_text = text
-    else:
-        search_text = ' '.join(tokens[-300:])
+    if len(text) > 1500:
+        text = text[-1500:]
 
     pattern = r"\\boxed\{((?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*)\}"
 
-    matches = list(re.finditer(pattern, search_text))
+    matches = list(re.finditer(pattern, text))
 
     if matches:
         return matches[-1].group(0)

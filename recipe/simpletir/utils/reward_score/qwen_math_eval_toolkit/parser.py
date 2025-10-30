@@ -454,6 +454,9 @@ def clean_units(pred_str: str):
 
 
 def extract_answer(pred_str, data_name, use_last_number=True):
+    if len(pred_str) > 1500:
+        pred_str = pred_str[-1500:]
+
     pred_str = pred_str.replace("\u043a\u0438", "")
     if data_name in [
         "mmlu_stem",

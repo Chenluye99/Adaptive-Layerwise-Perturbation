@@ -203,7 +203,7 @@ fi
 
 # Force include important parameters (regardless of command line)
 # Excluded: grad_clip, acc_filter, remove_clip, stp_on_err, balance_batch, start_clip_step
-SUFFIX="mask_format_"
+SUFFIX=""
 SUFFIX+="_cliph${CLIP_RATIO_HIGH}"
 SUFFIX+="_clipl${CLIP_RATIO_LOW}"
 SUFFIX+="_clipc${clip_ratio_c}"
