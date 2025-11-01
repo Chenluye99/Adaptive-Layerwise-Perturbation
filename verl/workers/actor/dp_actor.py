@@ -277,12 +277,15 @@ class DataParallelPPOActor(BasePPOActor):
 
         metrics = {}
         
-        # Storage for log_probs and micro_idx
-        all_log_probs = []
-        all_micro_indices = []
-        
         for epoch in range(self.config.ppo_epochs):
+            # Storage for log_probs and micro_idx
+            all_log_probs = []
+            all_batch_indices = []
+
             for batch_idx, data in enumerate(dataloader):
+                minibatch_log_probs = []
+                revert_indices = None # 用于 dynamic_bsz 还原顺序
+
                 # split batch into micro_batches
                 mini_batch = data
                 if has_multi_modal_inputs:
@@ -291,7 +294,9 @@ class DataParallelPPOActor(BasePPOActor):
                     micro_batches = data.select(select_keys, non_tensor_select_keys).chunk(num_micro_batches)
                 elif self.config.use_dynamic_bsz:
                     max_token_len = self.config.ppo_max_token_len_per_gpu * self.ulysses_sequence_parallel_size
-                    micro_batches, _ = rearrange_micro_batches(batch=mini_batch, max_token_len=max_token_len)
+                    micro_batches, indices = rearrange_micro_batches(batch=mini_batch, max_token_len=max_token_len)
+                    flat_indices = list(itertools.chain.from_iterable(indices))
+                    revert_indices = torch.tensor(get_reverse_idx(flat_indices), dtype=torch.long, device='cpu')
                 else:
                     self.gradient_accumulation = self.config.ppo_mini_batch_size // self.config.ppo_micro_batch_size_per_gpu
                     # split batch into micro_batches
@@ -326,11 +331,9 @@ class DataParallelPPOActor(BasePPOActor):
 
                     # all return: (bsz, response_length)
                     entropy, log_prob = self._forward_micro_batch(micro_batch=data, temperature=temperature)
-                    
-                    # Store log_prob and micro_idx
+
                     batch_size = log_prob.size(0)
-                    all_log_probs.append(log_prob.detach().cpu())
-                    all_micro_indices.append(torch.full((batch_size,), micro_idx, dtype=torch.long))
+                    minibatch_log_probs.append(log_prob.detach().cpu())
 
                     # Initialize metrics to avoid undefined variable errors
                     ppo_is_metrics = {}
@@ -452,6 +455,19 @@ class DataParallelPPOActor(BasePPOActor):
                     
                     append_to_dict(metrics, data)
 
+                # concatenate the mini-batch (still shuffled)
+                if minibatch_log_probs:
+                    concatenated_logs = torch.cat(minibatch_log_probs, dim=0)
+
+                    if revert_indices is not None:
+                        # apply revert_indices to restore the order
+                        concatenated_logs = concatenated_logs[revert_indices]
+                    
+                    # add the (now correctly sorted) mini-batch to the epoch list
+                    all_log_probs.append(concatenated_logs)
+                    concatenated_indices = torch.full((concatenated_logs.size(0),), batch_idx, dtype=torch.long, device=concatenated_logs.device)
+                    all_batch_indices.append(concatenated_indices)
+
                 grad_norm = self._optimizer_step()
                 data = {'actor/grad_norm': grad_norm.detach().item()}
                 append_to_dict(metrics, data)
@@ -460,6 +476,6 @@ class DataParallelPPOActor(BasePPOActor):
         # Concatenate all log_probs and micro_indices
         if len(all_log_probs) > 0:
             metrics['updated_log_probs'] = torch.cat(all_log_probs, dim=0)  # (batch_size, response_length)
-            metrics['ppo_micro_indices'] = torch.cat(all_micro_indices, dim=0)  # (batch_size,)
+            metrics['ppo_micro_indices'] = torch.cat(all_batch_indices, dim=0)  # (batch_size,)
         
         return metrics
