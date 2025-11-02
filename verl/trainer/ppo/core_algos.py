@@ -885,10 +885,7 @@ def compute_policy_loss_various_level_adapt_ratio(
     clip_ratio_high = config.clip_ratio_high if config.clip_ratio_high is not None else config.clip_ratio
     clip_ratio_c = config.clip_ratio_c if config.clip_ratio_c is not None else 3.0
     is_geometric = config.policy_loss.is_geometric if config.policy_loss.is_geometric is not None else False
-    assert clip_ratio_c > 1.0, (
-        "The lower bound of the clip_ratio_c for dual-clip PPO should be greater than 1.0,"
-        + f" but get the value: {clip_ratio_c}."
-    )
+
     original_response_mask = response_mask.clone()
     if config.mask_void_turns and void_turn_mask is not None:
         void_turn_mask_float = void_turn_mask.float().reshape(-1, 1)
@@ -900,9 +897,9 @@ def compute_policy_loss_various_level_adapt_ratio(
         seq_lengths = torch.sum(response_mask, dim=-1).clamp(min=1)
         kl_values = torch.sum(negative_approx_kl * response_mask, dim=-1)
         log_importance_ratio = kl_values.detach().unsqueeze(-1) + log_prob - log_prob.detach()
-        clip_ratio_low = clip_ratio_low * torch.sqrt(seq_lengths)
-        clip_ratio_high = clip_ratio_high * torch.sqrt(seq_lengths)
-        clip_ratio_c = clip_ratio_c * torch.sqrt(seq_lengths)
+        clip_ratio_low = (clip_ratio_low * torch.sqrt(seq_lengths)).unsqueeze(-1)
+        clip_ratio_high = (clip_ratio_high * torch.sqrt(seq_lengths)).unsqueeze(-1)
+        clip_ratio_c = (clip_ratio_c * torch.sqrt(seq_lengths)).unsqueeze(-1)
 
     elif loss_mode == "cum-token":        
         # Vectorized approach: handle non-contiguous masks using cumulative count
@@ -921,9 +918,9 @@ def compute_policy_loss_various_level_adapt_ratio(
             torch.zeros_like(cumulative_sum)
         )
         log_importance_ratio = kl_values.detach() + log_prob - log_prob.detach()
-        clip_ratio_low = clip_ratio_low * torch.sqrt(seq_lengths)
-        clip_ratio_high = clip_ratio_high * torch.sqrt(seq_lengths)
-        clip_ratio_c = clip_ratio_c * torch.sqrt(seq_lengths)
+        clip_ratio_low = clip_ratio_low * torch.sqrt(cumulative_count)
+        clip_ratio_high = clip_ratio_high * torch.sqrt(cumulative_count)
+        clip_ratio_c = clip_ratio_c * torch.sqrt(cumulative_count)
 
 
     # Calculate importance ratios
@@ -991,19 +988,6 @@ def compute_policy_loss_various_level_adapt_ratio(
             turn_end_indicator=turn_end_indicator,
             void_turn_mask=void_turn_mask,
         )
-        _, original_rollout_is_metrics = compute_rollout_importance_weights(
-            old_log_prob=old_log_prob,
-            rollout_log_prob=rollout_log_probs,
-            eos_mask=original_response_mask,
-            rollout_is_level=config.get("rollout_is_level", "token"),
-            rollout_is_mode=config.get("rollout_is_mode", "truncate"),
-            rollout_is_threshold=config.rollout_is_threshold,
-            rollout_is_threshold_lower=config.get("rollout_is_threshold_lower"),
-            rollout_is_veto_threshold=config.get("rollout_is_veto_threshold"),
-            geometric=config.get("rollout_is_geometric", False),
-            turn_end_indicator=turn_end_indicator,
-            void_turn_mask=void_turn_mask,
-        )
 
         # Apply IS correction to loss if enabled
         if config.get("rollout_is", False) and rollout_is_weights is not None:
@@ -1012,7 +996,7 @@ def compute_policy_loss_various_level_adapt_ratio(
     pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
     
     # Return two separate metrics dictionaries
-    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics, original_rollout_is_metrics, original_ppo_is_metrics
+    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics
 
 
 def compute_entropy_loss(logits, eos_mask):

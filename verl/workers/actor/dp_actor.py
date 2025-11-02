@@ -355,7 +355,7 @@ class DataParallelPPOActor(BasePPOActor):
                             config=self.config,
                         )
                     elif self.config.policy_loss.loss_mode in ["sequence", "cum-token", "cum-turn"] and self.config.get("adapt_ratio", False):
-                        pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics, original_rollout_is_metrics, original_ppo_is_metrics = core_algos.compute_policy_loss_various_level_adapt_ratio(
+                        pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics = core_algos.compute_policy_loss_various_level_adapt_ratio(
                             old_log_prob=old_log_prob,
                             log_prob=log_prob,
                             advantages=advantages,
