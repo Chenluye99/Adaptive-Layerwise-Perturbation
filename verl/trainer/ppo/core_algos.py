@@ -21,9 +21,79 @@ implement PPO
 import numpy as np
 import torch
 from collections import defaultdict
-
+import math
 import verl.utils.torch_functional as verl_F
 from verl.trainer.ppo.rollout_is import compute_rollout_importance_weights, compute_is_metrics, compute_mismatch_metrics
+
+def compute_ppo_is_metrics_adapt_ratio(
+    log_importance_ratio: torch.Tensor,  # 1. 为清晰起见，重命名 (你传入的已经是 log_ratio)
+    response_mask: torch.Tensor,
+    advantages: torch.Tensor,
+    clip_ratio_low: torch.Tensor,  # 这些已经是 根号L 缩放过的
+    clip_ratio_high: torch.Tensor  # 这些已经是 根号L 缩放过的
+):
+    """Compute PPO importance sampling metrics consistent with log-space clipping."""
+    ppo_is_metrics = {}
+    
+    # --- 统计 Ratio (用于均值、方差等) ---
+    importance_ratios = torch.exp(log_importance_ratio) # 转换为 ratio
+    valid_importance_ratios = importance_ratios[response_mask > 0]
+    
+    # 只有当存在有效 token 时才计算统计数据
+    if valid_importance_ratios.numel() > 0:
+        ppo_is_metrics["is_ratio/mean"] = valid_importance_ratios.mean().item()
+        ppo_is_metrics["is_ratio/std"] = valid_importance_ratios.std().item()
+        ppo_is_metrics["is_ratio/var"] = valid_importance_ratios.var().item()
+
+        ppo_is_metrics["is_ratio/min"] = valid_importance_ratios.min().item()
+        ppo_is_metrics["is_ratio/max"] = valid_importance_ratios.max().item()
+        # ... (所有分位数 qXX 计算保持不变) ...
+        ppo_is_metrics["is_ratio/q01"] = torch.quantile(valid_importance_ratios, 0.01).item()        
+        ppo_is_metrics["is_ratio/q05"] = torch.quantile(valid_importance_ratios, 0.05).item()
+        ppo_is_metrics["is_ratio/q25"] = torch.quantile(valid_importance_ratios, 0.25).item()
+        ppo_is_metrics["is_ratio/q50"] = torch.quantile(valid_importance_ratios, 0.50).item()
+        ppo_is_metrics["is_ratio/q75"] = torch.quantile(valid_importance_ratios, 0.75).item()
+        ppo_is_metrics["is_ratio/q95"] = torch.quantile(valid_importance_ratios, 0.95).item()
+        ppo_is_metrics["is_ratio/q99"] = torch.quantile(valid_importance_ratios, 0.99).item()
+
+        # --- 统计 Clipping (必须在 Log-Space 中进行) ---
+        
+        # 2. 获取有效的 log-ratio 和 advantages
+        valid_log_ratios = log_importance_ratio[response_mask > 0]
+        valid_advantages = advantages[response_mask > 0]
+        
+        # 3. 【关键修改】在 log 空间定义边界
+        # 边界 (clip_ratio_low/high) 已经是 (batch_size,) 张量
+        # 我们需要将它们扩展并正确索引，以匹配 (num_valid_tokens,) 的张量
+        
+        batch_size, seq_len = response_mask.shape
+        # (batch_size,) -> (batch_size, 1) -> (batch_size, seq_len)
+        if clip_ratio_low.dim() == 1:
+            clip_lower_bound_expanded = clip_ratio_low.unsqueeze(-1).expand(-1, seq_len)
+            clip_upper_bound_expanded = clip_ratio_high.unsqueeze(-1).expand(-1, seq_len)
+        else:
+            # 兼容 (batch_size, seq_len) 的情况
+            clip_lower_bound_expanded = clip_ratio_low
+            clip_upper_bound_expanded = clip_ratio_high
+
+        # 提取与 valid_log_ratios 对应的边界值
+        valid_clip_lower = -clip_lower_bound_expanded[response_mask > 0] # 别忘了负号
+        valid_clip_upper = clip_upper_bound_expanded[response_mask > 0]
+        
+        # 4. 【关键修改】在 log 空间比较
+        # 裁剪发生在:
+        # 1. log_ratio < -clip_ratio_low (即 valid_clip_lower) AND advantage < 0
+        # 2. log_ratio > clip_ratio_high (即 valid_clip_upper) AND advantage > 0
+        
+        clipped_lower = (valid_log_ratios < valid_clip_lower) & (valid_advantages < 0)
+        clipped_upper = (valid_log_ratios > valid_clip_upper) & (valid_advantages > 0)
+        
+        ppo_is_metrics["pg_clip_lower_frac"] = clipped_lower.float().mean().item()
+        ppo_is_metrics["pg_clip_upper_frac"] = clipped_upper.float().mean().item()
+        ppo_is_metrics["pg_clip_frac"] = (clipped_lower | clipped_upper).float().mean().item()
+    
+    return ppo_is_metrics
+
 
 def compute_ppo_is_metrics(importance_ratios, response_mask, advantages, clip_ratio_low, clip_ratio_high):
     """Compute PPO importance sampling metrics."""
@@ -763,6 +833,186 @@ def compute_policy_loss_various_level(
     # Return two separate metrics dictionaries
     return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics, original_rollout_is_metrics, original_ppo_is_metrics
 
+
+def compute_policy_loss_various_level_adapt_ratio(
+    old_log_prob: torch.Tensor,
+    log_prob: torch.Tensor,
+    advantages: torch.Tensor,
+    response_mask: torch.Tensor,
+    loss_agg_mode: str = "token-mean",
+    loss_mode: str = "sequence",
+    turn_end_indicator: torch.Tensor = None,
+    rollout_log_probs: torch.Tensor = None,
+    void_turn_mask: torch.Tensor = None,
+    config = None,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict, dict, dict, dict]:
+    """
+    Compute the clipped policy objective and related metrics for GSPO with per-step importance weight.
+    
+    This version calculates per-step importance weight up to each step, rather than using
+    the average importance weight for the entire sequence.
+
+    Args:
+        old_log_prob (torch.Tensor):
+            Log-probabilities of actions under the old policy, shape (batch_size, response_length).
+        log_prob (torch.Tensor):
+            Log-probabilities of actions under the current policy, shape (batch_size, response_length).
+        advantages (torch.Tensor):
+            Advantage estimates for each action, shape (batch_size, response_length).
+        response_mask (torch.Tensor):
+            Mask indicating which tokens to include in the loss, shape (batch_size, response_length).
+        loss_agg_mode (str, optional):
+            Aggregation mode for `agg_loss`. For GSPO, it is recommended to use "seq-mean-token-mean".
+        loss_mode (str, optional):
+            Loss mode for the policy loss. Available modes: "sequence", "cum-token", "cum-turn".
+        turn_end_indicator (torch.Tensor, optional):
+            Turn end indicator, shape (batch_size, response_length).
+        rollout_log_probs (torch.Tensor, optional):
+            Rollout log probabilities, shape (batch_size, response_length).
+        void_turn_mask (torch.Tensor, optional):
+            Mask indicating which turns are void, shape (batch_size, response_length).
+        config:
+            Algorithm configuration object
+    """
+    # # DEBUG: Entry log to verify function is being called
+    # import sys
+    # if not torch.distributed.is_initialized() or torch.distributed.get_rank() == 0:
+    #     print(f"[DEBUG] compute_policy_loss_various_level CALLED with loss_mode={loss_mode}", flush=True)
+    #     sys.stdout.flush()
+    
+    assert config is not None
+    clip_ratio_low = config.clip_ratio_low if config.clip_ratio_low is not None else config.clip_ratio
+    clip_ratio_high = config.clip_ratio_high if config.clip_ratio_high is not None else config.clip_ratio
+    clip_ratio_c = config.clip_ratio_c if config.clip_ratio_c is not None else 3.0
+    is_geometric = config.policy_loss.is_geometric if config.policy_loss.is_geometric is not None else False
+    assert clip_ratio_c > 1.0, (
+        "The lower bound of the clip_ratio_c for dual-clip PPO should be greater than 1.0,"
+        + f" but get the value: {clip_ratio_c}."
+    )
+    original_response_mask = response_mask.clone()
+    if config.mask_void_turns and void_turn_mask is not None:
+        void_turn_mask_float = void_turn_mask.float().reshape(-1, 1)
+        response_mask = response_mask * void_turn_mask_float
+
+    negative_approx_kl = log_prob - old_log_prob
+    importance_ratios = torch.zeros_like(negative_approx_kl)
+    if loss_mode == "sequence":
+        seq_lengths = torch.sum(response_mask, dim=-1).clamp(min=1)
+        kl_values = torch.sum(negative_approx_kl * response_mask, dim=-1)
+        log_importance_ratio = kl_values.detach().unsqueeze(-1) + log_prob - log_prob.detach()
+        clip_ratio_low = clip_ratio_low * torch.sqrt(seq_lengths)
+        clip_ratio_high = clip_ratio_high * torch.sqrt(seq_lengths)
+        clip_ratio_c = clip_ratio_c * torch.sqrt(seq_lengths)
+
+    elif loss_mode == "cum-token":        
+        # Vectorized approach: handle non-contiguous masks using cumulative count
+        # Calculate cumulative sum for all sequences
+        cumulative_sum = torch.cumsum(negative_approx_kl * response_mask, dim=-1)
+    
+        # Create position indices that respect the mask
+        # The key insight: use cumulative count of valid positions
+        seq_lengths = response_mask.sum(dim=-1)
+        
+        cumulative_count = torch.cumsum(response_mask, dim=-1)
+        
+        kl_values = torch.where(
+            response_mask > 0,
+            cumulative_sum,
+            torch.zeros_like(cumulative_sum)
+        )
+        log_importance_ratio = kl_values.detach() + log_prob - log_prob.detach()
+        clip_ratio_low = clip_ratio_low * torch.sqrt(seq_lengths)
+        clip_ratio_high = clip_ratio_high * torch.sqrt(seq_lengths)
+        clip_ratio_c = clip_ratio_c * torch.sqrt(seq_lengths)
+
+
+    # Calculate importance ratios
+    log_importance_ratio = torch.clamp(log_importance_ratio, max=10.0)
+        
+    # Apply mask to ensure only valid positions are updated
+    importance_ratios = torch.where(
+        response_mask > 0,
+        torch.exp(log_importance_ratio),
+        torch.zeros_like(log_importance_ratio)
+    )
+    cliped_log_importance_ratios = torch.clamp(log_importance_ratio, -clip_ratio_low, clip_ratio_high)
+    cliped_importance_ratios = torch.where(
+        response_mask > 0,
+        torch.exp(cliped_log_importance_ratios),
+        torch.zeros_like(cliped_log_importance_ratios)
+    )
+    exp_clip_ratio_c = torch.exp(clip_ratio_c)
+
+
+    # Compute token-level statistics for importance_ratios (only valid tokens)
+    with torch.no_grad():
+        ppo_is_metrics = compute_ppo_is_metrics_adapt_ratio(log_importance_ratio, response_mask, advantages, clip_ratio_low, clip_ratio_high)
+    
+    # Compute policy losses with per-step importance ratios
+    pg_losses1 = -advantages * importance_ratios
+    pg_losses2 = -advantages * cliped_importance_ratios
+    clip_pg_losses1 = torch.maximum(pg_losses1, pg_losses2)
+
+    pg_losses3 = -advantages * exp_clip_ratio_c
+    clip_pg_losses2 = torch.min(pg_losses3, clip_pg_losses1)
+
+    pg_losses = torch.where(advantages < 0, clip_pg_losses2, clip_pg_losses1)
+    
+    # Compute dual clip statistics (applies to negative advantages)
+    valid_importance_ratios = importance_ratios[response_mask > 0]
+    if valid_importance_ratios.numel() > 0:
+        dual_clip_mask = torch.gt(clip_pg_losses1, pg_losses3) * (advantages < 0)
+        dual_clip_mask_valid = dual_clip_mask[response_mask > 0]
+        ppo_is_metrics["pg_dual_clip_frac"] = dual_clip_mask_valid.float().mean().item()
+
+    # For compatibility, return zero for pg_clipfrac_lower (not used in standard GSPO)
+    pg_clipfrac = verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), response_mask)
+    pg_clipfrac_lower = verl_F.masked_mean(
+        torch.gt(clip_pg_losses1, pg_losses3) * (advantages < 0).float(), response_mask
+    )
+    ppo_kl = verl_F.masked_mean(-negative_approx_kl, response_mask)
+    
+    # Apply rollout importance sampling if threshold is set
+    # Initialize metrics dictionaries (will remain empty if rollout_is is disabled)
+    rollout_is_metrics: dict = {}
+    original_rollout_is_metrics: dict = {}
+    if config.get("rollout_is") and rollout_log_probs is not None:
+
+        rollout_is_weights, rollout_is_metrics = compute_rollout_importance_weights(
+            old_log_prob=old_log_prob,
+            rollout_log_prob=rollout_log_probs,
+            eos_mask=response_mask,
+            rollout_is_level=config.get("rollout_is_level", "token"),
+            rollout_is_mode=config.get("rollout_is_mode", "truncate"),
+            rollout_is_threshold=config.rollout_is_threshold,
+            rollout_is_threshold_lower=config.get("rollout_is_threshold_lower"),
+            rollout_is_veto_threshold=config.get("rollout_is_veto_threshold"),
+            geometric=config.get("rollout_is_geometric", False),
+            turn_end_indicator=turn_end_indicator,
+            void_turn_mask=void_turn_mask,
+        )
+        _, original_rollout_is_metrics = compute_rollout_importance_weights(
+            old_log_prob=old_log_prob,
+            rollout_log_prob=rollout_log_probs,
+            eos_mask=original_response_mask,
+            rollout_is_level=config.get("rollout_is_level", "token"),
+            rollout_is_mode=config.get("rollout_is_mode", "truncate"),
+            rollout_is_threshold=config.rollout_is_threshold,
+            rollout_is_threshold_lower=config.get("rollout_is_threshold_lower"),
+            rollout_is_veto_threshold=config.get("rollout_is_veto_threshold"),
+            geometric=config.get("rollout_is_geometric", False),
+            turn_end_indicator=turn_end_indicator,
+            void_turn_mask=void_turn_mask,
+        )
+
+        # Apply IS correction to loss if enabled
+        if config.get("rollout_is", False) and rollout_is_weights is not None:
+            pg_losses = pg_losses * rollout_is_weights
+    # Aggregate the loss at the sequence level
+    pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
+    
+    # Return two separate metrics dictionaries
+    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics, original_rollout_is_metrics, original_ppo_is_metrics
 
 
 def compute_entropy_loss(logits, eos_mask):

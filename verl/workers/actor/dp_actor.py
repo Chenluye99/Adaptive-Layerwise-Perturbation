@@ -341,8 +341,21 @@ class DataParallelPPOActor(BasePPOActor):
                     rollout_is_metrics = {}
                     original_rollout_is_metrics = {}
 
-                    if self.config.policy_loss.loss_mode in ["sequence", "cum-token", "cum-turn"]:
+                    if self.config.policy_loss.loss_mode in ["sequence", "cum-token", "cum-turn"] and not self.config.get("adapt_ratio", False):
                         pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics, original_rollout_is_metrics, original_ppo_is_metrics = core_algos.compute_policy_loss_various_level(
+                            old_log_prob=old_log_prob,
+                            log_prob=log_prob,
+                            advantages=advantages,
+                            response_mask=response_mask,
+                            loss_agg_mode=self.config.get("loss_agg_mode", "token-mean"),
+                            loss_mode=self.config.policy_loss.loss_mode,
+                            turn_end_indicator=data.get('critic_response_mask', None),
+                            rollout_log_probs=rollout_log_probs,
+                            void_turn_mask=void_turn_mask,
+                            config=self.config,
+                        )
+                    elif self.config.policy_loss.loss_mode in ["sequence", "cum-token", "cum-turn"] and self.config.get("adapt_ratio", False):
+                        pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics, original_rollout_is_metrics, original_ppo_is_metrics = core_algos.compute_policy_loss_various_level_adapt_ratio(
                             old_log_prob=old_log_prob,
                             log_prob=log_prob,
                             advantages=advantages,
