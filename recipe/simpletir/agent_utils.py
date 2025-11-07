@@ -689,8 +689,7 @@ class AgentHelper:
                     # If so, stop following generations due to void turns
                     # But seems that no responses is overlong, so comment it now
                     # if responses_ids[i].shape[0] >= self.config.max_response_length:
-                    if self.config.mask_void_turns:
-                        is_void_turn[i] = 1
+                    is_void_turn[i] = 1
             else:
                 if self.config.append_final_answer_func:
                     code = (
