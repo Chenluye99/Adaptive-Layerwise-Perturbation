@@ -161,7 +161,14 @@ def convert_fsdp_checkpoints_to_hfmodels():
         hf_path = os.path.join(local_dir, 'huggingface')
     else:
         hf_path = args.target_dir
-    config = AutoConfig.from_pretrained(args.hf_model_path)
+    # 检查是否是本地路径，如果是则直接加载 config.json
+    if os.path.exists(args.hf_model_path) and os.path.exists(os.path.join(args.hf_model_path, 'config.json')):
+        import json
+        with open(os.path.join(args.hf_model_path, 'config.json'), 'r') as f:
+            config_dict = json.load(f)
+        config = AutoConfig.from_dict(config_dict)
+    else:
+        config = AutoConfig.from_pretrained(args.hf_model_path)
 
     if 'ForTokenClassification' in config.architectures[0]:
         auto_model = AutoModelForTokenClassification
@@ -238,7 +245,14 @@ def convert_megatron_checkpoints_to_hfmodes():
         process_one_shard(sharded_dir)
     
     state_dict = {}
-    config = AutoConfig.from_pretrained(args.hf_model_path)
+    # 检查是否是本地路径，如果是则直接加载 config.json
+    if os.path.exists(args.hf_model_path) and os.path.exists(os.path.join(args.hf_model_path, 'config.json')):
+        import json
+        with open(os.path.join(args.hf_model_path, 'config.json'), 'r') as f:
+            config_dict = json.load(f)
+        config = AutoConfig.from_dict(config_dict)
+    else:
+        config = AutoConfig.from_pretrained(args.hf_model_path)
     if args.test:
         ref_state_dict = load_file(os.path.join(args.test_hf_dir, 'model.safetensors'))
     

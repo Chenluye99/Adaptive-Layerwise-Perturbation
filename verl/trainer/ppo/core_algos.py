@@ -63,16 +63,22 @@ def compute_ppo_is_metrics_adapt_ratio(
         valid_advantages = advantages[response_mask > 0]
         
         # 3. 【关键修改】在 log 空间定义边界
-        # 边界 (clip_ratio_low/high) 已经是 (batch_size,) 张量
-        # 我们需要将它们扩展并正确索引，以匹配 (num_valid_tokens,) 的张量
+        # 边界 (clip_ratio_low/high) 可能是 (batch_size,), (batch_size, 1), 或 (batch_size, seq_len)
+        # 我们需要将它们统一扩展到 (batch_size, seq_len) 以便正确索引
         
         batch_size, seq_len = response_mask.shape
-        # (batch_size,) -> (batch_size, 1) -> (batch_size, seq_len)
+        
+        # 统一处理不同维度的输入
         if clip_ratio_low.dim() == 1:
+            # (batch_size,) -> (batch_size, 1) -> (batch_size, seq_len)
             clip_lower_bound_expanded = clip_ratio_low.unsqueeze(-1).expand(-1, seq_len)
             clip_upper_bound_expanded = clip_ratio_high.unsqueeze(-1).expand(-1, seq_len)
+        elif clip_ratio_low.dim() == 2 and clip_ratio_low.shape[1] == 1:
+            # (batch_size, 1) -> (batch_size, seq_len)
+            clip_lower_bound_expanded = clip_ratio_low.expand(-1, seq_len)
+            clip_upper_bound_expanded = clip_ratio_high.expand(-1, seq_len)
         else:
-            # 兼容 (batch_size, seq_len) 的情况
+            # 已经是 (batch_size, seq_len) 的情况
             clip_lower_bound_expanded = clip_ratio_low
             clip_upper_bound_expanded = clip_ratio_high
 
