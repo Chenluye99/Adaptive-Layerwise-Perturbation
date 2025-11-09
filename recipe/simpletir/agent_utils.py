@@ -684,12 +684,12 @@ class AgentHelper:
                 if dones[i] == 0:
                     # Neither answer(\boxed) nor code is detected, directly stop the generation
                     next_obs[i] = self.prompt_dict["no_tool_prompt"]
-                    dones[i] = 1
                     # It is likely that single turn response length is exceeded
                     # If so, stop following generations due to void turns
                     # But seems that no responses is overlong, so comment it now
                     # if responses_ids[i].shape[0] >= self.config.max_response_length:
                     is_void_turn[i] = 1
+                    dones[i] = 1
             else:
                 if self.config.append_final_answer_func:
                     code = (
