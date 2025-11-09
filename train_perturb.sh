@@ -18,6 +18,7 @@ GPUS_PER_NODE=8
 RESUME=False 
 LOSS_MODE='sequence' # vanilla, cum-token, cum-turn, sequence
 ADAPT_RATIO=False
+PERTURB_STD=1e-8
 
 # Default values
 CLIP_RATIO_HIGH=3.0
@@ -163,6 +164,7 @@ while [[ "$#" -gt 0 ]]; do
     --remove_clip) REMOVE_CLIP="$2"; shift 2 ;;
     --loss_mode) LOSS_MODE="$2"; shift 2 ;;
     --adapt_ratio) ADAPT_RATIO="$2"; shift 2 ;;
+    --perturb_std) PERTURB_STD="$2"; shift 2 ;;
     --rejection_sample) REJECTION_SAMPLE="$2"; shift 2 ;;
     --sp_size) SP_SIZE="$2"; shift 2 ;;
     --train_dataset) TRAIN_DATASET=($2); shift 2 ;;
@@ -222,6 +224,7 @@ SUFFIX+="_maxpro${MAX_PROMPT_LENGTH}"
 SUFFIX+="_maxres${MAX_RESPONSE_LENGTH}"
 SUFFIX+="_batch${TRAIN_BATCH_SIZE}"
 SUFFIX+="_ppomini${PPO_MINI_BATCH_SIZE}"
+SUFFIX+="_perturbstd${PERTURB_STD}"
 echo "Generated SUFFIX: $SUFFIX"
 
 RUN_NAME="$RUN_NAME$SUFFIX"
@@ -255,6 +258,7 @@ echo "Rollout IS Threshold Lower: $rollout_is_threshold_lower"
 echo "Rollout IS Level: $rollout_is_level"
 echo "Rollout IS Mode: $rollout_is_mode"
 echo "Adapt Ratio: $ADAPT_RATIO"
+echo "Perturb Std: $PERTURB_STD"
 # set ppo micro token
 PPO_MICRO_TOKEN=$(generate_model_micro_token "$MODEL_NAME")
 echo "PPO_MICRO_TOKEN: $PPO_MICRO_TOKEN"
@@ -321,6 +325,7 @@ PYTHONUNBUFFERED=1 python -m recipe.simpletir.main_simpletir \
     actor_rollout_ref.actor.clip_ratio_c=$clip_ratio_c \
     actor_rollout_ref.actor.adapt_ratio=$ADAPT_RATIO \
     actor_rollout_ref.actor.policy_loss.is_geometric=$ppo_is_geometric \
+    actor_rollout_ref.actor.policy_loss.perturb_std=$PERTURB_STD \
     actor_rollout_ref.actor.fsdp_config.param_offload=$ACTOR_PARAMETER_OFFLOAD \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=$ACTOR_OPTIMIZER_OFFLOAD \
     actor_rollout_ref.actor.rollout_is=$rollout_is \

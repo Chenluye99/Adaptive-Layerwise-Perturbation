@@ -58,7 +58,7 @@ class DataParallelPPOActor(BasePPOActor):
             if self.config.get('use_torch_compile', True)  #  use torch compile by default
             else verl_F.entropy_from_logits)
 
-    def _forward_micro_batch(self, micro_batch, temperature) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _forward_micro_batch(self, micro_batch, temperature, perturb_std=0) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Returns: 
             entropy: # (bs, response_len)
@@ -113,6 +113,9 @@ class DataParallelPPOActor(BasePPOActor):
                                            **multi_modal_inputs,
                                            use_cache=False)  # prevent model thinks we are generating
                 logits_rmpad = output.logits.squeeze(0)  # (total_nnz, vocab_size)
+                if perturb_std > 0:
+                    noise = torch.randn_like(logits_rmpad) * perturb_std
+                    logits_rmpad += noise
 
                 logits_rmpad.div_(temperature)
 
@@ -151,6 +154,9 @@ class DataParallelPPOActor(BasePPOActor):
                                            **multi_modal_inputs,
                                            use_cache=False)  # prevent model thinks we are generating
                 logits = output.logits
+                if perturb_std > 0:
+                    noise = torch.randn_like(logits) * perturb_std
+                    logits += noise
                 logits.div_(temperature)
                 logits = logits[:, -response_length - 1:-1, :]  # (bsz, response_length, vocab_size)
                 log_probs = logprobs_from_logits(logits, micro_batch['responses'])
@@ -330,7 +336,8 @@ class DataParallelPPOActor(BasePPOActor):
                     clip_ratio_c = self.config.get('clip_ratio_c', 3.0)
 
                     # all return: (bsz, response_length)
-                    entropy, log_prob = self._forward_micro_batch(micro_batch=data, temperature=temperature)
+                    perturb_std = self.config.get("perturb_std", 0)
+                    entropy, log_prob = self._forward_micro_batch(micro_batch=data, temperature=temperature, perturb_std=perturb_std)
 
                     batch_size = log_prob.size(0)
                     minibatch_log_probs.append(log_prob.detach().cpu())
@@ -341,7 +348,7 @@ class DataParallelPPOActor(BasePPOActor):
                     rollout_is_metrics = {}
                     original_rollout_is_metrics = {}
 
-                    if self.config.policy_loss.loss_mode in ["sequence", "cum-token", "cum-turn"] and not self.config.get("adapt_ratio", False):
+                    if self.config.policy_loss.loss_mode in ["sequence", "cum-token", "cum-turn"] and not self.config.get("adapt_ratio", False) and perturb_std == 0:
                         pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics, original_rollout_is_metrics, original_ppo_is_metrics = core_algos.compute_policy_loss_various_level(
                             old_log_prob=old_log_prob,
                             log_prob=log_prob,
@@ -354,7 +361,7 @@ class DataParallelPPOActor(BasePPOActor):
                             void_turn_mask=void_turn_mask,
                             config=self.config,
                         )
-                    elif self.config.policy_loss.loss_mode in ["sequence", "cum-token", "cum-turn"] and self.config.get("adapt_ratio", False):
+                    elif self.config.policy_loss.loss_mode in ["sequence", "cum-token", "cum-turn"] and self.config.get("adapt_ratio", False) and perturb_std == 0:
                         pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics = core_algos.compute_policy_loss_various_level_adapt_ratio(
                             old_log_prob=old_log_prob,
                             log_prob=log_prob,
@@ -367,6 +374,19 @@ class DataParallelPPOActor(BasePPOActor):
                             void_turn_mask=void_turn_mask,
                             config=self.config,
                         )
+                    elif perturb_std:
+                        pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics = core_algos.compute_policy_loss_perturbed(
+                            old_log_prob=old_log_prob,
+                            log_prob=log_prob,
+                            advantages=advantages,
+                            response_mask=response_mask,
+                            loss_agg_mode=self.config.get("loss_agg_mode", "token-mean"),
+                            loss_mode=self.config.policy_loss.loss_mode,
+                            turn_end_indicator=data.get('critic_response_mask', None),
+                            rollout_log_probs=rollout_log_probs,
+                            void_turn_mask=void_turn_mask,
+                            config=self.config,
+                        )                        
                     else:
                         pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, rollout_is_metrics, original_rollout_is_metrics = core_algos.compute_policy_loss(
                             old_log_prob=old_log_prob,
