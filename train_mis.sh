@@ -140,6 +140,11 @@ generate_suffix() {
 
   while [[ "$#" -gt 0 ]]; do
     case $1 in
+      --rollout_is) suffix+="_ris$2"; shift 2 ;;
+      --rollout_is_threshold) suffix+="_isth$2"; shift 2 ;;
+      --rollout_is_threshold_lower) suffix+="_isthlower$2"; shift 2 ;;
+      --rollout_is_veto_threshold) suffix+="_isveto$2"; shift 2 ;;
+      --rollout_is_level) suffix+="_islvl$2"; shift 2 ;;    
       --train_batch_size) suffix+="_batch$2"; shift 2 ;;
       --max_prompt_length) suffix+="_maxpro$2"; shift 2 ;;
       --max_response_length) suffix+="_maxres$2"; shift 2 ;;
@@ -159,9 +164,6 @@ generate_suffix() {
       --loss_mode) suffix+="_lossmode$2"; shift 2 ;;
       --clip_ratio_c) suffix+="_clipc$2"; shift 2 ;;
       --ppo_is_geometric) suffix+="_ppogeo$2"; shift 2 ;;
-      --rollout_is) suffix+="_ris$2"; shift 2 ;;
-      --rollout_is_threshold) suffix+="_isth$2"; shift 2 ;;
-      --rollout_is_level) suffix+="_islvl$2"; shift 2 ;;
       *) shift ;;
     esac
   done

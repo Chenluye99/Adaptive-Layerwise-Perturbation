@@ -235,7 +235,7 @@ def compute_rollout_importance_weights(
 
         # Check if any token ratio is below veto threshold (in log space)
         # log(π_train/π_rollout) < log(veto_threshold) ⟺ π_train/π_rollout < veto_threshold
-        catastrophic_tokens = (log_ratio < log_veto_threshold) & eos_mask.bool()
+        catastrophic_tokens = ((old_log_prob < log_veto_threshold) | (log_ratio < log_veto_threshold)) & eos_mask.bool()
 
         # For each sequence, check if it has any catastrophic token
         # Use broadcasting instead of expand_as to save memory
