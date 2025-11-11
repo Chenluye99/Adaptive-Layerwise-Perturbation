@@ -689,7 +689,8 @@ class AgentHelper:
                     # But seems that no responses is overlong, so comment it now
                     # if responses_ids[i].shape[0] >= self.config.max_response_length:
                     is_void_turn[i] = 1
-                    dones[i] = 1
+                    if self.config.mask_void_turns:
+                        dones[i] = 1
             else:
                 if self.config.append_final_answer_func:
                     code = (
