@@ -36,7 +36,7 @@ PPO_MICRO_TOKEN=24000
 TOTAL_EPOCHS=100
 TRAIN_DATASET=("simplelr_math_35/train" "deepscaler/train")
 VALID_DATASET=("simplelr_math_35/test" "deepscaler/aime" "deepscaler/aime25")
-ROLLOUT_GPU_MEMORY_UTIL=0.7
+ROLLOUT_GPU_MEMORY_UTIL=0.65
 ACTOR_OPTIMIZER_OFFLOAD=False
 ACTOR_PARAMETER_OFFLOAD=False
 MODEL_NAME=Qwen2.5-7B
@@ -217,6 +217,8 @@ SUFFIX+="_adaptratio${ADAPT_RATIO}"
 SUFFIX+="_ppogeo${ppo_is_geometric}"
 SUFFIX+="_ris${rollout_is}"
 SUFFIX+="_isth${rollout_is_threshold}"
+SUFFIX+="_isthlower${rollout_is_threshold_lower}"
+SUFFIX+="_isveto${rollout_is_veto_threshold}"
 SUFFIX+="_islvl${rollout_is_level}"
 SUFFIX+="_maxpro${MAX_PROMPT_LENGTH}"
 SUFFIX+="_maxres${MAX_RESPONSE_LENGTH}"
@@ -254,6 +256,8 @@ echo "Rollout IS Threshold: $rollout_is_threshold"
 echo "Rollout IS Threshold Lower: $rollout_is_threshold_lower"
 echo "Rollout IS Level: $rollout_is_level"
 echo "Rollout IS Mode: $rollout_is_mode"
+echo "Rollout IS Veto Threshold: $rollout_is_veto_threshold"
+echo "Rollout IS Geometric: $rollout_is_geometric"
 echo "Adapt Ratio: $ADAPT_RATIO"
 # set ppo micro token
 PPO_MICRO_TOKEN=$(generate_model_micro_token "$MODEL_NAME")

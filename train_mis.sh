@@ -136,7 +136,7 @@ generate_model_micro_token() {
 }
 
 generate_suffix() {
-  local suffix="_last1500"
+  local suffix="_last1500_nostop_voidturn"
 
   while [[ "$#" -gt 0 ]]; do
     case $1 in
