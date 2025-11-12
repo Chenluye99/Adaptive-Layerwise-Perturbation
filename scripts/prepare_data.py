@@ -12,16 +12,16 @@ from pathlib import Path
 
 
 def filter_by_score(example):
-    """Filter examples with average score between 0.2 and 0.8"""
+    """Filter examples with average score > 0 and < 1"""
     scores = example.get('scores', [])
     if not scores or len(scores) == 0:
         return False
     
     avg_score = sum(scores) / len(scores)
-    return 0.2 <= avg_score <= 0.8
+    return 0 < avg_score < 1
 
 
-def process_dataset(split='train', local_dir='~/data/openr1', score_range=(0.2, 0.8)):
+def process_dataset(split='train', local_dir='~/data/openr1', score_range=(0, 1)):
     """
     Load and process the dataset
     
@@ -85,6 +85,9 @@ def process_dataset(split='train', local_dir='~/data/openr1', score_range=(0.2, 
         with_indices=True,
         remove_columns=filtered_dataset.column_names
     )
+
+    print(processed_dataset[0])
+    print(f"Processed dataset size: {len(processed_dataset)}")
     
     # Save to parquet
     output_file = os.path.join(local_dir, f'{split}.parquet')
@@ -107,9 +110,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--local_dir', default='~/data/openr1', 
                        help='Local directory to save processed data')
-    parser.add_argument('--min_score', type=float, default=0.2,
+    parser.add_argument('--min_score', type=float, default=0,
                        help='Minimum average score')
-    parser.add_argument('--max_score', type=float, default=0.8,
+    parser.add_argument('--max_score', type=float, default=1,
                        help='Maximum average score')
     
     args = parser.parse_args()
@@ -139,7 +142,7 @@ if __name__ == '__main__':
         print("Creating validation split from train (10%)...")
         
         # Use 10% of train as validation
-        train_test_split = train_dataset.train_test_split(test_size=0.1, seed=42)
+        train_test_split = train_dataset.train_test_split(test_size=0.01, seed=42)
         train_dataset = train_test_split['train']
         test_dataset = train_test_split['test']
         
