@@ -66,6 +66,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=16 \
     actor_rollout_ref.ref.fsdp_config.param_offload=True \
     algorithm.use_kl_in_reward=False \
+    reward_model.reward_manager=batch \
     +algorithm.rollout_correction.rollout_is=null \
     +algorithm.rollout_correction.bypass_old_logprob_for_rollout=true \
     trainer.critic_warmup=0 \

@@ -1825,7 +1825,7 @@ def compute_ppo_is_metrics(log_importance_ratio, response_mask, advantages, clip
     
     return ppo_is_metrics
 
-
+@register_policy_loss("perturb")
 def compute_policy_loss_perturbed(
     old_log_prob: torch.Tensor,
     log_prob: torch.Tensor,
