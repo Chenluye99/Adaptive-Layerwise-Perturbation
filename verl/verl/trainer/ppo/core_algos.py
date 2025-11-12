@@ -785,16 +785,16 @@ def agg_loss(loss_mat: torch.Tensor, loss_mask: torch.Tensor, loss_agg_mode: str
             aggregated loss
     """
     if loss_agg_mode == "token-mean":
-        loss = verl_F.masked_mean(loss_mat, loss_mask)
+        loss = verl_F.verl_F.masked_mean(loss_mat, loss_mask)
     elif loss_agg_mode == "seq-mean-token-sum":
         seq_losses = torch.sum(loss_mat * loss_mask, dim=-1)  # token-sum
         seq_mask = (torch.sum(loss_mask, dim=-1) > 0).float()  # exclude fully masked sequences
-        loss = verl_F.masked_mean(seq_losses, seq_mask)  # seq-mean
+        loss = verl_F.verl_F.masked_mean(seq_losses, seq_mask)  # seq-mean
     elif loss_agg_mode == "seq-mean-token-mean":
         seq_mask = torch.sum(loss_mask, dim=-1)  # per-sequence token count
         seq_losses = torch.sum(loss_mat * loss_mask, dim=-1) / (seq_mask + 1e-8)  # token-mean
         seq_mask = (seq_mask > 0).float()  # exclude fully masked sequences
-        loss = verl_F.masked_mean(seq_losses, seq_mask)  # seq-mean
+        loss = verl_F.verl_F.masked_mean(seq_losses, seq_mask)  # seq-mean
     elif loss_agg_mode == "seq-mean-token-sum-norm":
         seq_losses = torch.sum(loss_mat * loss_mask, dim=-1)
         loss = torch.sum(seq_losses) / loss_mask.shape[-1]  # The divisor
@@ -857,7 +857,7 @@ def compute_policy_loss(
     # Clamp negative_approx_kl for stability
     negative_approx_kl = torch.clamp(negative_approx_kl, min=-20.0, max=20.0)
     ratio = torch.exp(negative_approx_kl)
-    ppo_kl = verl_F.masked_mean(-negative_approx_kl, response_mask)
+    ppo_kl = verl_F.verl_F.masked_mean(-negative_approx_kl, response_mask)
 
     pg_losses1 = -advantages * ratio
     if cliprange_low is None:
@@ -870,11 +870,11 @@ def compute_policy_loss(
     clip_pg_losses1 = torch.maximum(
         pg_losses1, pg_losses2
     )  # max(-ratio * A, -clip(ratio, 1-cliprange, 1+cliprange) * A)
-    pg_clipfrac = verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), response_mask)
+    pg_clipfrac = verl_F.verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), response_mask)
 
     pg_losses3 = -advantages * clip_ratio_c
     clip_pg_losses2 = torch.min(pg_losses3, clip_pg_losses1)
-    pg_clipfrac_lower = verl_F.masked_mean(
+    pg_clipfrac_lower = verl_F.verl_F.masked_mean(
         torch.gt(clip_pg_losses1, pg_losses3) * (advantages < 0).float(), response_mask
     )
 
@@ -939,7 +939,7 @@ def compute_policy_loss_vanilla(
     # Clamp negative_approx_kl for stability
     negative_approx_kl = torch.clamp(negative_approx_kl, min=-20.0, max=20.0)
     ratio = torch.exp(negative_approx_kl)
-    ppo_kl = verl_F.masked_mean(-negative_approx_kl, response_mask)
+    ppo_kl = verl_F.verl_F.masked_mean(-negative_approx_kl, response_mask)
 
     pg_losses1 = -advantages * ratio
     if cliprange_low is None:
@@ -952,11 +952,11 @@ def compute_policy_loss_vanilla(
     clip_pg_losses1 = torch.maximum(
         pg_losses1, pg_losses2
     )  # max(-ratio * A, -clip(ratio, 1-cliprange, 1+cliprange) * A)
-    pg_clipfrac = verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), response_mask)
+    pg_clipfrac = verl_F.verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), response_mask)
 
     pg_losses3 = -advantages * clip_ratio_c
     clip_pg_losses2 = torch.min(pg_losses3, clip_pg_losses1)
-    pg_clipfrac_lower = verl_F.masked_mean(
+    pg_clipfrac_lower = verl_F.verl_F.masked_mean(
         torch.gt(clip_pg_losses1, pg_losses3) * (advantages < 0).float(), response_mask
     )
 
@@ -1038,10 +1038,10 @@ def compute_policy_loss_gspo(
     pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode="seq-mean-token-mean")
 
     # For compatibility, return zero for pg_clipfrac_lower (not used in standard GSPO)
-    pg_clipfrac = verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), response_mask)
+    pg_clipfrac = verl_F.verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), response_mask)
     pg_clipfrac_lower = torch.tensor(0.0, device=pg_loss.device)
 
-    ppo_kl = verl_F.masked_mean(-negative_approx_kl, response_mask)
+    ppo_kl = verl_F.verl_F.masked_mean(-negative_approx_kl, response_mask)
     pg_metrics = {
         "actor/pg_clipfrac": pg_clipfrac.detach().item(),
         "actor/ppo_kl": ppo_kl.detach().item(),
@@ -1139,7 +1139,7 @@ def compute_policy_loss_clip_cov(
 
     negative_approx_kl = log_prob - old_log_prob
     ratio = torch.exp(negative_approx_kl)
-    ppo_kl = verl_F.masked_mean(-negative_approx_kl, response_mask)
+    ppo_kl = verl_F.verl_F.masked_mean(-negative_approx_kl, response_mask)
 
     pg_losses1 = -advantages * ratio
 
@@ -1152,8 +1152,8 @@ def compute_policy_loss_clip_cov(
     pg_losses2 = -advantages * torch.clamp(ratio, 1 - cliprange_low, 1 + cliprange_high)
     clip_by_origin = (pg_losses2 > pg_losses1) & (response_mask > 0)
 
-    cov_all = (advantages - verl_F.masked_mean(advantages, response_mask)) * (
-        log_prob - verl_F.masked_mean(log_prob.detach(), response_mask)
+    cov_all = (advantages - verl_F.verl_F.masked_mean(advantages, response_mask)) * (
+        log_prob - verl_F.verl_F.masked_mean(log_prob.detach(), response_mask)
     )
     cov_all[response_mask == 0] = -torch.inf
     cov_all[clip_by_origin] = -torch.inf
@@ -1170,7 +1170,7 @@ def compute_policy_loss_clip_cov(
 
     corr[top_k_idx[:, 0], top_k_idx[:, 1]] = 0
 
-    pg_clipfrac = verl_F.masked_mean((corr == 0).float(), response_mask)
+    pg_clipfrac = verl_F.verl_F.masked_mean((corr == 0).float(), response_mask)
 
     pg_losses = torch.maximum(pg_losses1, pg_losses2) * corr
 
@@ -1230,7 +1230,7 @@ def compute_policy_loss_kl_cov(
     negative_approx_kl = log_prob - old_log_prob
     abs_kl = negative_approx_kl.abs()
     ratio = torch.exp(negative_approx_kl)
-    ppo_kl_abs = verl_F.masked_mean(negative_approx_kl.abs(), response_mask)
+    ppo_kl_abs = verl_F.verl_F.masked_mean(negative_approx_kl.abs(), response_mask)
     pg_losses1 = -advantages * ratio
     pg_losses_kl = -advantages * ratio + ppo_kl_coef * abs_kl
     pg_losses = pg_losses1
@@ -1310,7 +1310,7 @@ def compute_policy_loss_geo_mean(
     negative_approx_kl = log_prob - old_log_prob
     # Clamp negative_approx_kl for stability (uncomment it if you like)
     # negative_approx_kl = torch.clamp(negative_approx_kl, min=-20.0, max=20.0)
-    ppo_kl = verl_F.masked_mean(-negative_approx_kl, response_mask)
+    ppo_kl = verl_F.verl_F.masked_mean(-negative_approx_kl, response_mask)
 
     # Clipping at token-level & Clipping wider
     sgn_advantage = torch.sign(advantages)
@@ -1340,8 +1340,8 @@ def compute_policy_loss_geo_mean(
 
     # higher: ratio is too large that need clamp to clip_high (when adv > 0)
     clipped = torch.ne(negative_approx_kl, negative_approx_kl_clamp)
-    pg_clipfrac = verl_F.masked_mean((clipped * (advantages > 0)).float(), response_mask)
-    pg_clipfrac_lower = verl_F.masked_mean((clipped * (advantages < 0)).float(), response_mask)
+    pg_clipfrac = verl_F.verl_F.masked_mean((clipped * (advantages > 0)).float(), response_mask)
+    pg_clipfrac_lower = verl_F.verl_F.masked_mean((clipped * (advantages < 0)).float(), response_mask)
     pg_metrics = {
         "actor/pg_clipfrac": pg_clipfrac.detach().item(),
         "actor/ppo_kl": ppo_kl.detach().item(),
@@ -1405,7 +1405,7 @@ def compute_value_loss(
     vf_losses2 = (vpredclipped - returns) ** 2
     clipped_vf_losses = torch.max(vf_losses1, vf_losses2)
     vf_loss = 0.5 * agg_loss(loss_mat=clipped_vf_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
-    vf_clipfrac = verl_F.masked_mean(torch.gt(vf_losses2, vf_losses1).float(), response_mask)
+    vf_clipfrac = verl_F.verl_F.masked_mean(torch.gt(vf_losses2, vf_losses1).float(), response_mask)
     return vf_loss, vf_clipfrac
 
 
@@ -1688,7 +1688,7 @@ def compute_policy_loss_with_rollout_correction(
 
     # Compute KL divergence between current and rollout policy
     negative_approx_kl = log_prob - rollout_log_prob
-    kl_divergence = verl_F.masked_mean(-negative_approx_kl, effective_mask)
+    kl_divergence = verl_F.verl_F.masked_mean(-negative_approx_kl, effective_mask)
 
     pg_metrics = rollout_metrics
     pg_metrics.update(
@@ -2018,13 +2018,321 @@ def compute_policy_loss_perturbed(
         ppo_is_metrics["pg_dual_clip_frac"] = dual_clip_mask_valid.float().mean().item()
 
     # Calculate clip fractions
+    pg_clipfrac = verl_F.verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), response_mask)
+    pg_clipfrac_lower = verl_F.verl_F.masked_mean(
+        torch.gt(clip_pg_losses1, pg_losses3) * (advantages < 0).float(), response_mask
+    )
+    ppo_kl = verl_F.verl_F.masked_mean(-negative_approx_kl, response_mask)
+    
+    # Aggregate the loss at the sequence level
+    pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
+    
+    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics
+
+
+# =============================================================================
+# Additional Functions from mismatch_rl for Complete Compatibility
+# =============================================================================
+
+
+@torch.no_grad()
+def compute_original_ppo_is_metrics_with_mask(
+    old_log_prob: torch.Tensor,
+    log_prob: torch.Tensor,
+    advantages: torch.Tensor,
+    original_response_mask: torch.Tensor,
+    loss_mode: str,
+    is_geometric: bool,
+    clip_ratio_low: float,
+    clip_ratio_high: float,
+    turn_end_indicator: torch.Tensor = None,
+) -> dict:
+    """
+    Compute PPO IS metrics using original_response_mask (before void turn masking).
+    
+    This function is purely for metrics computation and does not affect loss calculation.
+    All computations are done without gradient tracking.
+    """
+    # Detach all input tensors to ensure no gradient leakage
+    old_log_prob = old_log_prob.detach()
+    log_prob = log_prob.detach()
+    advantages = advantages.detach()
+    original_response_mask = original_response_mask.detach()
+    if turn_end_indicator is not None:
+        turn_end_indicator = turn_end_indicator.detach()
+    
+    negative_approx_kl = log_prob - old_log_prob
+    
+    if loss_mode == "sequence":
+        seq_lengths = torch.sum(original_response_mask, dim=-1).clamp(min=1)
+        kl_values = torch.sum(negative_approx_kl * original_response_mask, dim=-1)
+        if is_geometric:
+            kl_values = kl_values / seq_lengths
+        log_importance_ratio = kl_values.unsqueeze(-1) + torch.zeros_like(negative_approx_kl)
+        
+    elif loss_mode == "cum-token":
+        cumulative_sum = torch.cumsum(negative_approx_kl * original_response_mask, dim=-1)
+        seq_lengths = original_response_mask.sum(dim=-1)
+        max_len = seq_lengths.max().item()
+        
+        if max_len > 0:
+            cumulative_count = torch.cumsum(original_response_mask, dim=-1)
+            positions = torch.where(
+                original_response_mask > 0, 
+                cumulative_count.to(negative_approx_kl.dtype), 
+                torch.zeros_like(cumulative_count, dtype=negative_approx_kl.dtype)
+            )
+            
+            eps = 1e-8
+            if is_geometric:
+                log_importance_ratio = cumulative_sum / (positions + eps)
+            else:
+                log_importance_ratio = cumulative_sum
+        else:
+            log_importance_ratio = torch.zeros_like(negative_approx_kl)
+            
+    elif loss_mode == "cum-turn":
+        B, L = old_log_prob.shape
+        device = old_log_prob.device
+        
+        valid_token_nums = torch.cumsum(original_response_mask, dim=-1)
+        cumulative_sum = torch.cumsum(negative_approx_kl * original_response_mask, dim=-1)
+        
+        turn_end_mask = turn_end_indicator.bool() if turn_end_indicator is not None else torch.zeros_like(original_response_mask, dtype=torch.bool)
+        turn_end_mask[:, -1] = True
+        indices = torch.arange(L, device=device).expand(B, -1)
+        masked_indices = torch.where(turn_end_mask, indices, L)
+        
+        rev_masked_indices = torch.flip(masked_indices, dims=[-1])
+        rev_end_indices, _ = torch.cummin(rev_masked_indices, dim=-1)
+        end_indices = torch.flip(rev_end_indices, dims=[-1])
+        
+        turn_cumulative_sums = torch.gather(cumulative_sum, -1, end_indices)
+        turn_cumulative_counts = torch.gather(valid_token_nums, -1, end_indices)
+        
+        if is_geometric:
+            log_importance_ratio = turn_cumulative_sums / (turn_cumulative_counts + 1e-8)
+        else:
+            log_importance_ratio = turn_cumulative_sums
+    else:
+        # Default: token-level or other modes
+        log_importance_ratio = negative_approx_kl
+    
+    # Clamp for numerical stability
+    log_importance_ratio = torch.clamp(log_importance_ratio, max=10.0)
+    
+    # Compute metrics using the shared function
+    return compute_ppo_is_metrics(log_importance_ratio, original_response_mask, advantages, clip_ratio_low, clip_ratio_high)
+
+
+def compute_policy_loss_various_level(
+    old_log_prob: torch.Tensor,
+    log_prob: torch.Tensor,
+    advantages: torch.Tensor,
+    response_mask: torch.Tensor,
+    loss_agg_mode: str = "token-mean",
+    loss_mode: str = "sequence",
+    turn_end_indicator: torch.Tensor = None,
+    rollout_log_probs: torch.Tensor = None,
+    void_turn_mask: torch.Tensor = None,
+    config = None,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict, dict, dict, dict]:
+    """
+    Compute the clipped policy objective for various levels (sequence/cum-token/cum-turn).
+    
+    This function supports multi-level importance sampling and rollout correction.
+    Used when loss_mode is sequence/cum-token/cum-turn and perturb_std=0.
+
+    Args:
+        old_log_prob: Log-probs under old policy, shape (batch_size, response_length)
+        log_prob: Log-probs under current policy, shape (batch_size, response_length)
+        advantages: Advantage estimates, shape (batch_size, response_length)
+        response_mask: Valid token mask, shape (batch_size, response_length)
+        loss_agg_mode: Aggregation mode for loss
+        loss_mode: "sequence", "cum-token", or "cum-turn"
+        turn_end_indicator: Turn end indicator (required for cum-turn)
+        rollout_log_probs: Rollout log probabilities (optional for rollout IS)
+        void_turn_mask: Void turn mask (optional)
+        config: Algorithm configuration
+        
+    Returns:
+        Tuple of (pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, 
+                  rollout_is_metrics, original_rollout_is_metrics, original_ppo_is_metrics)
+    """
+    assert config is not None, "config is required"
+    clip_ratio_low = config.clip_ratio_low if hasattr(config, 'clip_ratio_low') and config.clip_ratio_low is not None else config.clip_ratio
+    clip_ratio_high = config.clip_ratio_high if hasattr(config, 'clip_ratio_high') and config.clip_ratio_high is not None else config.clip_ratio
+    clip_ratio_c = config.clip_ratio_c if hasattr(config, 'clip_ratio_c') and config.clip_ratio_c is not None else 3.0
+    
+    # Extract is_geometric from policy_loss config if available
+    is_geometric = False
+    if hasattr(config, 'policy_loss') and hasattr(config.policy_loss, 'is_geometric'):
+        is_geometric = config.policy_loss.is_geometric if config.policy_loss.is_geometric is not None else False
+    
+    assert clip_ratio_c > 1.0, f"clip_ratio_c should be > 1.0, got {clip_ratio_c}"
+    
+    # Handle void turn masking
+    original_response_mask = response_mask.clone()
+    mask_void_turns = hasattr(config, 'mask_void_turns') and config.mask_void_turns
+    if mask_void_turns and void_turn_mask is not None:
+        void_turn_mask_float = void_turn_mask.float().reshape(-1, 1)
+        response_mask = response_mask * void_turn_mask_float
+
+    # Calculate importance ratios based on loss_mode
+    negative_approx_kl = log_prob - old_log_prob
+    
+    if loss_mode == "sequence":
+        seq_lengths = torch.sum(response_mask, dim=-1).clamp(min=1)
+        kl_values = torch.sum(negative_approx_kl * response_mask, dim=-1)
+        if is_geometric:
+            kl_values = kl_values / seq_lengths
+        log_importance_ratio = kl_values.detach().unsqueeze(-1) + log_prob - log_prob.detach()
+
+    elif loss_mode == "cum-token":        
+        cumulative_sum = torch.cumsum(negative_approx_kl * response_mask, dim=-1)
+        seq_lengths = response_mask.sum(dim=-1)
+        max_len = seq_lengths.max().item()
+    
+        if max_len > 0:
+            cumulative_count = torch.cumsum(response_mask, dim=-1)
+            positions = torch.where(
+                response_mask > 0, 
+                cumulative_count.to(negative_approx_kl.dtype), 
+                torch.zeros_like(cumulative_count, dtype=negative_approx_kl.dtype)
+            )
+        
+            eps = 1e-8
+            if is_geometric:
+                kl_values = torch.where(
+                    response_mask > 0,
+                    cumulative_sum / (positions + eps),
+                    torch.zeros_like(cumulative_sum)
+                )
+            else:
+                kl_values = torch.where(
+                    response_mask > 0,
+                    cumulative_sum,
+                    torch.zeros_like(cumulative_sum)
+                )
+            log_importance_ratio = kl_values.detach() + log_prob - log_prob.detach()
+        else:
+            log_importance_ratio = torch.zeros_like(negative_approx_kl)
+
+    elif loss_mode == "cum-turn":
+        assert turn_end_indicator is not None, "Turn end indicator is required for cum-turn loss mode."
+        B, L = old_log_prob.shape
+        device = old_log_prob.device
+
+        valid_token_nums = torch.cumsum(response_mask, dim=-1)
+        cumulative_sum = torch.cumsum(negative_approx_kl * response_mask, dim=-1)
+
+        turn_end_mask = turn_end_indicator.bool()
+        turn_end_mask[:, -1] = True
+        indices = torch.arange(L, device=device).expand(B, -1)
+        masked_indices = torch.where(turn_end_mask, indices, L)
+
+        rev_masked_indices = torch.flip(masked_indices, dims=[-1])
+        rev_end_indices, _ = torch.cummin(rev_masked_indices, dim=-1)
+        end_indices = torch.flip(rev_end_indices, dims=[-1])
+
+        turn_cumulative_sums = torch.gather(cumulative_sum, -1, end_indices)
+        turn_cumulative_counts = torch.gather(valid_token_nums, -1, end_indices)
+
+        if is_geometric:
+            log_ratio_mean = turn_cumulative_sums / (turn_cumulative_counts + 1e-8)
+        else:
+            log_ratio_mean = turn_cumulative_sums
+        kl_values = torch.where(
+            response_mask > 0,
+            log_ratio_mean,
+            torch.zeros_like(cumulative_sum)
+        )  
+        log_importance_ratio = kl_values.detach() + log_prob - log_prob.detach()
+    else:
+        # Fallback to token-level
+        log_importance_ratio = negative_approx_kl
+
+    # Clamp for numerical stability
+    log_importance_ratio = torch.clamp(log_importance_ratio, max=10.0)
+        
+    # Calculate importance ratios
+    importance_ratios = torch.where(
+        response_mask > 0,
+        torch.exp(log_importance_ratio),
+        torch.zeros_like(log_importance_ratio)
+    )
+
+    # Compute PPO IS metrics
+    with torch.no_grad():
+        ppo_is_metrics = compute_ppo_is_metrics(
+            log_importance_ratio, response_mask, advantages, clip_ratio_low, clip_ratio_high
+        )
+        original_ppo_is_metrics = compute_original_ppo_is_metrics_with_mask(
+            old_log_prob=old_log_prob,
+            log_prob=log_prob,
+            advantages=advantages,
+            original_response_mask=original_response_mask,
+            loss_mode=loss_mode,
+            is_geometric=is_geometric,
+            clip_ratio_low=clip_ratio_low,
+            clip_ratio_high=clip_ratio_high,
+            turn_end_indicator=turn_end_indicator,
+        )
+    
+    # Compute policy losses with importance ratios
+    pg_losses1 = -advantages * importance_ratios
+    pg_losses2 = -advantages * torch.clamp(importance_ratios, 1 - clip_ratio_low, 1 + clip_ratio_high)
+    clip_pg_losses1 = torch.maximum(pg_losses1, pg_losses2)
+
+    pg_losses3 = -advantages * clip_ratio_c
+    clip_pg_losses2 = torch.min(pg_losses3, clip_pg_losses1)
+
+    pg_losses = torch.where(advantages < 0, clip_pg_losses2, clip_pg_losses1)
+    
+    # Compute dual clip statistics
+    valid_importance_ratios = importance_ratios[response_mask > 0]
+    if valid_importance_ratios.numel() > 0:
+        dual_clip_mask = torch.gt(clip_pg_losses1, pg_losses3) * (advantages < 0)
+        dual_clip_mask_valid = dual_clip_mask[response_mask > 0]
+        ppo_is_metrics["pg_dual_clip_frac"] = dual_clip_mask_valid.float().mean().item()
+
+    # Calculate clip fractions
     pg_clipfrac = verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), response_mask)
     pg_clipfrac_lower = verl_F.masked_mean(
         torch.gt(clip_pg_losses1, pg_losses3) * (advantages < 0).float(), response_mask
     )
     ppo_kl = verl_F.masked_mean(-negative_approx_kl, response_mask)
     
-    # Aggregate the loss at the sequence level
+    # Apply rollout IS correction if enabled (using mismatch_rl_research's function)
+    rollout_is_metrics = {}
+    original_rollout_is_metrics = {}
+    if rollout_log_probs is not None and hasattr(config, 'rollout_is') and config.rollout_is:
+        from verl.trainer.ppo.rollout_corr_helper import compute_rollout_correction_weights
+        
+        log_ratio = old_log_prob - rollout_log_probs
+        rollout_is_level = config.rollout_is_level if hasattr(config, 'rollout_is_level') else "token"
+        rollout_is_threshold = config.rollout_is_threshold if hasattr(config, 'rollout_is_threshold') else 2.0
+        
+        # Compute IS weights using mismatch_rl_research's implementation
+        rollout_is_weights, rollout_is_metrics = compute_rollout_correction_weights(
+            log_ratio=log_ratio,
+            response_mask=response_mask,
+            rollout_is=rollout_is_level,
+            rollout_is_threshold=rollout_is_threshold,
+        )
+        
+        # Compute original metrics (without void turn masking)
+        _, original_rollout_is_metrics = compute_rollout_correction_weights(
+            log_ratio=log_ratio,
+            response_mask=original_response_mask,
+            rollout_is=rollout_is_level,
+            rollout_is_threshold=rollout_is_threshold,
+        )
+
+        # Apply IS weights to losses
+        pg_losses = pg_losses * rollout_is_weights
+    
+    # Aggregate loss
     pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
     
-    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics
+    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics, original_rollout_is_metrics, original_ppo_is_metrics

@@ -1,19 +1,28 @@
 #!/bin/bash
 # Unified Experiment: GRPO + Bypass + Perturbation
-# Usage: bash run_exp_grpo_bypass_perturb.sh [token|sequence|cum-token|cum-turn] [perturb_std]
+# Usage: bash run_exp_perturbation.sh [loss_mode] [perturb_std] [geometric]
+#
+# Examples:
+#   bash run_exp_perturbation.sh                     # Default: sequence, 0.02
+#   bash run_exp_perturbation.sh token               # Token-level
+#   bash run_exp_perturbation.sh sequence            # Sequence-level
+#   bash run_exp_perturbation.sh cum-token           # Cumulative token
+#   bash run_exp_perturbation.sh cum-turn            # Cumulative turn
+#   bash run_exp_perturbation.sh sequence 0.05       # Custom std
+#   bash run_exp_perturbation.sh sequence 0.02 true  # With geometric aggregation
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/utils_gpu.sh"
 
 # Parse arguments
-LOSS_MODE="${1:-sequence}"  # Default: sequence
-PERTURB_STD="${2:-0.02}"    # Default: 0.02
+LOSS_MODE="${1:-sequence}"       # token/sequence/cum-token/cum-turn
+PERTURB_STD="${2:-0.02}"        # Perturbation std
+GEOMETRIC="${3:-false}"         # Geometric aggregation
 
 # Validate loss mode
 if [[ "$LOSS_MODE" != "token" && "$LOSS_MODE" != "sequence" && "$LOSS_MODE" != "cum-token" && "$LOSS_MODE" != "cum-turn" ]]; then
     echo "Error: Invalid loss mode. Use 'token', 'sequence', 'cum-token', or 'cum-turn'"
-    echo "Usage: bash $0 [token|sequence|cum-token|cum-turn] [perturb_std]"
     exit 1
 fi
 
@@ -29,24 +38,26 @@ fi
 echo "=========================================="
 echo "Experiment: GRPO + Bypass + Perturbation"
 echo "Loss Mode: ${LOSS_MODE}"
-echo "Perturbation Std: ${PERTURB_STD}"
+echo "Perturb Std: ${PERTURB_STD}"
+echo "Geometric: ${GEOMETRIC}"
 echo "Using ${FREE_GPU_COUNT} free GPUs: ${FREE_GPUS}"
 echo "Start time: $(date)"
 echo "=========================================="
 
 export CUDA_VISIBLE_DEVICES=${FREE_GPUS}
-
-# Use conda's libstdc++ to support Flash Attention
 export LD_LIBRARY_PATH=/home/zhang430/miniconda3/envs/verl_pert/lib:$LD_LIBRARY_PATH
 
 source "${SCRIPT_DIR}/setup_env.sh"
 
-# Data files (use absolute paths)
+# Data files
 train_file="/home/zhang430/data/openr1/train.parquet"
 val_file="/home/zhang430/data/openr1/test.parquet"
 
-# Set experiment name based on loss mode and perturb std
-EXP_NAME="exp5_grpo_bypass_perturb_${LOSS_MODE}_std${PERTURB_STD}"
+# Generate experiment name
+EXP_NAME="exp_perturb_${LOSS_MODE}_std${PERTURB_STD}"
+if [ "$GEOMETRIC" = "true" ]; then
+    EXP_NAME="${EXP_NAME}_geo"
+fi
 
 cd /home/zhang430/code/mismatch_rl_research
 
@@ -73,7 +84,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.use_torch_compile=False \
     actor_rollout_ref.actor.perturb_std=${PERTURB_STD} \
     actor_rollout_ref.actor.policy_loss.loss_mode=${LOSS_MODE} \
-    actor_rollout_ref.actor.policy_loss.is_geometric=false \
+    actor_rollout_ref.actor.policy_loss.is_geometric=${GEOMETRIC} \
     actor_rollout_ref.model.enable_gradient_checkpointing=True \
     actor_rollout_ref.actor.fsdp_config.param_offload=False \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
@@ -102,4 +113,3 @@ python3 -m verl.trainer.main_ppo \
 echo "=========================================="
 echo "Experiment completed: $(date)"
 echo "=========================================="
-

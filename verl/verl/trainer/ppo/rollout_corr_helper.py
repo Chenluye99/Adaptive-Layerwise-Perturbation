@@ -352,7 +352,7 @@ def compute_rollout_correction_weights(
                 - rollout_is_seq_*: Sequence-level weight statistics
     """
     # Validate input parameters
-    valid_is_levels = {"token", "sequence"}
+    valid_is_levels = {"token", "sequence", "cum-token", "cum-turn"}
     if rollout_is not in valid_is_levels:
         raise ValueError(f"Invalid rollout_is: {rollout_is}. Must be one of {valid_is_levels}.")
     if rollout_is_threshold <= 0:
@@ -364,6 +364,43 @@ def compute_rollout_correction_weights(
         log_ratio_for_metrics: torch.Tensor = log_ratio
         log_ratio_safe: torch.Tensor = torch.clamp(log_ratio, min=-SAFETY_BOUND, max=SAFETY_BOUND)
         rollout_is_weights: torch.Tensor = torch.exp(log_ratio_safe)
+
+    elif rollout_is == "cum-token":
+        # Cumulative token IS: For each position t, compute cumulative product up to t
+        # Supports geometric mean: (∏_{i=1}^{t} r_i)^(1/t) or regular product: ∏_{i=1}^{t} r_i
+        cumulative_sum = torch.cumsum(log_ratio * response_mask, dim=-1)
+        cumulative_count = torch.cumsum(response_mask, dim=-1)
+        
+        # Use geometric mean by default for stability (can be disabled if needed)
+        eps = 1e-8
+        log_ratio_cumulative_mean = torch.where(
+            response_mask > 0,
+            cumulative_sum / (cumulative_count + eps),
+            torch.zeros_like(cumulative_sum)
+        )
+        log_ratio_for_metrics = log_ratio_cumulative_mean
+        
+        log_ratio_safe = torch.clamp(log_ratio_cumulative_mean, min=-SAFETY_BOUND, max=SAFETY_BOUND)
+        rollout_is_weights = torch.exp(log_ratio_safe)
+
+    elif rollout_is == "cum-turn":
+        # Cumulative turn IS: For each turn, compute cumulative product from start to turn end
+        # Note: This requires turn_end_indicator to be passed (not in current signature)
+        # For now, fallback to cum-token behavior
+        # TODO: Add turn_end_indicator parameter support
+        cumulative_sum = torch.cumsum(log_ratio * response_mask, dim=-1)
+        cumulative_count = torch.cumsum(response_mask, dim=-1)
+        
+        eps = 1e-8
+        log_ratio_cumulative_mean = torch.where(
+            response_mask > 0,
+            cumulative_sum / (cumulative_count + eps),
+            torch.zeros_like(cumulative_sum)
+        )
+        log_ratio_for_metrics = log_ratio_cumulative_mean
+        
+        log_ratio_safe = torch.clamp(log_ratio_cumulative_mean, min=-SAFETY_BOUND, max=SAFETY_BOUND)
+        rollout_is_weights = torch.exp(log_ratio_safe)
 
     elif rollout_is == "sequence":
         # Sequence-level IS weight: product of token ratios (exp(sum(log ratios)))
@@ -449,6 +486,22 @@ def compute_is_metrics(
         below_lower: torch.Tensor = log_ratio_for_metrics < log_threshold_lower
         metrics["rollout_is_ratio_fraction_high"] = exceeds_upper.float().mean().item()
         metrics["rollout_is_ratio_fraction_low"] = below_lower.float().mean().item()
+
+    elif rollout_is in ["cum-token", "cum-turn"]:
+        # Cumulative levels: use log-space for threshold checks
+        log_max: torch.Tensor = log_ratio_for_metrics.max()
+        log_min: torch.Tensor = log_ratio_for_metrics.min()
+        metrics["rollout_is_max"] = torch.exp(torch.clamp(log_max, max=SAFETY_BOUND)).item()
+        metrics["rollout_is_min"] = torch.exp(log_min).item()
+
+        # Mean uses truncated weights
+        metrics["rollout_is_mean"] = verl_F.masked_mean(rollout_is_weights, response_mask).item()
+
+        # Fraction exceeding thresholds (log-space)
+        exceeds_upper: torch.Tensor = log_ratio_for_metrics > log_threshold_upper
+        below_lower: torch.Tensor = log_ratio_for_metrics < log_threshold_lower
+        metrics["rollout_is_ratio_fraction_high"] = verl_F.masked_mean(exceeds_upper.float(), response_mask).item()
+        metrics["rollout_is_ratio_fraction_low"] = verl_F.masked_mean(below_lower.float(), response_mask).item()
 
     else:  # token-level
         # Token-level aggregation: compute directly from truncated weights
@@ -877,3 +930,346 @@ def maybe_apply_rollout_correction(
         return False
 
     return True
+
+
+# =============================================================================
+# Complete Implementation from mismatch_rl
+# =============================================================================
+
+
+def compute_rollout_importance_weights(
+    old_log_prob: torch.Tensor,
+    rollout_log_prob: torch.Tensor,
+    eos_mask: torch.Tensor,
+    rollout_is_level: str = "token",
+    rollout_is_mode: str = "truncate",
+    rollout_is_threshold: Optional[float] = None,
+    rollout_is_threshold_lower: Optional[float] = None,
+    rollout_is_veto_threshold: Optional[float] = 1e-4,
+    geometric: bool = False,
+    turn_end_indicator: Optional[torch.Tensor] = None,
+    void_turn_mask: Optional[torch.Tensor] = None,
+) -> tuple[Optional[torch.Tensor], dict[str, Any]]:
+    """Compute importance sampling weights and metrics for rollout-training mismatch correction.
+
+    Complete implementation from mismatch_rl with all features:
+    - 4 levels: token, cum-token, cum-turn, sequence
+    - 2 modes: truncate (TIS), mask (CIS)
+    - Veto mechanism for catastrophic outliers
+    - Geometric/non-geometric aggregation
+    - Comprehensive metrics
+
+    Args:
+        old_log_prob: Log probabilities from training policy, shape (batch_size, response_length)
+        rollout_log_prob: Log probabilities from rollout policy, shape (batch_size, response_length)
+        eos_mask: Mask for valid tokens, shape (batch_size, response_length)
+        rollout_is_level: Level of IS aggregation (token/cum-token/cum-turn/sequence)
+        rollout_is_mode: How to handle weights (truncate/mask)
+        rollout_is_threshold: Upper threshold for IS weights
+        rollout_is_threshold_lower: Lower threshold (if None, uses 1/upper)
+        rollout_is_veto_threshold: Per-token veto threshold (if None, disabled)
+        geometric: Whether to use geometric aggregation
+        turn_end_indicator: Turn end indicator (required for cum-turn)
+        void_turn_mask: Void turn mask
+        
+    Returns:
+        Tuple of (weights, metrics)
+    """
+    if rollout_is_threshold is None:
+        return None, {}
+
+    # Parse thresholds
+    upper_threshold = rollout_is_threshold
+    if rollout_is_threshold_lower is not None:
+        lower_threshold = rollout_is_threshold_lower
+    else:
+        lower_threshold = 1.0 / upper_threshold
+
+    # Compute raw importance weights based on level
+    log_ratio = old_log_prob - rollout_log_prob
+
+    # Pre-compute log thresholds
+    device = old_log_prob.device
+    log_threshold_upper = torch.log(torch.tensor(upper_threshold, device=device))
+    log_threshold_lower = torch.log(torch.tensor(lower_threshold, device=device))
+    
+    SAFETY_BOUND = 20.0
+
+    if rollout_is_level == "token":
+        log_ratio_for_metrics = log_ratio
+        log_ratio_safe = torch.clamp(log_ratio, min=-SAFETY_BOUND, max=SAFETY_BOUND)
+        rollout_is_weights = torch.exp(log_ratio_safe)
+
+    elif rollout_is_level == "cum-token":
+        cumulative_sum = torch.cumsum(log_ratio * eos_mask, dim=-1)
+        cumulative_count = torch.cumsum(eos_mask, dim=-1)
+        
+        if geometric:
+            eps = 1e-8
+            log_ratio_cumulative_mean = torch.where(
+                eos_mask > 0,
+                cumulative_sum / (cumulative_count + eps),
+                torch.zeros_like(cumulative_sum)
+            )
+            log_ratio_for_metrics = log_ratio_cumulative_mean
+            log_ratio_safe = torch.clamp(log_ratio_cumulative_mean, min=-SAFETY_BOUND, max=SAFETY_BOUND)
+            rollout_is_weights = torch.exp(log_ratio_safe)
+        else:
+            log_ratio_for_metrics = cumulative_sum
+            cumulative_sum_safe = torch.clamp(cumulative_sum, min=-SAFETY_BOUND, max=SAFETY_BOUND)
+            rollout_is_weights = torch.where(
+                eos_mask > 0,
+                torch.exp(cumulative_sum_safe),
+                torch.zeros_like(cumulative_sum_safe)
+            )
+
+    elif rollout_is_level == "cum-turn":
+        valid_token_nums = torch.cumsum(eos_mask, dim=-1)
+        B, L = old_log_prob.shape
+        device = old_log_prob.device
+
+        sum_log_ratio = torch.cumsum(log_ratio * eos_mask, dim=-1)
+
+        turn_end_mask = turn_end_indicator.bool() if turn_end_indicator is not None else torch.zeros_like(eos_mask, dtype=torch.bool)
+        turn_end_mask[:, -1] = True
+        
+        indices = torch.arange(L, device=device).expand(B, -1)
+        masked_indices = torch.where(turn_end_mask, indices, L)
+        
+        rev_masked_indices = torch.flip(masked_indices, dims=[-1])
+        rev_end_indices, _ = torch.cummin(rev_masked_indices, dim=-1)
+        end_indices = torch.flip(rev_end_indices, dims=[-1])
+
+        turn_cumulative_sums = torch.gather(sum_log_ratio, -1, end_indices)
+        turn_cumulative_counts = torch.gather(valid_token_nums, -1, end_indices)
+
+        if geometric:
+            log_ratio_mean = turn_cumulative_sums / (turn_cumulative_counts + 1e-8)
+            log_ratio_for_metrics = log_ratio_mean
+            log_ratio_safe = torch.clamp(log_ratio_mean, min=-SAFETY_BOUND, max=SAFETY_BOUND)
+        else:
+            log_ratio_for_metrics = turn_cumulative_sums
+            log_ratio_safe = torch.clamp(turn_cumulative_sums, min=-SAFETY_BOUND, max=SAFETY_BOUND)
+        
+        rollout_is_weights = torch.exp(log_ratio_safe)
+        
+    elif rollout_is_level == "sequence":
+        if geometric:
+            log_ratio_mean = verl_F.masked_mean(log_ratio, eos_mask, axis=-1).unsqueeze(-1)
+            log_ratio_for_metrics = log_ratio_mean
+            log_ratio_safe = torch.clamp(log_ratio_mean, min=-SAFETY_BOUND, max=SAFETY_BOUND)
+            rollout_is_weights = torch.exp(log_ratio_safe).expand_as(old_log_prob)
+        else:
+            log_ratio_sum = verl_F.masked_sum(log_ratio, eos_mask, axis=-1).unsqueeze(-1)
+            log_ratio_for_metrics = log_ratio_sum
+            log_ratio_safe = torch.clamp(log_ratio_sum, min=-SAFETY_BOUND, max=SAFETY_BOUND)
+            rollout_is_weights = torch.exp(log_ratio_safe).expand_as(old_log_prob)
+    else:
+        raise ValueError(f"Invalid rollout_is_level: {rollout_is_level}")
+
+    # Veto mechanism
+    if rollout_is_veto_threshold is not None and rollout_is_veto_threshold > 0:
+        log_veto_threshold = torch.log(torch.tensor(rollout_is_veto_threshold, device=device))
+        catastrophic_tokens = ((old_log_prob < log_veto_threshold) | (log_ratio < log_veto_threshold)) & eos_mask.bool()
+        has_catastrophic = catastrophic_tokens.any(dim=-1, keepdim=True)
+        veto_mask = (~has_catastrophic).float()
+    else:
+        catastrophic_tokens = torch.zeros_like(eos_mask, dtype=torch.bool)
+        has_catastrophic = torch.zeros((old_log_prob.size(0), 1), dtype=torch.bool, device=device)
+        veto_mask = torch.ones((old_log_prob.size(0), 1), dtype=torch.float32, device=device)
+
+    # Compute comprehensive metrics
+    
+    metrics = compute_is_metrics_full_impl(
+        rollout_is_weights=rollout_is_weights,
+        log_ratio_for_metrics=log_ratio_for_metrics,
+        eos_mask=eos_mask,
+        rollout_is_level=rollout_is_level,
+        rollout_is_threshold=upper_threshold,
+        rollout_is_threshold_lower=lower_threshold,
+        log_threshold_upper=log_threshold_upper,
+        log_threshold_lower=log_threshold_lower,
+        has_catastrophic=has_catastrophic,
+        catastrophic_tokens=catastrophic_tokens,
+        SAFETY_BOUND=SAFETY_BOUND,
+        void_turn_mask=void_turn_mask,
+    )
+
+    # Apply truncation or clipping
+    if rollout_is_mode == "truncate":
+        rollout_is_weights = rollout_is_weights.clamp(max=upper_threshold)
+    elif rollout_is_mode == "mask":
+        clip_mask = (rollout_is_weights >= lower_threshold) & (rollout_is_weights <= upper_threshold)
+        clip_mask = clip_mask.float()
+        metrics["rollout_is_masked_fraction"] = verl_F.masked_mean(1 - clip_mask, eos_mask)
+        
+        if rollout_is_level == "sequence":
+            seq_weights = rollout_is_weights[:, 0] if rollout_is_weights.dim() > 1 else rollout_is_weights
+            seq_clipped = ((seq_weights < lower_threshold) | (seq_weights > upper_threshold)).float()
+            metrics["rollout_is_seq_masked_fraction"] = seq_clipped.mean()
+        else:
+            clipped_indicator = 1 - clip_mask
+            seq_clipped = verl_F.masked_sum(clipped_indicator, eos_mask, axis=-1) > 0
+            metrics["rollout_is_seq_masked_fraction"] = seq_clipped.float().mean()
+        
+        if void_turn_mask is not None:
+            has_void_turn = (void_turn_mask == 0).float()
+            has_is_anomaly = seq_clipped.float()
+            
+            is_anomaly_count = has_is_anomaly.sum()
+            if is_anomaly_count > 0:
+                void_turn_in_is_anomaly = (has_void_turn * has_is_anomaly).sum()
+                metrics["void_turn_in_rollout_is_masked_ratio"] = void_turn_in_is_anomaly / is_anomaly_count
+            else:
+                metrics["void_turn_in_rollout_is_masked_ratio"] = torch.tensor(0.0, device=device)
+            
+            void_turn_count = has_void_turn.sum()
+            if void_turn_count > 0:
+                is_anomaly_in_void_turn = (has_void_turn * has_is_anomaly).sum()
+                metrics["rollout_is_masked_in_void_turn_ratio"] = is_anomaly_in_void_turn / void_turn_count
+            else:
+                metrics["rollout_is_masked_in_void_turn_ratio"] = torch.tensor(0.0, device=device)
+
+        rollout_is_weights = rollout_is_weights * clip_mask
+    else:
+        raise ValueError(f"Invalid rollout_is_mode: {rollout_is_mode}")
+
+    # Apply veto mask
+    rollout_is_weights = rollout_is_weights * veto_mask
+    rollout_is_weights = rollout_is_weights * eos_mask
+    rollout_is_weights = rollout_is_weights.detach()
+
+    # Add numeric config to metrics
+    metrics["rollout_is_threshold_upper"] = upper_threshold
+    metrics["rollout_is_threshold_lower"] = lower_threshold
+    if rollout_is_veto_threshold is not None:
+        metrics["rollout_is_veto_threshold"] = rollout_is_veto_threshold
+
+    return rollout_is_weights, metrics
+
+
+def compute_is_metrics_full_impl(
+    rollout_is_weights: torch.Tensor,
+    log_ratio_for_metrics: torch.Tensor,
+    eos_mask: torch.Tensor,
+    rollout_is_level: str,
+    rollout_is_threshold: float,
+    rollout_is_threshold_lower: float,
+    log_threshold_upper: torch.Tensor,
+    log_threshold_lower: torch.Tensor,
+    has_catastrophic: torch.Tensor,
+    catastrophic_tokens: torch.Tensor,
+    SAFETY_BOUND: float,
+    void_turn_mask: Optional[torch.Tensor] = None,
+) -> dict[str, Any]:
+    """Compute comprehensive metrics for importance sampling weights.
+    
+    Complete implementation from mismatch_rl.
+
+    Args:
+        rollout_is_weights: IS weights
+        log_ratio_for_metrics: Log ratios for accurate metrics
+        eos_mask: Valid token mask
+        rollout_is_level: Aggregation level
+        rollout_is_threshold: Upper threshold
+        rollout_is_threshold_lower: Lower threshold
+        log_threshold_upper: Log of upper threshold
+        log_threshold_lower: Log of lower threshold
+        has_catastrophic: Per-sequence catastrophic indicator
+        catastrophic_tokens: Per-token catastrophic mask
+        SAFETY_BOUND: Safety bound for exp()
+        void_turn_mask: Void turn mask
+        
+    Returns:
+        Dictionary of metrics
+    """
+    metrics = {}
+    device = rollout_is_weights.device
+
+    # Track veto statistics
+    metrics["rollout_is_veto_fraction"] = has_catastrophic.float().mean()
+    metrics["rollout_is_catastrophic_token_fraction"] = verl_F.masked_mean(catastrophic_tokens.float(), eos_mask)
+
+    # Compute metrics based on IS level
+    if rollout_is_level in ["sequence", "turn"]:
+        log_max = log_ratio_for_metrics.max()
+        log_min = log_ratio_for_metrics.min()
+
+        metrics["rollout_is_max"] = torch.exp(torch.clamp(log_max, max=SAFETY_BOUND))
+        metrics["rollout_is_min"] = torch.exp(log_min)
+        metrics["rollout_is_mean"] = verl_F.masked_mean(rollout_is_weights, eos_mask)
+
+        exceeds_upper = log_ratio_for_metrics > log_threshold_upper
+        below_lower = log_ratio_for_metrics < log_threshold_lower
+
+        metrics["rollout_is_ratio_fraction_high"] = verl_F.masked_mean(exceeds_upper.float(), eos_mask)
+        metrics["rollout_is_ratio_fraction_low"] = verl_F.masked_mean(below_lower.float(), eos_mask)
+
+    else:
+        # Token-level or cumulative levels
+        metrics["rollout_is_mean"] = verl_F.masked_mean(rollout_is_weights, eos_mask)
+
+        rollout_is_above_threshold = rollout_is_weights > rollout_is_threshold
+        rollout_is_below_threshold = rollout_is_weights < rollout_is_threshold_lower
+        metrics["rollout_is_ratio_fraction_high"] = verl_F.masked_mean(rollout_is_above_threshold.float(), eos_mask)
+        metrics["rollout_is_ratio_fraction_low"] = verl_F.masked_mean(rollout_is_below_threshold.float(), eos_mask)
+
+        if eos_mask.any():
+            mask_bool = eos_mask.bool()
+            metrics["rollout_is_max"] = rollout_is_weights.masked_fill(~mask_bool, float("-inf")).max()
+            metrics["rollout_is_min"] = rollout_is_weights.masked_fill(~mask_bool, float("inf")).min()
+        else:
+            metrics["rollout_is_max"] = torch.tensor(0.0, device=device)
+            metrics["rollout_is_min"] = torch.tensor(0.0, device=device)
+
+    # Compute standard deviation
+    if eos_mask.any():
+        mask_count = eos_mask.sum()
+        if mask_count > 1:
+            weights_for_std = rollout_is_weights.clamp(min=rollout_is_threshold_lower, max=rollout_is_threshold)
+            rollout_is_var = (
+                verl_F.masked_mean(weights_for_std.square(), eos_mask) - metrics["rollout_is_mean"].square()
+            )
+            metrics["rollout_is_std"] = torch.sqrt(torch.clamp(rollout_is_var, min=0.0))
+        else:
+            metrics["rollout_is_std"] = torch.tensor(0.0, device=device)
+    else:
+        metrics["rollout_is_std"] = torch.tensor(0.0, device=device)
+
+    # Effective sample size
+    if eos_mask.any():
+        weights_for_ess = rollout_is_weights.clamp(min=rollout_is_threshold_lower, max=rollout_is_threshold)
+        is_weights_normalized = weights_for_ess / (metrics["rollout_is_mean"] + 1e-8)
+        metrics["rollout_is_eff_sample_size"] = 1.0 / verl_F.masked_mean(is_weights_normalized.square(), eos_mask)
+    else:
+        metrics["rollout_is_eff_sample_size"] = torch.tensor(1.0, device=device)
+
+    # Per-sequence breakdown metrics
+    if rollout_is_weights.dim() > 1 and eos_mask.any():
+        seq_mean_weights = verl_F.masked_mean(rollout_is_weights, eos_mask, axis=-1)
+
+        metrics["rollout_is_seq_mean"] = seq_mean_weights.mean()
+        metrics["rollout_is_seq_std"] = (
+            seq_mean_weights.std() if seq_mean_weights.numel() > 1 else torch.tensor(0.0, device=device)
+        )
+        metrics["rollout_is_seq_max"] = seq_mean_weights.max()
+        metrics["rollout_is_seq_min"] = seq_mean_weights.min()
+
+        seq_deviation = (seq_mean_weights - 1.0).abs()
+        metrics["rollout_is_seq_max_deviation"] = seq_deviation.max()
+
+        metrics["rollout_is_seq_fraction_high"] = (seq_mean_weights > rollout_is_threshold).float().mean()
+        metrics["rollout_is_seq_fraction_low"] = (seq_mean_weights < rollout_is_threshold_lower).float().mean()
+
+    # Percentile metrics
+    if eos_mask.any():
+        flat_weights = rollout_is_weights[eos_mask.bool()]
+
+        if flat_weights.numel() > 0:
+            metrics["rollout_is_p25"] = torch.quantile(flat_weights, 0.25)
+            metrics["rollout_is_p50"] = torch.quantile(flat_weights, 0.50)
+            metrics["rollout_is_p75"] = torch.quantile(flat_weights, 0.75)
+            metrics["rollout_is_p95"] = torch.quantile(flat_weights, 0.95)
+            metrics["rollout_is_p99"] = torch.quantile(flat_weights, 0.99)
+
+    return metrics

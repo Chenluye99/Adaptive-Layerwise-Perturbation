@@ -1,18 +1,36 @@
 #!/bin/bash
-# Unified Experiment: GRPO + Truncated Importance Sampling
-# Usage: bash run_exp_grpo_tis.sh [token|sequence]
+# Unified Experiment: GRPO + Truncated Importance Sampling (TIS)
+# Usage: bash run_exp_tis.sh [level] [mode] [threshold] [veto_threshold] [geometric]
+#
+# Examples:
+#   bash run_exp_tis.sh token                    # Token-level TIS
+#   bash run_exp_tis.sh sequence                 # Sequence-level TIS
+#   bash run_exp_tis.sh cum-token                # Cumulative token TIS
+#   bash run_exp_tis.sh cum-turn                 # Cumulative turn TIS
+#   bash run_exp_tis.sh sequence truncate 5.0    # Custom threshold
+#   bash run_exp_tis.sh token mask 3.0 0.001     # Mask mode with veto
+#   bash run_exp_tis.sh cum-token truncate 5.0 0.0 true  # Geometric aggregation
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/utils_gpu.sh"
 
-# Parse TIS level argument (default: sequence)
-TIS_LEVEL="${1:-sequence}"
+# Parse arguments
+TIS_LEVEL="${1:-sequence}"             # token/sequence/cum-token/cum-turn
+TIS_MODE="${2:-truncate}"              # truncate/mask
+TIS_THRESHOLD="${3:-5.0}"              # Upper threshold
+VETO_THRESHOLD="${4:-0.0}"             # Veto threshold (0.0=disabled)
+GEOMETRIC="${5:-false}"                # Geometric aggregation
 
-# Validate TIS level
-if [[ "$TIS_LEVEL" != "token" && "$TIS_LEVEL" != "sequence" ]]; then
-    echo "Error: Invalid TIS level. Use 'token' or 'sequence'"
-    echo "Usage: bash $0 [token|sequence]"
+# Validate level
+if [[ "$TIS_LEVEL" != "token" && "$TIS_LEVEL" != "sequence" && "$TIS_LEVEL" != "cum-token" && "$TIS_LEVEL" != "cum-turn" ]]; then
+    echo "Error: Invalid TIS level. Use 'token', 'sequence', 'cum-token', or 'cum-turn'"
+    exit 1
+fi
+
+# Validate mode
+if [[ "$TIS_MODE" != "truncate" && "$TIS_MODE" != "mask" ]]; then
+    echo "Error: Invalid TIS mode. Use 'truncate' or 'mask'"
     exit 1
 fi
 
@@ -26,27 +44,32 @@ if [ -z "$FREE_GPUS" ]; then
 fi
 
 echo "=========================================="
-echo "Experiment: GRPO + ${TIS_LEVEL}-level TIS"
+echo "Experiment: GRPO + TIS"
+echo "Level: ${TIS_LEVEL}"
+echo "Mode: ${TIS_MODE}"
+echo "Threshold: ${TIS_THRESHOLD}"
+echo "Veto: ${VETO_THRESHOLD}"
+echo "Geometric: ${GEOMETRIC}"
 echo "Using ${FREE_GPU_COUNT} free GPUs: ${FREE_GPUS}"
 echo "Start time: $(date)"
 echo "=========================================="
 
 export CUDA_VISIBLE_DEVICES=${FREE_GPUS}
-
-# Use conda's libstdc++ to support Flash Attention
 export LD_LIBRARY_PATH=/home/zhang430/miniconda3/envs/verl_pert/lib:$LD_LIBRARY_PATH
 
 source "${SCRIPT_DIR}/setup_env.sh"
 
-# Data files (use absolute paths)
+# Data files
 train_file="/home/zhang430/data/openr1/train.parquet"
 val_file="/home/zhang430/data/openr1/test.parquet"
 
-# Set experiment name based on TIS level
-if [ "$TIS_LEVEL" = "token" ]; then
-    EXP_NAME="exp3_grpo_token_tis"
-else
-    EXP_NAME="exp4_grpo_seq_tis"
+# Generate experiment name
+EXP_NAME="exp_tis_${TIS_LEVEL}_${TIS_MODE}_th${TIS_THRESHOLD}"
+if (( $(echo "$VETO_THRESHOLD > 0" | bc -l) )); then
+    EXP_NAME="${EXP_NAME}_veto${VETO_THRESHOLD}"
+fi
+if [ "$GEOMETRIC" = "true" ]; then
+    EXP_NAME="${EXP_NAME}_geo"
 fi
 
 cd /home/zhang430/code/mismatch_rl_research
@@ -86,7 +109,10 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.ref.fsdp_config.param_offload=True \
     algorithm.use_kl_in_reward=False \
     +algorithm.rollout_correction.rollout_is=${TIS_LEVEL} \
-    +algorithm.rollout_correction.rollout_is_threshold=5.0 \
+    +algorithm.rollout_correction.rollout_is_threshold=${TIS_THRESHOLD} \
+    +algorithm.rollout_correction.rollout_is_mode=${TIS_MODE} \
+    +algorithm.rollout_correction.rollout_is_veto_threshold=${VETO_THRESHOLD} \
+    +algorithm.rollout_correction.rollout_is_geometric=${GEOMETRIC} \
     trainer.critic_warmup=0 \
     'trainer.logger=["console","wandb"]' \
     trainer.project_name=mismatch_rl_research \
@@ -101,4 +127,3 @@ python3 -m verl.trainer.main_ppo \
 echo "=========================================="
 echo "Experiment completed: $(date)"
 echo "=========================================="
-

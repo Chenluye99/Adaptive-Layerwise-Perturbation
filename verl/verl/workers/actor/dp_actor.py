@@ -466,6 +466,9 @@ class DataParallelPPOActor(BasePPOActor):
                     # Extract pre-computed rollout correction weights if present
                     # Weights are computed centrally in trainer and added when algorithm.rollout_is=True
                     rollout_is_weights = model_inputs.get("rollout_is_weights", None)
+                    
+                    # Extract rollout_log_probs if available
+                    rollout_log_probs = model_inputs.get("rollout_log_probs", None)
 
                     # NOTE: Both mismatch diagnostic metrics (PPL, KL, etc.) and IS weight metrics
                     # are computed centrally in ray_trainer.py for consistency and efficiency.
@@ -514,8 +517,49 @@ class DataParallelPPOActor(BasePPOActor):
                             pg_metrics[f"actor/{key}"] = value
                         
                         micro_batch_metrics.update(pg_metrics)
+                    
+                    elif loss_mode in ["sequence", "cum-token", "cum-turn"]:
+                        # Use multi-level policy loss for sequence/cum-token/cum-turn modes
+                        from verl.trainer.ppo.core_algos import compute_policy_loss_various_level
+                        
+                        # Get additional parameters
+                        turn_end_indicator = model_inputs.get("critic_response_mask", None)
+                        void_turn_mask = model_inputs.get("void_turn_mask", None)
+                        
+                        pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics, original_rollout_is_metrics, original_ppo_is_metrics = compute_policy_loss_various_level(
+                            old_log_prob=old_log_prob,
+                            log_prob=log_prob,
+                            advantages=advantages,
+                            response_mask=response_mask,
+                            loss_agg_mode=loss_agg_mode,
+                            loss_mode=loss_mode,
+                            turn_end_indicator=turn_end_indicator,
+                            rollout_log_probs=rollout_log_probs,
+                            void_turn_mask=void_turn_mask,
+                            config=self.config,
+                        )
+                        
+                        # Convert to pg_metrics format
+                        pg_metrics = {
+                            "actor/pg_clipfrac": pg_clipfrac.item() if isinstance(pg_clipfrac, torch.Tensor) else pg_clipfrac,
+                            "actor/ppo_kl": ppo_kl.item() if isinstance(ppo_kl, torch.Tensor) else ppo_kl,
+                            "actor/pg_clipfrac_lower": pg_clipfrac_lower.item() if isinstance(pg_clipfrac_lower, torch.Tensor) else pg_clipfrac_lower,
+                        }
+                        
+                        # Add all IS metrics with appropriate prefixes
+                        for key, value in ppo_is_metrics.items():
+                            pg_metrics[f"actor/ppo_is/{key}"] = value
+                        for key, value in rollout_is_metrics.items():
+                            pg_metrics[f"actor/rollout_is/{key}"] = value
+                        for key, value in original_rollout_is_metrics.items():
+                            pg_metrics[f"actor/original_rollout_is/{key}"] = value
+                        for key, value in original_ppo_is_metrics.items():
+                            pg_metrics[f"actor/original_ppo_is/{key}"] = value
+                        
+                        micro_batch_metrics.update(pg_metrics)
+                    
                     else:
-                        # Standard policy loss calculation (no perturbation)
+                        # Standard policy loss calculation (vanilla/gpg/clip_cov/etc.)
                         # gpg -> verl.trainer.ppo.core_algos.compute_policy_loss_gpg
                         # clip_cov -> verl.trainer.ppo.core_algos.compute_policy_loss_clip_cov
                         policy_loss_fn = get_policy_loss_fn(loss_mode)
