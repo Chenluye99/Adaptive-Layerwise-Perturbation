@@ -41,6 +41,7 @@ class PolicyLossConfig(BaseConfig):
         clip_cov_ub (float): Upper bound for clip-cov loss.
         kl_cov_ratio (float): Ratio of tokens to be applied KL penalty for kl-cov loss.
         ppo_kl_coef (float): KL divergence penalty coefficient.
+        is_geometric (bool): Whether to use geometric mean for importance sampling (used in perturbation mode).
     """
 
     loss_mode: str = "vanilla"
@@ -49,6 +50,7 @@ class PolicyLossConfig(BaseConfig):
     clip_cov_ub: float = 5.0
     kl_cov_ratio: float = 0.0002
     ppo_kl_coef: float = 0.1
+    is_geometric: bool = False
 
 
 @dataclass
@@ -71,6 +73,7 @@ class ActorConfig(BaseConfig):
         policy_loss (PolicyLossConfig): Configuration for policy loss computation.
         clip_ratio_c (float): Clipping ratio for critic loss.
         loss_agg_mode (str): Loss aggregation mode. Options: 'token-mean', 'sample-mean'.
+        perturb_std (float): Logits perturbation standard deviation for robustness training (0.0 = disabled).
         entropy_coeff (float): Entropy coefficient for regularization.
         use_kl_loss (bool): Whether to use KL divergence loss.
         use_torch_compile (bool): Whether to use torch.compile for optimization.
@@ -105,6 +108,7 @@ class ActorConfig(BaseConfig):
     policy_loss: PolicyLossConfig = field(default_factory=PolicyLossConfig)
     clip_ratio_c: float = 3.0
     loss_agg_mode: str = "token-mean"
+    perturb_std: float = 0.0
     entropy_coeff: float = 0
     use_kl_loss: bool = False
     use_torch_compile: bool = True
