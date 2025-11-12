@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Prepare weqweasdas/from_default_filtered_openr1_with_scores dataset
-Filter by average score between 0.2 and 0.8
+Filter by average score between 0 and 1
 """
 
 import os

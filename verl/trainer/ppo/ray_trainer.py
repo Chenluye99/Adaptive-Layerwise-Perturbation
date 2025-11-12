@@ -1207,6 +1207,18 @@ class RayPPOTrainer:
                         actor_output_metrics = reduce_metrics(actor_output.meta_info["metrics"])
                         metrics.update(actor_output_metrics)
 
+                    # Save the first step batch data for debugging
+                    if self.global_steps % 10 == 0:
+                        save_dir = os.path.join(self.config.trainer.default_local_dir, "batch_data")
+                        os.makedirs(save_dir, exist_ok=True)
+                        save_path = os.path.join(save_dir, f"global_steps_{self.global_steps}_batch.pt")
+                        print(f"Saving global_steps_{self.global_steps} batch data to {save_path}")
+                        torch.save({
+                            'batch_tensors': batch.batch,
+                            'batch_non_tensors': batch.non_tensor_batch,
+                            'batch_meta_info': batch.meta_info,
+                        }, save_path)
+
                     # Log rollout generations if enabled
                     rollout_data_dir = self.config.trainer.get("rollout_data_dir", None)
                     if rollout_data_dir:
