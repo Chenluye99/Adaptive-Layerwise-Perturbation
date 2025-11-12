@@ -55,14 +55,55 @@ def process_dataset(split='train', local_dir='~/data/openr1', score_range=(0, 1)
         prompt = example.get('prompt', example.get('question', ''))
         answer = example.get('answer', '')
         scores = example.get('scores', [])
+        system_prompt = "Please reason step by step, and put your final answer within \\boxed{}."
+
+        
+        # Handle different prompt formats
+        import re
+        
+        # If prompt is a list (already processed format), extract content from first item
+        if isinstance(prompt, list) and len(prompt) > 0:
+            content = prompt[0].get('content', '')
+            # Remove <|im_start|>system\n...<|im_end|>\n from the beginning
+            # Remove <|im_end|>\n<|im_start|>assistant from the end
+            # Keep only the user content part
+            if '<|im_start|>system' in content:
+                # Remove system part: <|im_start|>system\n...<|im_end|>\n
+                content = re.sub(r'<\|im_start\|>system\n.*?<\|im_end\|>\n', '', content, flags=re.DOTALL)
+            if '<|im_start|>assistant' in content:
+                # Remove assistant part: <|im_end|>\n<|im_start|>assistant
+                content = re.sub(r'<\|im_end\|>\n<\|im_start\|>assistant.*$', '', content, flags=re.DOTALL)
+            # Also remove <|im_start|>user\n and <|im_end|> if present
+            content = re.sub(r'<\|im_start\|>user\n', '', content)
+            content = re.sub(r'<\|im_end\|>', '', content)
+            prompt = content.strip()
+        # If prompt is already a formatted string (contains <|im_start|>system), extract the user content
+        elif isinstance(prompt, str) and '<|im_start|>system' in prompt:
+            # Extract user content from formatted string
+            # Format: <|im_start|>system\n...<|im_end|>\n<|im_start|>user\n{actual_prompt}<|im_end|>\n<|im_start|>assistant
+            # Remove system part
+            prompt = re.sub(r'<\|im_start\|>system\n.*?<\|im_end\|>\n', '', prompt, flags=re.DOTALL)
+            # Remove user tags
+            prompt = re.sub(r'<\|im_start\|>user\n', '', prompt)
+            # Remove assistant part at the end
+            prompt = re.sub(r'<\|im_end\|>\n<\|im_start\|>assistant.*$', '', prompt, flags=re.DOTALL)
+            # Remove any remaining <|im_end|>
+            prompt = re.sub(r'<\|im_end\|>', '', prompt)
+            prompt = prompt.strip()
         
         # Format for verl
         data = {
             "data_source": "openr1_filtered",
-            "prompt": [{
-                "role": "user",
-                "content": prompt,
-            }],
+                "prompt": [
+                    {
+                        "role": "system",
+                        "content": system_prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
             "ability": "reasoning",
             "reward_model": {
                 "style": "rule",
