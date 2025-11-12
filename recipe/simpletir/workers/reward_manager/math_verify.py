@@ -71,7 +71,7 @@ class MathRewardManager:
         self.num_examine = num_examine  # the number of batches of decoded responses to print to the console
         self.compute_score = compute_score or _default_compute_score
         self.step = None
-        self.timeout_seconds = 5
+        self.timeout_seconds = 60
         self.record_dir = Path(record_dir) / "step_records"
         self.record_dir.mkdir(parents=True, exist_ok=True)
 
