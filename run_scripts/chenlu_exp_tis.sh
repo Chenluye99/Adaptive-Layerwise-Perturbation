@@ -17,14 +17,15 @@ source "${SCRIPT_DIR}/utils_gpu.sh"
 
 # Set GPU devices here (comma-separated, e.g., "0,1,2,3")
 # If not set, will auto-detect free GPUs
-CUDA_VISIBLE_DEVICES="0,1,2,3"
+CUDA_VISIBLE_DEVICES="4,5,6,7"
 
 # Parse arguments
 TIS_LEVEL="${1:-sequence}"             # token/sequence/cum-token/cum-turn
 TIS_MODE="${2:-truncate}"              # truncate/mask
 TIS_THRESHOLD="${3:-5.0}"              # Upper threshold
-VETO_THRESHOLD="${4:-0.0}"             # Veto threshold (0.0=disabled)
-GEOMETRIC="${5:-false}"                # Geometric aggregation
+TIS_THRESHOLD_LOWER="${4:-0.0}"        # Lower threshold
+VETO_THRESHOLD="${5:-0.0}"             # Veto threshold (0.0=disabled)
+GEOMETRIC="${6:-false}"                # Geometric aggregation
 
 # Validate level
 if [[ "$TIS_LEVEL" != "token" && "$TIS_LEVEL" != "sequence" && "$TIS_LEVEL" != "cum-token" && "$TIS_LEVEL" != "cum-turn" ]]; then
@@ -67,6 +68,8 @@ export CUDA_VISIBLE_DEVICES=${FREE_GPUS}
 export WANDB_API_KEY="a17294c76f5787d04c92fd978d0f1a29133756e2"
 export WANDB_ENTITY="mismatch"
 export RAY_TMPDIR=/opt/dlami/nvme/ray_tmp
+# Suppress pynvml deprecation warning
+export PYTHONWARNINGS="ignore::FutureWarning"
 
 #source "${SCRIPT_DIR}/setup_env.sh"
 MODEL_PATH="Qwen/Qwen2.5-Math-1.5B"
@@ -81,11 +84,15 @@ train_prompt_mini_bsz=64
 loss_agg_mode="token-mean"
 
 # Data files
-train_file="/home/zhang430/data/openr1/train.parquet"
-val_file="/home/zhang430/data/openr1/test.parquet"
+train_file="/home/chenluy/data/openr1/train.parquet"
+val_file="/home/chenluy/data/openr1/test.parquet"
 
 # Generate experiment name
+project_name="mismatch_rl_research"
 EXP_NAME="grpo_tis_qwen2.5-1.5b-math_n${n_resp_per_prompt}_${TIS_LEVEL}_${TIS_MODE}_th${TIS_THRESHOLD}"
+if (( $(echo "$TIS_THRESHOLD_LOWER > 0" | bc -l) )); then
+    EXP_NAME="${EXP_NAME}_thl${TIS_THRESHOLD_LOWER}"
+fi
 if (( $(echo "$VETO_THRESHOLD > 0" | bc -l) )); then
     EXP_NAME="${EXP_NAME}_veto${VETO_THRESHOLD}"
 fi
@@ -93,10 +100,13 @@ if [ "$GEOMETRIC" = "true" ]; then
     EXP_NAME="${EXP_NAME}_geo"
 fi
 
+CKPTS_DIR="/opt/dlami/nvme/chenluy_ckpoints/${project_name}/${EXP_NAME}"
+
 cd /home/chenluy/mismatch-perturbation-on-math
 
+mkdir -p logs
+
 python3 -m verl.trainer.main_ppo \
-    ray_kwargs.ray_init.runtime_env.env_vars.LD_LIBRARY_PATH=/home/zhang430/miniconda3/envs/verl_pert/lib:\${LD_LIBRARY_PATH} \
     algorithm.adv_estimator=grpo \
     data.train_files="${train_file}" \
     data.val_files="${val_file}" \
@@ -105,7 +115,7 @@ python3 -m verl.trainer.main_ppo \
     data.max_response_length=${max_response_length} \
     data.filter_overlong_prompts=True \
     data.truncation='error' \
-    actor_rollout_ref.model.path=Qwen/Qwen2.5-Math-1.5B \
+    actor_rollout_ref.model.path=${MODEL_PATH} \
     actor_rollout_ref.model.trust_remote_code=True \
     actor_rollout_ref.actor.optim.lr=1e-6 \
     actor_rollout_ref.model.use_remove_padding=False \
@@ -119,14 +129,13 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.model.enable_gradient_checkpointing=True \
     actor_rollout_ref.actor.fsdp_config.param_offload=False \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
-    actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=32 \
+    actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=16 \
     actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
     actor_rollout_ref.rollout.name=vllm \
-    actor_rollout_ref.rollout.dtype=float16 \
     actor_rollout_ref.rollout.gpu_memory_utilization=0.8 \
     actor_rollout_ref.rollout.n=${n_resp_per_prompt} \
     actor_rollout_ref.rollout.calculate_log_probs=True \
-    actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=32 \
+    actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=16 \
     actor_rollout_ref.ref.fsdp_config.param_offload=True \
     algorithm.use_kl_in_reward=False \
     reward_model.reward_manager=batch \
@@ -143,6 +152,7 @@ python3 -m verl.trainer.main_ppo \
     trainer.nnodes=1 \
     trainer.save_freq=20 \
     trainer.test_freq=20 \
+    trainer.default_local_dir="${CKPTS_DIR}" \
     trainer.total_epochs=50 \
     2>&1 | tee logs/${EXP_NAME}.log
 

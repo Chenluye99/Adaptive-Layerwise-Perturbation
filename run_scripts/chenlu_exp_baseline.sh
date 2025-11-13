@@ -65,6 +65,9 @@ cd /home/chenluy/mismatch-perturbation-on-math
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
+# Suppress pynvml deprecation warning
+export PYTHONWARNINGS="ignore::FutureWarning"
+
 python3 -m verl.trainer.main_ppo \
     algorithm.adv_estimator=grpo \
     data.train_files="${train_file}" \
@@ -76,7 +79,6 @@ python3 -m verl.trainer.main_ppo \
     data.truncation='error' \
     actor_rollout_ref.model.path=${MODEL_PATH} \
     actor_rollout_ref.model.trust_remote_code=True \
-    '+actor_rollout_ref.model.override_config={attn_implementation:eager,torch_dtype:float16}' \
     actor_rollout_ref.actor.optim.lr=1e-6 \
     actor_rollout_ref.model.use_remove_padding=False \
     actor_rollout_ref.actor.ppo_mini_batch_size=${train_prompt_mini_bsz} \
@@ -96,7 +98,6 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=16 \
     actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
     actor_rollout_ref.rollout.name=vllm \
-    actor_rollout_ref.rollout.dtype=float16 \
     actor_rollout_ref.rollout.gpu_memory_utilization=0.8 \
     actor_rollout_ref.rollout.n=${n_resp_per_prompt} \
     actor_rollout_ref.rollout.calculate_log_probs=True \
