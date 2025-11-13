@@ -126,7 +126,7 @@ def verify_without_timeout(
 ) -> bool:
     from math_verify.utils import timeout
 
-    @timeout(5)
+    @timeout(60)
     def compare_single_extraction(
         gold: Basic | MatrixBase | str, target: Basic | MatrixBase | str
     ) -> bool:
