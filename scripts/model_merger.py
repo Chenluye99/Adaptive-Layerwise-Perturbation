@@ -179,9 +179,9 @@ def convert_fsdp_checkpoints_to_hfmodels():
     else:
         raise NotImplementedError(f'Unknown architecture {config["architectures"]}')
 
-    with torch.device('meta'):
-        model = auto_model.from_config(config, torch_dtype=torch.bfloat16)
-    model.to_empty(device='cpu')
+    # Create model on CPU to avoid torchao import issues with meta device
+    model = auto_model.from_config(config, torch_dtype=torch.bfloat16)
+    model = model.to('cpu')
 
     print(f'Saving model to {hf_path}')
     model.save_pretrained(hf_path, state_dict=state_dict)
@@ -422,9 +422,9 @@ def convert_megatron_checkpoints_to_hfmodes():
     else:
         raise NotImplementedError(f'Unknown architecture {config["architectures"]}')
 
-    with torch.device('meta'):
-        model = auto_model.from_config(config, torch_dtype=torch.bfloat16)
-    model.to_empty(device='cpu')
+    # Create model on CPU to avoid torchao import issues with meta device
+    model = auto_model.from_config(config, torch_dtype=torch.bfloat16)
+    model = model.to('cpu')
 
     print(f'Saving model to {hf_path}')
     model.save_pretrained(hf_path, state_dict=state_dict)
