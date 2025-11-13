@@ -56,8 +56,14 @@ loss_agg_mode="token-mean"
 project_name="mismatch_rl_research"
 exp_name="grpo_baseline_qwen2.5-1.5b-math_n${n_resp_per_prompt}"
 
-train_file="/home/chenluy/data/openr1/train.parquet" #TODO: change according to https://github.com/LLM360/Reasoning360/blob/main/scripts/tools/download_guru.py
-val_file="/home/chenluy/data/openr1/test.parquet"
+# openr1 dataset
+# train_file="/home/chenluy/data/openr1/train.parquet"
+# val_file="/home/chenluy/data/openr1/test.parquet"
+
+# guru-RL dataset
+train_file="/home/chenluy/mismatch-perturbation-on-math/data/train/math__combined_54.4k.parquet"
+val_file=["/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__math_500.parquet","/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__aime_repeated_8x_240.parquet"]
+
 CKPTS_DIR="/opt/dlami/nvme/chenluy_ckpoints/${project_name}/${exp_name}"
 
 cd /home/chenluy/mismatch-perturbation-on-math
