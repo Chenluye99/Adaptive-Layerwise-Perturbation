@@ -41,7 +41,7 @@ export RAY_TMPDIR=/opt/dlami/nvme/ray_tmp
 
 
 #source "${SCRIPT_DIR}/setup_env.sh"
-MODEL_PATH="Qwen/Qwen2.5-1.5B" # "Qwen/Qwen2.5-Math-1.5B"
+MODEL_PATH="Qwen/Qwen2.5-Math-1.5B"
 
 clip_ratio_low=0.2
 clip_ratio_high=0.28
@@ -54,7 +54,7 @@ loss_agg_mode="token-mean"
 
 # Data files (use absolute paths)
 project_name="mismatch_rl_research"
-exp_name="grpo_baseline_qwen2.5-1.5b-math_n${n_resp_per_prompt}_mini_bsz_${train_prompt_mini_bsz}"
+exp_name="grpo_baseline_qwen2.5-1.5b-math_n${n_resp_per_prompt}_mini_bsz_${train_prompt_mini_bsz}_bypass"
 
 # openr1 dataset
 # train_file="/home/chenluy/data/openr1/train.parquet"
@@ -112,6 +112,7 @@ python3 -m verl.trainer.main_ppo \
     algorithm.use_kl_in_reward=False \
     reward_model.reward_manager=batch \
     +algorithm.rollout_correction.rollout_is=null \
+    +algorithm.rollout_correction.bypass_old_logprob_for_rollout=true \
     trainer.critic_warmup=0 \
     'trainer.logger=["console","wandb"]' \
     trainer.project_name=${project_name} \

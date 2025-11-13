@@ -72,7 +72,7 @@ export RAY_TMPDIR=/opt/dlami/nvme/ray_tmp
 export PYTHONWARNINGS="ignore::FutureWarning"
 
 #source "${SCRIPT_DIR}/setup_env.sh"
-MODEL_PATH="Qwen/Qwen2.5-Math-1.5B"
+MODEL_PATH="Qwen/Qwen2.5-1.5B" # "Qwen/Qwen2.5-Math-1.5B"
 
 clip_ratio_low=0.2
 clip_ratio_high=0.28
@@ -80,12 +80,16 @@ max_prompt_length=$((1024 * 1))
 max_response_length=$((2048))
 train_prompt_bsz=256
 n_resp_per_prompt=8
-train_prompt_mini_bsz=64
+train_prompt_mini_bsz=32
 loss_agg_mode="token-mean"
 
-# Data files
-train_file="/home/chenluy/data/openr1/train.parquet"
-val_file="/home/chenluy/data/openr1/test.parquet"
+# openr1 dataset
+# train_file="/home/chenluy/data/openr1/train.parquet"
+# val_file="/home/chenluy/data/openr1/test.parquet"
+
+# guru-RL dataset
+train_file="/home/chenluy/mismatch-perturbation-on-math/data/train/math__combined_54.4k.parquet"
+val_file=["/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__math_500.parquet","/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__aime_repeated_8x_240.parquet"]
 
 # Generate experiment name
 project_name="mismatch_rl_research"
