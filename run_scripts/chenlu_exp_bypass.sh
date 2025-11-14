@@ -47,22 +47,22 @@ clip_ratio_low=0.2
 clip_ratio_high=0.28
 max_prompt_length=$((2048 * 1))
 max_response_length=$((2048))
-train_prompt_bsz=256
+train_prompt_bsz=512
 n_resp_per_prompt=8
 train_prompt_mini_bsz=32
 loss_agg_mode="token-mean"
 
 # Data files (use absolute paths)
 project_name="mismatch_rl_research"
-exp_name="grpo_baseline_qwen2.5-1.5b-math_n${n_resp_per_prompt}_mini_bsz_${train_prompt_mini_bsz}_bypass"
+exp_name="grpo_baseline_qwen2.5-math-1.5b_openr1_n${n_resp_per_prompt}_mini_bsz_${train_prompt_mini_bsz}_bypass"
 
 # openr1 dataset
-# train_file="/home/chenluy/data/openr1/train.parquet"
-# val_file="/home/chenluy/data/openr1/test.parquet"
+train_file="/home/chenluy/data/openr1/train.parquet"
+val_file="/home/chenluy/data/openr1/test.parquet"
 
 # guru-RL dataset
-train_file="/home/chenluy/mismatch-perturbation-on-math/data/train/math__combined_54.4k.parquet"
-val_file=["/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__math_500.parquet","/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__aime_repeated_8x_240.parquet"]
+# train_file="/home/chenluy/mismatch-perturbation-on-math/data/train/math__combined_54.4k.parquet"
+# val_file=["/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__math_500.parquet","/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__aime_repeated_8x_240.parquet"]
 
 CKPTS_DIR="/opt/dlami/nvme/chenluy_ckpoints/${project_name}/${exp_name}"
 
