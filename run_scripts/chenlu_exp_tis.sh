@@ -76,7 +76,7 @@ MODEL_PATH="Qwen/Qwen2.5-1.5B" # "Qwen/Qwen2.5-Math-1.5B"
 
 clip_ratio_low=0.2
 clip_ratio_high=0.28
-max_prompt_length=$((1024 * 1))
+max_prompt_length=$((2048 * 1))
 max_response_length=$((2048))
 train_prompt_bsz=256
 n_resp_per_prompt=8
@@ -93,7 +93,7 @@ val_file=["/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__ma
 
 # Generate experiment name
 project_name="mismatch_rl_research"
-EXP_NAME="grpo_tis_qwen2.5-1.5b-math_n${n_resp_per_prompt}_${TIS_LEVEL}_${TIS_MODE}_th${TIS_THRESHOLD}"
+EXP_NAME="grpo_tis_qwen2.5-1.5b_guru_n${n_resp_per_prompt}_${TIS_LEVEL}_${TIS_MODE}_th${TIS_THRESHOLD}"
 if (( $(echo "$TIS_THRESHOLD_LOWER > 0" | bc -l) )); then
     EXP_NAME="${EXP_NAME}_thl${TIS_THRESHOLD_LOWER}"
 fi
@@ -133,13 +133,13 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.model.enable_gradient_checkpointing=True \
     actor_rollout_ref.actor.fsdp_config.param_offload=False \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
-    actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=16 \
+    actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=8 \
     actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
     actor_rollout_ref.rollout.name=vllm \
     actor_rollout_ref.rollout.gpu_memory_utilization=0.8 \
     actor_rollout_ref.rollout.n=${n_resp_per_prompt} \
     actor_rollout_ref.rollout.calculate_log_probs=True \
-    actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=16 \
+    actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=8 \
     actor_rollout_ref.ref.fsdp_config.param_offload=True \
     algorithm.use_kl_in_reward=False \
     reward_model.reward_manager=batch \

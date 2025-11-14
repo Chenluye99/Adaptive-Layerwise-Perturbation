@@ -45,7 +45,7 @@ MODEL_PATH="Qwen/Qwen2.5-Math-1.5B"
 
 clip_ratio_low=0.2
 clip_ratio_high=0.28
-max_prompt_length=$((1024 * 1))
+max_prompt_length=$((2048 * 1))
 max_response_length=$((2048))
 train_prompt_bsz=256
 n_resp_per_prompt=8
