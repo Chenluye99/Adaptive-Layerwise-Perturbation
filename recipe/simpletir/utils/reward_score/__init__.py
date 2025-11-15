@@ -19,7 +19,7 @@ def _default_compute_score(data_source, solution_str, ground_truth, extra_info=N
     Returns:
         Union[float, Dict[str, Any]]: Either a float score or a dictionary with 'score' and optional 'extra_info'
     """
-    if "simplelr_math_35" in data_source or "deepscaler" in data_source:
+    if "simplelr_math_35" in data_source or "deepscaler" in data_source or "custom_math_DAPO-Math-17k-Processed" in data_source or "rstar2_dataset" in data_source:
         from . import hf_math_verify
 
         res = hf_math_verify.compute_score(solution_str, ground_truth)

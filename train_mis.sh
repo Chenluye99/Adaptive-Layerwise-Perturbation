@@ -207,6 +207,7 @@ while [[ "$#" -gt 0 ]]; do
     --train_dataset) TRAIN_DATASET=($2); shift 2 ;;
     --valid_dataset) VALID_DATASET=($2); shift 2 ;;
     --model_name) MODEL_NAME="$2"; shift 2 ;;
+    --model_path) MODEL_PATH="$2"; shift 2 ;;
     --max_turns) MAX_TURNS="$2"; shift 2 ;;
     --clip_ratio_high) CLIP_RATIO_HIGH="$2"; shift 2 ;;
     --clip_ratio_low) CLIP_RATIO_LOW="$2"; shift 2 ;;
