@@ -84,16 +84,16 @@ train_prompt_mini_bsz=32
 loss_agg_mode="token-mean"
 
 # openr1 dataset
-train_file="/home/chenluy/data/openr1/train.parquet"
-val_file="/home/chenluy/data/openr1/test.parquet"
+# train_file="/home/chenluy/data/openr1/train.parquet"
+# val_file="/home/chenluy/data/openr1/test.parquet"
 
 # guru-RL dataset
-# train_file="/home/chenluy/mismatch-perturbation-on-math/data/train/math__combined_54.4k.parquet"
-# val_file=["/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__math_500.parquet","/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__aime_repeated_8x_240.parquet"]
+train_file="/home/chenluy/mismatch-perturbation-on-math/data/train/math__combined_54.4k.parquet"
+val_file=["/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__math_500.parquet","/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__aime_repeated_8x_240.parquet"]
 
 # Generate experiment name
 project_name="mismatch_rl_research"
-EXP_NAME="grpo_tis_qwen2.5-math-1.5b_openr1_n${n_resp_per_prompt}_${TIS_LEVEL}_${TIS_MODE}_th${TIS_THRESHOLD}"
+EXP_NAME="grpo_tis_qwen2.5-math-1.5b_guru_n${n_resp_per_prompt}_${TIS_LEVEL}_${TIS_MODE}_th${TIS_THRESHOLD}_prompt_bsz_${train_prompt_bsz}"
 if (( $(echo "$TIS_THRESHOLD_LOWER > 0" | bc -l) )); then
     EXP_NAME="${EXP_NAME}_thl${TIS_THRESHOLD_LOWER}"
 fi
@@ -127,6 +127,10 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=16 \
     actor_rollout_ref.actor.use_kl_loss=True \
     actor_rollout_ref.actor.kl_loss_coef=0.001 \
+    actor_rollout_ref.actor.clip_ratio_low=${clip_ratio_low} \
+    actor_rollout_ref.actor.clip_ratio_high=${clip_ratio_high} \
+    actor_rollout_ref.actor.clip_ratio_c=10.0 \
+    actor_rollout_ref.actor.loss_agg_mode=${loss_agg_mode} \
     actor_rollout_ref.actor.kl_loss_type=low_var_kl \
     actor_rollout_ref.actor.entropy_coeff=0 \
     actor_rollout_ref.actor.use_torch_compile=False \
