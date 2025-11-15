@@ -842,6 +842,7 @@ def compute_rollout_correction_and_add_to_batch(
 
     Args:
         batch: DataProto with old_log_probs, rollout_log_probs, response_mask
+        If actor_old_log_probs exists (for bypass mode metrics), use it for metrics computation
 
     Returns:
         Tuple of (updated_batch, metrics):
@@ -859,9 +860,13 @@ def compute_rollout_correction_and_add_to_batch(
     rollout_rs_threshold_lower = rollout_corr_config.get("rollout_rs_threshold_lower", None)
     rollout_token_veto_threshold = rollout_corr_config.get("rollout_token_veto_threshold", None)
 
+    # For metrics computation, use actor_old_log_probs if available (bypass mode)
+    # Otherwise use old_log_probs (normal mode)
+    old_log_prob_for_metrics = batch.batch.get("actor_old_log_probs", batch.batch["old_log_probs"])
+
     # Compute IS weights and get modified response_mask
     rollout_is_weights, modified_response_mask, rollout_corr_metrics = compute_rollout_correction_and_rejection_mask(
-        old_log_prob=batch.batch["old_log_probs"],
+        old_log_prob=old_log_prob_for_metrics,
         rollout_log_prob=batch.batch["rollout_log_probs"],
         response_mask=batch.batch["response_mask"],
         rollout_is=rollout_is,
@@ -902,6 +907,8 @@ def maybe_apply_rollout_correction(
 
     Returns:
         need_recomputation (bool): Whether recomputing logprobs is needed.
+        Even in bypass mode, we return True to compute actor_old_log_probs for metrics,
+        but old_log_probs will be set to rollout_log_probs for training.
 
     Note:
         The implementation is copied from szrlee <szrlee@gmail.com>.
@@ -916,8 +923,20 @@ def maybe_apply_rollout_correction(
                 "Ensure rollout worker is configured to calculate_log_probs=true."
             )
 
-        # Use rollout log probs as old log probs (zero-cost substitution)
-        batch.batch["old_log_probs"] = batch.batch["rollout_log_probs"]
+        # ========================================================================
+        # FIX: Ensure temperature is set in meta_info for bypass mode
+        # ========================================================================
+        # In bypass mode, we skip the actor forward pass that normally sets
+        # temperature in meta_info. However, actor.update_policy() requires
+        # data.meta_info["temperature"] to be present. This fix ensures temperature
+        # is set to a default value of 1.0 if not already present.
+        # ========================================================================
+        if batch.meta_info is None:
+            batch.meta_info = {}
+        if "temperature" not in batch.meta_info:
+            batch.meta_info["temperature"] = 1.0
+        # ========================================================================
+        
         # Check if pure rollout correction mode is enabled
         use_pure_rollout_correction = rollout_corr_config.get("use_pure_rollout_correction", False)
 
@@ -927,7 +946,10 @@ def maybe_apply_rollout_correction(
             policy_loss_config["loss_mode"] = "rollout_correction"
             policy_loss_config["rollout_correction"] = rollout_corr_config
 
-        return False
+        # Even in bypass mode, we still compute actor_old_log_probs for metrics
+        # but old_log_probs will be set to rollout_log_probs for training
+        # Return True to trigger actor forward pass, but we'll override old_log_probs later
+        return True
 
     return True
 

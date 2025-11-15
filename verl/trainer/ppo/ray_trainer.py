@@ -1107,6 +1107,7 @@ class RayPPOTrainer:
                     )
 
                     rollout_corr_config = self.config.algorithm.get("rollout_correction", None)
+                    bypass_mode = rollout_corr_config.get("bypass_old_logprob_for_rollout", False) if rollout_corr_config else False
                     need_recomputation = maybe_apply_rollout_correction(
                         batch=batch,
                         rollout_corr_config=rollout_corr_config,
@@ -1125,12 +1126,32 @@ class RayPPOTrainer:
                             old_log_prob_metrics = {"actor/entropy": entropy_agg.detach().item()}
                             metrics.update(old_log_prob_metrics)
                             old_log_prob.batch.pop("entropys")
-                            batch = batch.union(old_log_prob)
+                            
+                            # In bypass mode, save actor_old_log_probs for metrics, but use rollout_log_probs for training
+                            if bypass_mode:
+                                # Save true old_log_prob from actor as actor_old_log_probs for metrics computation
+                                batch.batch["actor_old_log_probs"] = old_log_prob.batch["old_log_probs"]
+                                # Use rollout_log_probs as old_log_probs for training (bypass mode)
+                                batch.batch["old_log_probs"] = batch.batch["rollout_log_probs"]
+                            else:
+                                # Normal mode: use actor's old_log_prob
+                                batch = batch.union(old_log_prob)
+                            
                             if "rollout_log_probs" in batch.batch.keys():
                                 # TODO: we may want to add diff of probs too.
                                 from verl.utils.debug.metrics import calculate_debug_metrics
 
                                 metrics.update(calculate_debug_metrics(batch))
+
+                    # In bypass mode, ensure old_log_probs is set to rollout_log_probs for training
+                    if bypass_mode:
+                        if "rollout_log_probs" not in batch.batch:
+                            raise ValueError(
+                                "bypass_old_logprob_for_rollout=True requires rollout_log_probs in batch. "
+                                "Ensure rollout worker is configured to calculate_log_probs=true."
+                            )
+                        # Ensure old_log_probs is set to rollout_log_probs for training
+                        batch.batch["old_log_probs"] = batch.batch["rollout_log_probs"]
 
                     assert "old_log_probs" in batch.batch, f'"old_log_prob" not in {batch.batch.keys()=}'
 

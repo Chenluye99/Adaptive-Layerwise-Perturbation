@@ -81,7 +81,13 @@ def calculate_debug_metrics(data: DataProto) -> dict:
     """
 
     rollout_old_log_probs = data.batch["rollout_log_probs"]
-    actor_old_log_probs = data.batch["old_log_probs"]
+    # In bypass mode, use actor_old_log_probs if available (for metrics), otherwise use old_log_probs
+    if "actor_old_log_probs" in data.batch:
+        # Bypass mode: use true actor log probs for metrics computation
+        actor_old_log_probs = data.batch["actor_old_log_probs"]
+    else:
+        # Normal mode: use old_log_probs (actor's log probs)
+        actor_old_log_probs = data.batch["old_log_probs"]
     if "response_mask" in data.batch:
         logger.debug("response mask found, use it to mask log probs")
         log_prob_mask = data.batch["response_mask"]

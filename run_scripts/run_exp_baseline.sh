@@ -1,30 +1,27 @@
 #!/bin/bash
 # Experiment: GRPO Baseline (no rollout correction)
-# Usage: bash run_exp_baseline.sh [eager]
+# Usage: bash run_exp_baseline.sh [dataset]
 #
 # Prerequisites: conda activate verl_new
 #
 # Examples:
-#   bash run_exp_baseline.sh          # Standard baseline with Flash Attention
-#   bash run_exp_baseline.sh true     # Use eager attention
+#   bash run_exp_baseline.sh          # Default: guru dataset
+#   bash run_exp_baseline.sh guru     # Use guru_rl92k dataset
+#   bash run_exp_baseline.sh openr1   # Use openr1 dataset
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/utils_gpu.sh"
 
+# Parse arguments
+DATASET="${1:-guru}"  # guru or openr1
+
 FREE_GPUS="0,1,2,3,4,5,6,7"
 FREE_GPU_COUNT=8
 export CUDA_VISIBLE_DEVICES=${FREE_GPUS}
-echo "Using fixed GPUs: ${CUDA_VISIBLE_DEVICES}"
+echo "Using fixed GPUs: ${FREE_GPUS}"
 
-# Set Ray temp directory (Docker-compatible)
-if [ -d "/workspace/project" ]; then
-    # Running in Docker
-    export RAY_TMPDIR=/tmp/ray_tmp_${FREE_GPU_COUNT}gpu
-else
-    # Running locally
-    export RAY_TMPDIR=/home/zhang430/.cache/ray_tmp_${FREE_GPU_COUNT}gpu
-fi
+export RAY_TMPDIR=/home/zhang430/.cache/ray_tmp_${FREE_GPU_COUNT}gpu
 export NCCL_P2P_DISABLE=1
 
 # Set WandB credentials
@@ -35,22 +32,23 @@ chmod -R 777 $RAY_TMPDIR 2>/dev/null || true
 
 clip_ratio_low=0.2
 clip_ratio_high=0.28
-max_prompt_length=$((1024 * 1))
-max_response_length=$((2048))
 
-# Fixed configuration aligned with chenlu_exp_tis.sh (8 GPUs only)
-train_prompt_bsz=256
-n_resp_per_prompt=8
-train_prompt_mini_bsz=32
-ppo_micro_batch_size=4
-rollout_log_prob_micro_bsz=4
-ref_log_prob_micro_bsz=4
-gpu_memory_util=0.7
-ray_num_cpus=64
-loss_agg_mode="token-mean"
+# Shared parameters
+    max_prompt_length=$((2048 * 1))
+    max_response_length=$((2048))
+    train_prompt_bsz=512
+    n_resp_per_prompt=8
+    train_prompt_mini_bsz=32
+    ppo_micro_batch_size=8
+    rollout_log_prob_micro_bsz=8
+    ref_log_prob_micro_bsz=8
+    gpu_memory_util=0.7
+    ray_num_cpus=64
+    loss_agg_mode="token-mean"
 
 echo "=========================================="
 echo "Experiment: GRPO Baseline"
+echo "Dataset: ${DATASET}"
 echo "Using ${FREE_GPU_COUNT} GPUs: ${FREE_GPUS}"
 echo "CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES}"
 echo "----------------------------------------"
@@ -68,42 +66,44 @@ echo "Start time: $(date)"
 echo "=========================================="
 
 # Detect if running in Docker container and set paths accordingly
-if [ -d "/workspace/project" ]; then
-    DATA_ROOT="/data/guru_rl92k"
+if [ "$DATASET" = "openr1" ]; then
+    # openr1 dataset paths
+    if [ -d "/workspace/project" ]; then
+        train_file="/data/openr1/train.parquet"
+        val_file="/data/openr1/test.parquet"
+    else
+        train_file="/home/zhang430/data/openr1/train.parquet"
+        val_file="/home/zhang430/data/openr1/test.parquet"
+    fi
+    DATASET_NAME="openr1"
 else
-    DATA_ROOT="/home/zhang430/data/guru_rl92k"
-fi
-DATA_PARENT=$(dirname "${DATA_ROOT}")
-
-train_file="${DATA_ROOT}/train/train/math__combined_54.4k.parquet"
-val_file="${DATA_PARENT}/guru_rl92k_prepared/math_eval.parquet"
-val_files_json="[\"${val_file}\"]"
-
-if [ ! -f "${train_file}" ]; then
-    echo "Error: train file ${train_file} not found" >&2
-    exit 1
-fi
-
-if [ ! -f "${val_file}" ]; then
-    echo "Error: val file ${val_file} not found" >&2
-    exit 1
+    # guru_rl92k dataset paths
+    if [ -d "/workspace/project" ]; then
+        DATA_ROOT="/data/guru_rl92k"
+    else
+        DATA_ROOT="/home/zhang430/data/guru_rl92k"
+    fi
+    train_file="${DATA_ROOT}/train/math__combined_54.4k.parquet"
+    val_file="[${DATA_ROOT}/online_eval/math__math_500.parquet,${DATA_ROOT}/online_eval/math__aime_repeated_8x_240.parquet]"
+    DATASET_NAME="guru_rl92k_math"
 fi
 
 # Model configuration
 MODEL_PATH="Qwen/Qwen2.5-Math-1.5B"
 MODEL_ID=$(echo "${MODEL_PATH}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g')
 
-DATASET_NAME="guru_rl92k_math"
-
 # Generate experiment name
 project_name="mismatch_rl_research"
-EXP_NAME="exp_grpo_${MODEL_ID}_${DATASET_NAME}"
-if [ "$EAGER" = "true" ]; then
-    EXP_NAME="${EXP_NAME}_eager"
-fi
+EXP_NAME="exp_grpo_${MODEL_ID}_${DATASET_NAME}_n${n_resp_per_prompt}_bz${train_prompt_bsz}_mini_bz${train_prompt_mini_bsz}"
 
-# Checkpoint directory
-CKPTS_DIR="${CKPTS_BASE}/${project_name}/${EXP_NAME}"
+# Checkpoint directory (handle both local and Docker environments)
+if [ -d "/workspace/project" ]; then
+    # Running in Docker container
+    CKPTS_DIR="/checkpoints/${project_name}/${EXP_NAME}"
+else
+    # Running locally
+    CKPTS_DIR="/home/zhang430/checkpoints/${project_name}/${EXP_NAME}"
+fi
 
 # Change to project directory (handle both Docker and local environments)
 if [ -d "/workspace/project" ]; then
@@ -114,16 +114,18 @@ else
     cd /home/zhang430/code/mismatch_rl
 fi
 
-# Create logs and outputs directories
+# Create logs, outputs, and checkpoint directories
 mkdir -p logs outputs
 chmod 777 logs outputs 2>/dev/null || true
+mkdir -p "${CKPTS_DIR}"
+chmod -R 777 "${CKPTS_DIR}" 2>/dev/null || true
 
 python3 -m verl.trainer.main_ppo \
     hydra.run.dir=outputs/${EXP_NAME}/${now:%Y-%m-%d}/${now:%H-%M-%S} \
     algorithm.adv_estimator=grpo \
-    data.train_files="[\"${train_file}\"]" \
-    data.val_files="${val_files_json}" \
     data.train_batch_size=${train_prompt_bsz} \
+    data.train_files=${train_file} \
+    data.val_files=${val_file} \
     data.max_prompt_length=${max_prompt_length} \
     data.max_response_length=${max_response_length} \
     data.filter_overlong_prompts=True \
