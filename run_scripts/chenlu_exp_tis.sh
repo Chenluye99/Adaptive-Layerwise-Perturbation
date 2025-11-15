@@ -84,16 +84,16 @@ train_prompt_mini_bsz=32
 loss_agg_mode="token-mean"
 
 # openr1 dataset
-# train_file="/home/chenluy/data/openr1/train.parquet"
-# val_file="/home/chenluy/data/openr1/test.parquet"
+train_file="/home/chenluy/data/openr1/train.parquet"
+val_file="/home/chenluy/data/openr1/test.parquet"
 
 # guru-RL dataset
-train_file="/home/chenluy/mismatch-perturbation-on-math/data/train/math__combined_54.4k.parquet"
-val_file=["/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__math_500.parquet","/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__aime_repeated_8x_240.parquet"]
+# train_file="/home/chenluy/mismatch-perturbation-on-math/data/train/math__combined_54.4k.parquet"
+# val_file=["/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__math_500.parquet","/home/chenluy/mismatch-perturbation-on-math/data/online_eval/math__aime_repeated_8x_240.parquet"]
 
 # Generate experiment name
 project_name="mismatch_rl_research"
-EXP_NAME="grpo_tis_qwen2.5-math-1.5b_guru_n${n_resp_per_prompt}_${TIS_LEVEL}_${TIS_MODE}_th${TIS_THRESHOLD}_prompt_bsz_${train_prompt_bsz}"
+EXP_NAME="grpo_tis_qwen2.5-math-1.5b_openr1_n${n_resp_per_prompt}_${TIS_LEVEL}_${TIS_MODE}_th${TIS_THRESHOLD}_prompt_bsz_${train_prompt_bsz}"
 if (( $(echo "$TIS_THRESHOLD_LOWER > 0" | bc -l) )); then
     EXP_NAME="${EXP_NAME}_thl${TIS_THRESHOLD_LOWER}"
 fi

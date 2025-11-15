@@ -30,6 +30,9 @@ source "${SCRIPT_DIR}/setup_env.sh"
 train_file="/home/zhang430/data/openr1/train.parquet"
 val_file="/home/zhang430/data/openr1/test.parquet"
 
+clip_ratio_low=0.2
+clip_ratio_high=0.28
+
 cd /home/zhang430/code/mismatch_rl_research
 
 python3 -m verl.trainer.main_ppo \
@@ -50,6 +53,9 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=16 \
     actor_rollout_ref.actor.use_kl_loss=True \
     actor_rollout_ref.actor.kl_loss_coef=0.001 \
+    actor_rollout_ref.actor.clip_ratio_low=${clip_ratio_low} \
+    actor_rollout_ref.actor.clip_ratio_high=${clip_ratio_high} \
+    actor_rollout_ref.actor.clip_ratio_c=10.0 \
     actor_rollout_ref.actor.kl_loss_type=low_var_kl \
     actor_rollout_ref.actor.entropy_coeff=0 \
     actor_rollout_ref.actor.use_torch_compile=False \
