@@ -1,0 +1,34 @@
+Score: 1.0
+
+To solve this problem, we need to find all integers less than 500 that can be written as the sum of two positive perfect cubes. First, let's identify the range of possible cubes we need to consider. 
+
+1. We need to consider cubes of numbers from 1 to some maximum number such that the cube is less than 500 when added to another cube of a smaller or equal number is still less than 500.
+2. The cube root of 500 is approximately 7.94, so we only need to consider cubes of numbers from 1 to 7 because \( 8^3 = 512 \) which is greater than 500.
+
+Hence, we need to consider the cubes of the numbers 1 through 7:
+\[ 1^3 = 1, \quad 2^3 = 8, \quad 3^3 = 27, \quad 4^3 = 64, \quad 5^3 = 125, \quad 6^3 = 216, \quad 7^3 = 343. \]
+
+We can then generate all distinct sums of these cubes that are less than 500, and ensure that each such sum is only counted once.
+
+Let's implement this step-by-step using Python to get the accurate result.
+```python
+# First, we define a list of perfect cubes up to 500
+cubes = [i**3 for i in range(1, 8)]  # This gives us the cubes from 1^3 to 7^3
+
+# Now, we generate all possible sums of two of these cubes and store them in a set to avoid duplicates
+sum_of_cubes = set()
+
+for i in range(len(cubes)):
+    for j in range(i, len(cubes)):
+        cube_sum = cubes[i] + cubes[j]
+        if cube_sum < 500:
+            sum_of_cubes.add(cube_sum)
+
+# The number of distinct integers less than 500 that can be written as the sum of two positive perfect cubes
+result = len(sum_of_cubes)
+print(result)
+```
+Code execution result: 26
+
+Thus, the number of positive integers less than 500 that can be written as the sum of two positive perfect cubes is \(\boxed{26}\). This is our final answer.
+

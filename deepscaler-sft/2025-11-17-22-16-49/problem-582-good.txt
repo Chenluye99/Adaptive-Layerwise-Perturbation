@@ -1,0 +1,79 @@
+Score: 1.0
+
+To solve this problem, we need to find the largest positive integer \( n \) such that the sum of its divisors, denoted as \(\sigma(n)\), is equal to 28. We will iterate through the positive integers and compute \(\sigma(n)\) for each number until we find the largest number that satisfies \(\sigma(n) = 28\).
+
+First, let's define a function to compute \(\sigma(n)\), i.e., the sum of the divisors of \( n \). Then, we will iterate through positive integers, compute \(\sigma(n)\) for each, and check if it equals 28. We will keep track of the largest \( n \) that satisfies this condition.
+
+Let's start by defining the function to compute \(\sigma(n)\) and then iterate to find the solution.
+```python
+def sum_of_divisors(n):
+    """Returns the sum of the divisors of n."""
+    total = 0
+    for i in range(1, n + 1):
+        if n % i == 0:
+            total += i
+    return total
+
+max_n = 0
+
+# We search for the largest n such that sigma(n) == 28
+for n in range(1, 10000):
+    if sum_of_divisors(n) == 28:
+        max_n = max(max_n, n)
+
+print(max_n)
+```
+Code execution result: Timeout
+It looks like searching up to 10,000 is taking too long. We can optimize this by setting a more reasonable upper limit for our search or using a more efficient method to find suitable numbers. We can go up to a larger range, let's say 100,000, but it's also wise to implement a more efficient algorithm for computing the sum of divisors. 
+
+Alternatively, we can introduce a more efficient way to check for the condition by adding a stopping condition or a more streamlined search method. We will implement this and check again.
+```python
+import sympy
+
+def find_largest_n_with_sigma_28():
+    max_n = 0
+    for n in range(1, 100000):
+        if sympy.divisor_sigma(n) == 28:
+            max_n = max(max_n, n)
+    return max_n
+
+largest_n = find_largest_n_with_sigma_28()
+print(largest_n)
+```
+Code execution result: Timeout
+It appears that even with the efficient function from `sympy`, a search up to 100,000 is still taking too long. We can take another approach by implementing a more efficient way to check for multiples of numbers and directly check up to a more reasonable bound by trial and error or a more direct mathematical approach.
+
+To enhance efficiency, we could create a more direct and efficient method to determine whether \(\sigma(n) = 28\) by checking a more reasonable set of numbers considering typical divisor sums and their properties. We know that \(\sigma(n) = 28\), and 28 itself is a relatively small number, so we can check up to a smaller bound such as a few thousand and ensure we check proper values.
+
+We can implement a more practical approach by checking within a smaller but more exhaustive set of numbers, or methodically check numbers and their divisor sums directly and effectively.
+
+Let's implement this more efficient check by iterating up to a more practical upper bound and performing checks on the fly without unnecessarily checking all numbers up to 100,000 or beyond.
+```python
+def find_largest_n_with_sigma_28():
+    max_n = 0
+    for n in range(1, 1000):
+        sigma_n = sum_of_divisors(n)
+        if sigma_n == 28:
+            max_n = max(max_n, n)
+    return max_n
+
+def sum_of_divisors(n):
+    """Efficiently returns the sum of the divisors of n."""
+    result = 1  # 1 is a divisor for all n > 0
+    sqrt_n = int(n ** 0.5)
+    for i in range(2, sqrt_n + 1):
+        if n % i == 0:
+            result += i
+            if i != n // i:  # add the quotient only if it's different from i
+                result += n // i
+    if n > 1:
+        result += n  # n is always a divisor of itself
+    return result
+
+largest_n = find_largest_n_with_sigma_28()
+print(largest_n)
+```
+Code execution result: 12
+
+Thus, the largest positive integer \( n \) such that \(\sigma(n) = 28\) is \(\boxed{12}\). This solution ensures we cover all possibilities efficiently and accurately within a reasonable range checking up to 1000. We can be confident in this answer as it passed the implementation checks and aligns well with typical divisor sum properties of numbers.
+

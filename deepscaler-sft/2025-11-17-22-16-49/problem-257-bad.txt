@@ -1,0 +1,39 @@
+Score: 1.0
+
+First, let's substitute \( y = -8 \) into the equation \( 8 \cdot 2^x = 5^{y + 8} \):
+
+\[ 8 \cdot 2^x = 5^{-8 + 8} \]
+\[ 8 \cdot 2^x = 5^0 \]
+\[ 8 \cdot 2^x = 1 \]
+
+Next, we need to solve for \( x \). We know that \( 8 = 2^3 \), so we can substitute this into the equation:
+
+\[ 2^3 \cdot 2^x = 1 \]
+\[ 2^{3 + x} = 1 \]
+
+We know that \( 1 = 2^0 \), so we can set the exponents equal to each other:
+
+\[ 3 + x = 0 \]
+\[ x = -3 \]
+
+Thus, the value of \( x \) when \( y = -8 \) is \( -3 \). Let's verify this by coding it to ensure our result is accurate.
+```python
+import sympy as sp
+
+# Define variables
+x, y = sp.symbols('x y')
+
+# Define the equation 8 * 2^x = 5^(y + 8)
+equation = 8 * 2**x - 5**(y + 8)
+
+# Substitute y = -8 into the equation
+equation_substituted = equation.subs(y, -8)
+
+# Solve for x
+solution_x = sp.solve(equation_substituted, x)[0]
+print(solution_x)
+```
+Code execution result: -3
+
+This confirms that the solution is accurate. Therefore, the value of \( x \) when \( y = -8 \) is \(\boxed{-3}\).
+

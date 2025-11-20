@@ -1,0 +1,104 @@
+Score: 1.0
+
+First, let's establish some information from the problem statement.
+
+1. **Focus and Directrices of Parabolas:**
+    - Both parabolas share the same focus at \((3, -28)\).
+    - One parabola has its directrix as the \(x\)-axis (i.e., \(y = 0\)).
+    - The other parabola has its directrix as the \(y\)-axis (i.e., \(x = 0\)).
+
+2. **Formulating the Equations of Parabolas:**
+    - For the parabola with directrix \(y = 0 \) (the \(x\)-axis), the definition of a parabola states that any point \((x, y)\) on the parabola is equidistant from the focus and the directrix. That is:
+      \[
+      \sqrt{(x - 3)^2 + (y + 28)^2} = |y|
+      \]
+      Squaring both sides gives:
+      \[
+      (x - 3)^2 + (y + 28)^2 = y^2
+      \]
+      Expanding and simplifying:
+      \[
+      (x - 3)^2 + y^2 + 56y + 784 = y^2 \implies (x - 3)^2 + 56y + 784 = 0 \implies (x - 3)^2 = -56y - 784
+      \]
+      \[
+      (x - 3)^2 = -56(y + 14)
+      \]
+      This is the equation of the first parabola.
+
+    - For the parabola with directrix \(x = 0 \) (the \(y\)-axis), any point \((x, y)\) on the parabola is equidistant from the focus and the directrix. That is:
+      \[
+      \sqrt{(x - 3)^2 + (y + 28)^2} = |x|
+      \]
+      Squaring both sides gives:
+      \[
+      (x - 3)^2 + (y + 28)^2 = x^2
+      \]
+      Expanding and simplifying:
+      \[
+      (x - 3)^2 + y^2 + 56y + 784 = x^2 \implies x^2 - 6x + 9 + y^2 + 56y + 784 = x^2
+      \]
+      \[
+      -6x + 9 + y^2 + 56y + 784 = 0 \implies y^2 + 56y - 6x + 793 = 0
+      \]
+      This is the equation of the second parabola.
+
+3. **Finding the Points of Intersection (Common Chord):**
+    - To find the points of intersection of these two parabolas, we need to solve the system of equations given by the above two equations:
+      \[
+      (x - 3)^2 = -56(y + 14)
+      \]
+      \[
+      y^2 + 56y - 6x + 793 = 0
+      \]
+
+Let's solve this system of equations using Python to get the points of intersection. Then, we'll compute the slope of the line passing through these points.
+```python
+import sympy as sp
+
+# Define the variables
+x, y = sp.symbols('x y')
+
+# Define the equations of the parabolas
+eq1 = (x - 3)**2 + 56 * (y + 14)
+eq2 = y**2 + 56 * y - 6 * x + 793
+
+# Solve the system of equations
+solution = sp.solve([eq1, eq2], (x, y))
+print(solution)
+```
+Code execution result: [(-943/6 - 56*sqrt(42)/3 + (-31 - 2*sqrt(42))**2/6, -31 - 2*sqrt(42)), (-943/6 + (-31 + 2*sqrt(42))**2/6 + 56*sqrt(42)/3, -31 + 2*sqrt(42)), (-607/6 - 56*sqrt(42)*I/3 + (-25 - 2*sqrt(42)*I)**2/6, -25 - 2*sqrt(42)*I), (-607/6 + (-25 + 2*sqrt(42)*I)**2/6 + 56*sqrt(42)*I/3, -25 + 2*sqrt(42)*I)]
+
+From the result, we observe that we have four solutions, but only the real solutions are valid in this geometric context. So, we consider the following two real solutions:
+
+1. \(\left(-\frac{943}{6} - \frac{56 \sqrt{42}}{3} + \frac{(-31 - 2 \sqrt{42})^2}{6}, -31 - 2 \sqrt{42}\right)\)
+2. \(\left(-\frac{943}{6} + \frac{(-31 + 2 \sqrt{42})^2}{6} + \frac{56 \sqrt{42}}{3}, -31 + 2 \sqrt{42}\right)\)
+
+Let's denote these points as \( A \) and \( B \):
+
+\[ A \left( -\frac{943}{6} - \frac{56 \sqrt{42}}{3} + \frac{(-31 - 2 \sqrt{42})^2}{6}, -31 - 2 \sqrt{42} \right) \]
+\[ B \left( -\frac{943}{6} + \frac{(-31 + 2 \sqrt{42})^2}{6} + \frac{56 \sqrt{42}}{3}, -31 + 2 \sqrt{42} \right) \]
+
+4. **Computing the Slope of the Line Passing Through Points \( A \) and \( B \):**
+    - The slope \( m \) of the line passing through points \((x_1, y_1)\) and \((x_2, y_2)\) is given by:
+      \[
+      m = \frac{y_2 - y_1}{x_2 - x_1}
+      \]
+
+We will now substitute the coordinates of points \( A \) and \( B \) into this formula and compute the slope.
+```python
+import sympy as sp
+
+# Calculate the coordinates of the points A and B
+x1 = -943/6 - 56 * sp.sqrt(42) / 3 + ((-31 - 2 * sp.sqrt(42))**2) / 6
+y1 = -31 - 2 * sp.sqrt(42)
+x2 = -943/6 + (-31 + 2 * sp.sqrt(42))**2 / 6 + 56 * sp.sqrt(42) / 3
+y2 = -31 + 2 * sp.sqrt(42)
+
+# Compute the slope
+slope = (y2 - y1) / (x2 - x1)
+print(slope.simplify())
+```
+Code execution result: -1
+
+So, the slope of the common chord of the two parabolas is \(\boxed{-1}\). This is the final answer.
+

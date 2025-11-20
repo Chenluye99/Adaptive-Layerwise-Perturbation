@@ -1,0 +1,60 @@
+Score: 1.0
+
+First, let's start by identifying what constitutes a perfect power. A perfect power is an integer that can be expressed as \( x^y \) where \( x \) and \( y \) are both integers, and \( y > 1 \). We need to determine all such numbers between 1 and 150.
+
+We'll generate the list of numbers from 1 to 150 and then check each number to see if it is a perfect power by checking all possible bases \( x \) and exponents \( y \).
+
+After identifying all perfect powers in the range, we can then determine how many numbers are not perfect powers. The probability that a randomly selected number is not a perfect power is given by the ratio of the numbers that are not perfect powers to the total number of integers from 1 to 150.
+
+Let's implement this step-by-step in Python.
+```python
+import sympy
+
+# Get all numbers from 1 to 150
+numbers = list(range(1, 151))
+
+# Find all perfect powers in this range
+perfect_powers = []
+
+for num in numbers:
+    is_perfect_power = False
+    for x in range(2, int(num ** 0.5) + 1):
+        y = 2
+        while x ** y <= num:
+            if x ** y == num:
+                perfect_powers.append(num)
+                is_perfect_power = True
+                break
+            y += 1
+    if not is_perfect_power:  # Check for cases like 1, which is 1^y for any y
+        if num != 1:
+            continue
+        perfect_powers.append(1)
+
+# Get the distinct perfect powers in the range 1 to 150
+perfect_powers = list(set(perfect_powers))
+
+# Get the count of distinct perfect powers between 1 and 150
+num_perfect_powers = len(perfect_powers)
+
+# Get the count of numbers that are not perfect powers
+num_not_perfect_powers = len(numbers) - num_perfect_powers
+
+# Calculate the probability
+probability = num_not_perfect_powers / len(numbers)
+
+# Return the probability as a fraction
+from fractions import Fraction
+probability_fraction = Fraction(probability).limit_denominator()
+
+print((num_perfect_powers, num_not_perfect_powers, probability_fraction))
+```
+Code execution result: (17, 133, Fraction(133, 150))
+
+So, there are 17 perfect powers between 1 and 150, which means there are \(150 - 17 = 133\) numbers that are not perfect powers. 
+
+Thus, the probability that a randomly selected number from 1 to 150 is not a perfect power is \(\frac{133}{150}\).
+
+Therefore, the final answer is:
+\(\boxed{\frac{133}{150}}\)
+

@@ -1,0 +1,181 @@
+Score: 0.0
+
+Given that \( p(x) \) is a quadratic polynomial with rational coefficients, we can write it in the form:
+
+\[ p(x) = ax^2 + bx + c \]
+
+where \( a, b, \) and \( c \) are rational numbers.
+
+We are given the following conditions:
+
+\[ p(\sqrt{7}) = 22 \]
+\[ p(\sqrt{11}) = 30 \]
+
+Substitute \( x = \sqrt{7} \) and \( x = \sqrt{11} \) into the polynomial:
+
+\[ p(\sqrt{7}) = a(\sqrt{7})^2 + b(\sqrt{7}) + c = 7a + b\sqrt{7} + c = 22 \]
+\[ p(\sqrt{11}) = a(\sqrt{11})^2 + b(\sqrt{11}) + c = 11a + b\sqrt{11} + c = 30 \]
+
+Since \( a, b, \) and \( c \) are rational, the expressions \( b\sqrt{7} \) and \( b\sqrt{11} \) must balance out in such a way that the equations hold. This implies that the rational and irrational parts should be separable.
+
+Let's denote:
+
+\[ 7a + c = A \quad \text{(rational part)} \]
+\[ b\sqrt{7} = B \quad \text{(irrational part from } p(\sqrt{7})) \]
+\[ 11a + c = C \quad \text{(rational part)} \]
+\[ b\sqrt{11} = D \quad \text{(irrational part from } p(\sqrt{11})) \]
+
+From the above, we get two systems of equations:
+
+1. \( 7a + b\sqrt{7} + c = 22 \)
+2. \( 11a + b\sqrt{11} + c = 30 \)
+
+To ensure that the coefficients \( a, b, \) and \( c \) are rational, the only way this can hold is if the irrational parts separately balance against each other, or are identically zero (which is not the case here as it would imply \( b = 0 \), and we need to solve for both \( a, b, c \)). 
+
+To find \( p(\sqrt{17}) \), we need to determine the coefficients \( a, b, \) and \( c \). We can set up a system of equations by considering the polynomial form and solving it step by step.
+
+Let's denote:
+
+\[ p(x) = ax^2 + bx + c \]
+
+We have the following system of equations from the conditions given:
+
+\[ 7a + b \sqrt{7} + c = 22 \]
+\[ 11a + b \sqrt{11} + c = 30 \]
+
+To eliminate the irrational terms, it hints that another equation might implicitly arise due to the polynomial having rational coefficients. Consider that if \( p(x) = ax^2 + bx + c \), then by the properties of polynomials with rational coefficients, the polynomial evaluated at the conjugates and other related roots might be useful. Hence, consider that there might be another equation or relationship satisfied by these conditions.
+
+Now, let's solve for \( a, b, c \) by coding it out, evaluating various fits and solving it in a manner that satisfies both conditions.
+
+We'll set up and solve this system using Python to get accurate results.
+```python
+from sympy import symbols, Eq, solve
+
+# Define the variables
+a, b, c = symbols('a b c', rational=True)
+
+# Set up the equations based on the given conditions
+eq1 = Eq(7 * a + b * (7 ** 0.5) + c, 22)
+eq2 = Eq(11 * a + b * (11 ** 0.5) + c, 30)
+
+# Solve the system of equations
+solution = solve((eq1, eq2), (a, b, c))
+
+print(solution)
+```
+Code execution result: {a: 0.113960576459638*c + 1.08831538832289, b: 5.43580654069593 - 0.679475817586992*c}
+
+This solution shows that \(a\) and \(b\) are expressed in terms of \(c\). To get specific values for \(a, b, c\), we need another equation or a way to determine \(c\).
+
+Since we know that a quadratic polynomial with rational coefficients will work consistently under different evaluations, consider forming a general quadratic and determining if there is a particular value consistently fitting both given conditions. 
+
+We could assume a value for \(c\) and solve for \(a\) and \(b\) such that we can then evaluate \(p(\sqrt{17})\). However, another approach could be more direct - forming the polynomial directly using resultants or other polynomial manipulation techniques if multiple equations are available or forming a system such that polynomial fits uniquely will resolve this.
+
+We can assume a specific form or make another educated guess that would force solving fully and directly compute \( p(\sqrt{17}) \) once we get precise \( a, b, c \). For now, let's take the solution to form \( p(x) \) and evaluate \( p(\sqrt{17}) \) directly in such a way that it fits precisely and checks if it works out as expected consistent with initial given conditions implicitly.
+
+Let's assume a proper form and determine \( p(\sqrt{17}) \) by coding to check multiple evaluations and select the one fitting as expected.
+```python
+import sympy as sp
+
+# Define variables
+x = sp.symbols('x')
+a, b, c = sp.symbols('a b c', rational=True)
+
+# Create the quadratic polynomial p(x) = ax^2 + bx + c
+p = a * x**2 + b * x + c
+
+# Set up the equations based on the problem statement
+eq1 = p.subs(x, sp.sqrt(7)) - 22
+eq2 = p.subs(x, sp.sqrt(11)) - 30
+
+# Solve for coefficients a, b, c
+solution = sp.solve((eq1, eq2), (a, b, c), dict=True)
+
+# Get all possible solutions
+coefficients = []
+
+for sol in solution:
+    a_val = sol[a]
+    b_val = sol[b]
+    c_val = sol[c]
+    
+    # Create the polynomial with these coefficients
+    p_specific = a_val * x**2 + b_val * x + c_val
+    
+    # Now, evaluate p(sqrt(17))
+    p_sqrt_17 = p_specific.subs(x, sp.sqrt(17))
+    coefficients.append(p_sqrt_17)
+
+print(coefficients)
+```
+Code execution result: KeyError: c
+It appears there is an issue because we have an underdetermined system (we have only 2 equations but 3 unknowns in \(a, b, c\)). To resolve this, we should consider the fact that quadratic polynomials with rational coefficients evaluated at specific points provide constraints that can force finding a unique solution through additional analysis or imposing constraints or broader solving techniques.
+
+Let's incorporate another approach. Since \( a, b, c \) are rational and it is a quadratic equation, we can express \( p(x) \) and then expand our method to include possible rational solutions using resultant methods or more systematic approaches to get all solutions fitting our conditions properly then compute \( p(\sqrt{17}) \).
+
+To ensure we have a full and accurate solution, let's assume a polynomial form and solve it more comprehensively, including additional checks and iterations if necessary to meet all conditions set. We'll take a more holistic approach coding this next.
+```python
+import sympy as sp
+
+# Define variables
+a, b, c = sp.symbols('a b c', rational=True)
+
+# Set up the equations based on the given conditions in symbolic form
+eq1 = 7 * a + b * sp.sqrt(7) + c - 22
+eq2 = 11 * a + b * sp.sqrt(11) + c - 30
+
+# Solve the system of equations for a, b, c
+solution = sp.solve([eq1, eq2], (a, b, c), dict=True)
+
+# Since we have a system of underdetermined equations (we need another equation), let's set up p(sqrt(17)) in terms of a, b, c and solve it fully if possible, otherwise we try another approach.
+
+for sol in solution:
+    a_sol = sol[a]
+    b_sol = sol[b]
+    c_sol = sol[c]
+    
+    # Form p(x) with solved a, b, c
+    p = a_sol * sp.symbols('x')**2 + b_sol * sp.symbols('x') + c_sol
+    
+    # Evaluate p(sqrt(17))
+    p_sqrt_17 = p.subs(sp.symbols('x'), sp.sqrt(17))
+
+    print(p_sqrt_17)
+```
+Code execution result: KeyError: c
+To resolve this, it means the system of equations only has two equations but we have three unknowns making it underdetermined in direct symbolic solving for specific values of \( c \). To proceed, we may need more sophisticated methods or another approach like fitting \( p(x) \) satisfying conditions numerically but ensuring accuracy of solving for \( a, b, c \).
+
+We can employ a more comprehensive approach by iterating over possible rational values for \( a, b, c \) to satisfy both the conditions given and subsequently derive \( p(\sqrt{17}) \).
+
+Let's take a step back and reason about this. We know:
+
+\[ 7a + b\sqrt{7} + c = 22 \]
+\[ 11a + b\sqrt{11} + c = 30 \]
+
+Since \( a, b, \) and \( c \) are rational, \( b \) must be such that both the above equations hold true. The key insight is that if we consider \( p(x) \) as a general quadratic polynomial and search for suitable rational \( a, b, c \) values fitting these equations, we can then determine \( p(\sqrt{17}) \).
+
+To finalize, let's implement a more robust method in Python that iterates over possible rational combinations for \( a, b, c \) and finds the best fit, ensuring both conditions \( p(\sqrt{7}) = 22 \) and \( p(\sqrt{11}) = 30 \) are satisfied as closely as possible. This approach will likely yield accurate coefficients to compute \( p(\sqrt{17}) \). Let's proceed with this approach.
+```python
+import sympy as sp
+
+# We will search for rational values of a, b, c that satisfy both conditions by defining a reasonably large range for possible values of a, b, c.
+solutions = []
+
+for a_val in range(-100, 101):
+    for b_val in range(-100, 101):
+        for c_val in range(-100, 101):
+            a, b, c = a_val / 1, b_val / 1, c_val / 1  # Making sure these are checked as rational/float approximations
+            
+            if abs(7 * a + b * sp.sqrt(7) + c - 22) < 1e-9 and abs(11 * a + b * sp.sqrt(11) + c - 30) < 1e-9:
+                p = a * sp.symbols('x')**2 + b * sp.symbols('x') + c
+                p_sqrt_17 = p.subs(sp.symbols('x'), sp.sqrt(17))
+                solutions.append(p_sqrt_17)
+
+# Return unique solutions and check for fit
+print(set(solutions))
+```
+Code execution result: Timeout
+
+Reach max function call limit.
+
+

@@ -1,0 +1,34 @@
+Score: 1.0
+
+To solve the problem, we need to calculate the value of \( x \) given by
+
+\[ x = \frac{\sum_{n=1}^{44} \cos n^\circ}{\sum_{n=1}^{44} \sin n^\circ}. \]
+
+After calculating the value of \( x \), we need to determine the greatest integer that does not exceed \( 100x \).
+
+Let's solve this step-by-step using Python.
+
+1. First, we will compute the sums \(\sum_{n=1}^{44} \cos n^\circ\) and \(\sum_{n=1}^{44} \sin n^\circ\).
+2. Then, we will compute \( x \) by dividing the first sum by the second sum.
+3. Finally, we will compute \( 100x \) and find the greatest integer that does not exceed it.
+
+Let's implement this in Python.
+```python
+import numpy as np
+
+# Calculate the sums
+cos_sum = sum(np.cos(np.deg2rad(n)) for n in range(1, 45))
+sin_sum = sum(np.sin(np.deg2rad(n)) for n in range(1, 45))
+
+# Calculate x
+x = cos_sum / sin_sum
+
+# Calculate 100 * x and get the greatest integer that does not exceed it
+result = int(100 * x)
+
+print(result)
+```
+Code execution result: 241
+
+Thus, the greatest integer that does not exceed \( 100x \) is \(\boxed{241}\). This is our final answer.
+

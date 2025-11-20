@@ -1,0 +1,54 @@
+Score: 0.0
+
+First, let's start by identifying what the problem is asking:
+
+1. **Find \( P(\xi = 2) \):**
+   - We need to find the probability that the minimum value of the numbers on the three drawn cards is 2. For this, the three cards drawn must include at least one of the 2's and both 1 and 2 cannot be included if we want the minimum value of the three drawn cards to be 2.
+   - The cards are: \{1, 2, 2, 3, 4, 5, 6\}. If the minimum value of the numbers on the three drawn cards is 2, then the cards drawn must be chosen in such a way that the smallest number among the three is 2, which means 1 cannot be one of the drawn cards, but 2 must be one of the drawn cards and the other two cards must be chosen from \{2, 3, 4, 5, 6\}.
+
+2. **Find \( E(\xi) \):**
+   - The expected value \( E(\xi) \) is calculated as the average of all possible values of \(\xi\) weighted by their respective probabilities.
+
+Let's start by coding this step-by-step in Python to get the precise answers.
+```python
+import itertools
+
+# List of cards
+cards = [1, 2, 2, 3, 4, 5, 6]
+
+# Get all possible outcomes when three cards are drawn from the seven cards
+all_outcomes = list(itertools.combinations(cards, 3))
+
+# Find how many outcomes have a minimum value of 2
+count_min_value_2 = 0
+
+# List to store the minimum value of each outcome
+min_values = []
+
+for outcome in all_outcomes:
+    if min(outcome) == 2:
+        count_min_value_2 += 1
+        min_values.append(min(outcome))
+
+# Calculate the probability P(ξ = 2)
+P_Xi_2 = count_min_value_2 / len(all_outcomes)
+
+# Calculate E(ξ)
+E_Xi = sum(min_values) / len(min_values)
+
+print((P_Xi_2, E_Xi))
+```
+Code execution result: (0.45714285714285713, 2.0)
+
+So, we have \( P(\xi = 2) = 0.45714285714285713 \) and \( E(\xi) = 2.0 \).
+
+So, the final answers are:
+
+\[
+P(\xi = 2) = \boxed{0.45714285714285713}
+\]
+
+\[
+E(\xi) = \boxed{2.0}
+\]
+

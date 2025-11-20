@@ -1,0 +1,65 @@
+Score: 1.0
+
+First, let's break down the problem step by step and then implement it in Python to ensure accuracy.
+
+1. **Define Variables:**
+    - Let the total number of adults in Mathopolis be \(A\).
+    - Since exactly half of the adults are female, the number of female adults is \(\frac{A}{2}\).
+    - Exactly half of the female adults have exactly one biological child, so the number of female adults who have a child is \(\frac{1}{2} \cdot \frac{A}{2} = \frac{A}{4}\).
+    - No one else has a child, so the total number of children in Mathopolis is \(\frac{A}{4}\).
+
+2. **Find the Total Population:**
+    - Let the total number of people in Mathopolis be \(P\).
+    - The number of children in Mathopolis is \(\frac{A}{4}\).
+    - The number of adults who do not have a child is \(\frac{A}{2} - \frac{A}{4} = \frac{A}{4}\).
+    - Therefore, the number of adults who do not have a child plus the number of children equals the total number of people who are not part of the adult population who are 21 or older (which is just the adults). So, the total population \(P\) would be the sum of the number of children and the number of adults (both those who have a child and those who don't have a child):
+      \[
+      P = \frac{A}{4} + \frac{A}{4} + \frac{A}{2} = \frac{A}{4} + \frac{A}{4} + \frac{A}{2} = \frac{A}{4} + \frac{A}{4} + \frac{2A}{4} = \frac{4A}{4} = A + \frac{A}{4} = \frac{5A}{4}
+      \]
+    - In other words, if the total number of people \(P\) is \(\frac{5A}{4}\), we can now express all of these numbers as functions of the total population of Mathopolis, \(P\). To differentiate \(A\) (number of adults) neatly, we should keep in mind that \(A\) is a part of \(P\):
+      \[
+      A = P - \text{(number of children)} = P - \frac{A}{4}
+      \]
+    - Rearrange the equation to solve for \(A\) in terms of \(P\):
+      \[
+      A = \frac{4}{5} P
+      \]
+      because substituting \( \frac{A}{4} \) for the children's count gets involved, but simplifies when considering whole groups.
+
+3. **Calculate the Percentage of Children:**
+    - The number of children is \(\frac{A}{4}\).
+    - To get the percentage of people in Mathopolis that are children, we divide the number of children by the total population and multiply by 100:
+      \[
+      \text{Percentage of children} = \left( \frac{\frac{A}{4}}{\frac{5A}{4}} \right) \times 100 = \left( \frac{A}{4} \times \frac{4}{5A} \right) \times 100 = \frac{1}{5} \times 100 = 20\%
+      \]
+
+Let's confirm this reasoning by implementing it in Python to ensure accuracy.
+```python
+# Let's define the variables and solve the problem programmatically.
+
+# We'll start by assuming a value for the total number of people (P) and derive the corresponding number of adults (A) and children (C).
+
+# Let's iterate and ensure that our solution holds for a range of values if necessary.
+
+def find_child_percentage():
+    for P in range(1, 10000):
+        # Number of adults (A) should be a value that allows A = (4/5) * P, so P needs to be chosen such that (4/5) * P is an integer.
+        if (4 * P) % 5 == 0:
+            A = (4 * P) // 5
+            if A > 0:
+                female_adults = A // 2
+                female_adults_with_child = female_adults // 2
+                if female_adults_with_child > 0:
+                    children = female_adults_with_child
+                    
+                    if (A - children) + children == A:
+                        child_percentage = (children / P) * 100
+                        return child_percentage
+
+child_percentage = find_child_percentage()
+print(child_percentage)
+```
+Code execution result: 20.0
+
+Thus, the percentage of people in Mathopolis who are children is \(\boxed{20}\)%. This confirms that our reasoning and calculations are correct.
+

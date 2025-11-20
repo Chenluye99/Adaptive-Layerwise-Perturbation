@@ -1,0 +1,52 @@
+Score: 1.0
+
+To solve this problem, we will use SymPy, a Python library for symbolic mathematics, to solve the system of equations for the variables \(x, y, z\).
+
+We need to find the number of ordered triples \((x, y, z)\) that satisfy the following system of equations:
+\[
+\begin{align*}
+x + 2y + 4z &= 12, \tag{1} \\
+xy + 2xz + 4yz &= 22, \tag{2} \\
+xyz &= 6. \tag{3}
+\end{align*}
+\]
+
+Let's implement this step-by-step:
+
+1. **Set Up the Equations:**
+   We will define the equations in SymPy and use `solve` to find the solutions.
+
+2. **Find All Solutions:**
+   Use `solve` to get all possible solutions for the system of equations. We need to consider both real and complex solutions and then filter out only the real solutions since the problem statement asks for real numbers.
+
+3. **Count the Ordered Triples:**
+   Count the number of ordered triples \((x, y, z)\) that satisfy all three equations.
+
+Here is the Python code to solve this problem:
+
+```python
+import sympy as sp
+
+# Define the variables
+x, y, z = sp.symbols('x y z', real=True)
+
+# Define the equations
+eq1 = x + 2*y + 4*z - 12
+eq2 = x*y + 2*x*z + 4*y*z - 22
+eq3 = x*y*z - 6
+
+# Solve the system of equations
+solutions = sp.solve([eq1, eq2, eq3], (x, y, z), dict=True)
+
+# Print the solutions to examine them
+print(solutions)
+
+# Count the number of ordered triples (x, y, z)
+num_ordered_triples = len(solutions)
+print(num_ordered_triples)
+```
+Code execution result: [{x: 2, y: 2, z: 3/2}, {x: 2, y: 3, z: 1}, {x: 4, y: 1, z: 3/2}, {x: 4, y: 3, z: 1/2}, {x: 6, y: 1, z: 1}, {x: 6, y: 2, z: 1/2}]
+6
+
+Thus, the number of ordered triples \((x, y, z)\) that solve the system of equations is \(\boxed{6}\). We have obtained six solutions, and so the number of ordered triples is confirmed to be 6.
+

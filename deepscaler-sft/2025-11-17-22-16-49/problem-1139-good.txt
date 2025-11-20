@@ -1,0 +1,52 @@
+Score: 1.0
+
+We need to solve this step-by-step by iterating and adding the daily contributions until the total amount in Krista's bank exceeds $5. Krista starts with 1 cent on Sunday and doubles the amount she puts into her bank each subsequent day.
+
+Let's outline the steps:
+
+1. Initialize the starting amount and the total amount in the bank.
+2. Loop through each day, doubling the contribution each day and adding it to the total amount.
+3. Track which day this process exceeds $5 (i.e., 500 cents, since 1 dollar = 100 cents).
+4. Return the day of the week when this occurs.
+
+We'll implement this in Python and iterate until we get the answer. Let's start by coding this out.
+```python
+# Initialize variables
+initial_amount = 1  # Starting with 1 cent on Sunday
+total_amount = 0    # Initial total amount in the bank
+day = "Sunday"      # Start from Sunday
+
+# Loop through each day for two weeks (14 days)
+for day_count in range(14):
+    # Add the current day's contribution to the total amount
+    total_amount += initial_amount
+    
+    # If the total amount exceeds $5 (500 cents), break the loop and get the current day
+    if total_amount > 500:
+        break
+    
+    # Double the amount for the next day
+    initial_amount *= 2
+    
+    # Move to the next day
+    if day == "Sunday":
+        day = "Monday"
+    elif day == "Monday":
+        day = "Tuesday"
+    elif day == "Tuesday":
+        day = "Wednesday"
+    elif day == "Wednesday":
+        day = "Thursday"
+    elif day == "Thursday":
+        day = "Friday"
+    elif day == "Friday":
+        day = "Saturday"
+    elif day == "Saturday":
+        day = "Sunday"
+
+print(day)
+```
+Code execution result: Monday
+
+Thus, the total amount of money in Krista's bank first exceeds $5 on \(\boxed{\text{Monday}}\). This is our final answer.
+

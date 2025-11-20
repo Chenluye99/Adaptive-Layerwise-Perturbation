@@ -1,0 +1,77 @@
+Score: 1.0
+
+To solve the problem, let's start by understanding the properties of the function \( y = \frac{p(x)}{q(x)} \):
+
+1. **Properties of the Function:**
+    - **Horizontal Asymptote:** The horizontal asymptote is \( y = -1 \). For rational functions, the horizontal asymptote when the degrees of the numerator and denominator are the same is determined by the leading coefficients of the numerator and the denominator. If the degrees of \( p(x) \) and \( q(x) \) are both 2, then the horizontal asymptote is given by the ratio of the leading coefficients of \( p(x) \) and \( q(x) \). So, if the leading coefficient of \( p(x) \) is \( a \) and the leading coefficient of \( q(x) \) is \( b \), then \(\frac{a}{b} = -1\), implying \( a = -b \).
+    - **Vertical Asymptote:** The vertical asymptote is \( x = 2 \). This means that \( q(x) \) has a factor of \((x - 2)^2\) because the graph shows that the function has a vertical asymptote at \( x = 2 \) and not a hole or a removable discontinuity.
+
+2. **Form of the Functions:**
+    - Since \( p(x) \) and \( q(x) \) are both quadratic, we can write:
+      \[
+      p(x) = a(x - r_1)(x - r_2)
+      \]
+      \[
+      q(x) = -a (x - 2)^2
+      \]
+      where \( r_1 \) and \( r_2 \) are the roots of \( p(x) \), and the factor \((x - 2)^2 \) in the denominator ensures the vertical asymptote at \( x = 2 \).
+
+3. **Determine the Function:**
+    - We can now write the function as:
+      \[
+      y = \frac{a (x - r_1)(x - r_2)}{-a (x - 2)^2} = - \frac{(x - r_1)(x - r_2)}{(x - 2)^2}
+      \]
+    - From the graph, we can observe the behavior and specific points to better determine \( p(x) \) and \( q(x) \). The graph shows that there are roots or asymptotic behaviors that we can use to identify the specific forms of \( p(x) \) and \( q(x) \).
+
+By comparing the general form with the graph, we can observe that the graph has roots at \( x = -5 \) and \( x = 4 \), so we have:
+\[
+p(x) = k (x + 5)(x - 4)
+\]
+for some constant \( k \). And as mentioned, the denominator is:
+\[
+q(x) = -k (x - 2)^2
+\]
+Therefore, the function is:
+\[
+y = \frac{k (x + 5)(x - 4)}{-k (x - 2)^2} = - \frac{(x + 5)(x - 4)}{(x - 2)^2}
+\]
+This matches the form of the function given in the problem. Now, we need to find \(\frac{p(-1)}{q(-1)}\):
+
+\[
+p(-1) = k ((-1) + 5)((-1) - 4) = k (4) (-5) = -20k
+\]
+\[
+q(-1) = -k ((-1) - 2)^2 = -k (-3)^2 = -k (9) = -9k
+\]
+\[
+\frac{p(-1)}{q(-1)} = \frac{-20k}{-9k} = \frac{20}{9}
+\]
+
+Since the constant \( k \) will cancel out, we have:
+\[
+\frac{p(-1)}{q(-1)} = \frac{20}{9}
+\]
+
+Let's confirm this by implementing it in Python to ensure the accuracy of our solution.
+```python
+import sympy as sp
+
+# Define the functions p(x) and q(x)
+x = sp.symbols('x')
+k = sp.symbols('k', nonzero=True)
+
+p = k * (x + 5) * (x - 4)
+q = -k * (x - 2)**2
+
+# Evaluate p(-1) and q(-1)
+p_at_minus_1 = p.subs(x, -1)
+q_at_minus_1 = q.subs(x, -1)
+
+# Calculate the ratio p(-1) / q(-1)
+ratio = p_at_minus_1 / q_at_minus_1
+print(ratio)
+```
+Code execution result: 20/9
+
+Thus, the final answer is \(\boxed{\frac{20}{9}}\). This confirms that our solution is accurate.
+

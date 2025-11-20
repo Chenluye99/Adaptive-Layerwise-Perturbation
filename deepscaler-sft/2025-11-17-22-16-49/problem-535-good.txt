@@ -1,0 +1,32 @@
+Score: 1.0
+
+To solve this problem, let's start by setting up the problem description in a mathematical manner. Let's assume that the original rectangular dot matrix consists of \(a \times b\) points with \(a, b \) being the number of points along each side. The total number of pieces in this matrix is \( N = ab \).
+
+When 45 more pieces are added, the number of pieces becomes \( N + 45 \). We know that one of the side lengths of the new matrix remains the same as before. We'll assume that the side length that remains the same is \(a\). So, the new matrix must have dimensions of \( a \times c \) or \( b \times c \) where either \( a = a' \) or \( b = b' \). Therefore, the total number of pieces in the new matrix is either \( a \cdot c \) or \( b \cdot c \). Since one of the side lengths remains unchanged, if \( a \) is unchanged, then the new number of pieces is \( a \cdot c = N + 45 \); if \( b \) is unchanged, then the new number of pieces is \( b \cdot c = N + 45 \).
+
+In either case, by substituting \(N = ab\) into these equations, we get:
+\[ a \cdot c = ab + 45 \implies a \cdot c - ab = 45 \implies a(c - b) = 45 \]
+or
+\[ b \cdot c = ab + 45 \implies b \cdot c - ab = 45 \implies b(c - a) = 45 \]
+
+So, what we need to do is find all factor pairs \((a, b)\) of numbers such that \(ab \leq 19 \times 19 = 361\) and then check if \(a(c - b) = 45\) or \(b(c - a) = 45\) holds for some integers \(c\). We want to find the maximum value of \( ab \).
+
+Let's implement this step-by-step using Python to check all possibilities.
+```python
+max_pieces = 0
+
+# We need to loop through all possible dimensions a and b for a 19x19 Go board
+for a in range(1, 20):
+    for b in range(1, 20):
+        N = a * b
+        for additional_pieces in range(1, 100):  # We know that we can add up to 45 more pieces, but we will check a range beyond that to be sure
+            if (N + additional_pieces) == (a * (int((N + additional_pieces) / a))) or (N + additional_pieces) == (b * (int((N + additional_pieces) / b))):
+                if (additional_pieces == 45):
+                    max_pieces = max(max_pieces, N)
+
+print(max_pieces)
+```
+Code execution result: 285
+
+Thus, the maximum number of chess pieces that Little Tiger originally used is \(\boxed{285}\). This is the result obtained from checking all possible configurations and ensuring that the conditions of the problem are met.
+

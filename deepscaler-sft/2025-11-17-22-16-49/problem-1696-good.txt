@@ -1,0 +1,82 @@
+Score: 1.0
+
+First, let's set up the radii of the semicircles according to the ratio $AB:BC:CD = 1:2:3$. We'll denote the radii as follows:
+
+- The radius of the largest semicircle (with diameter $AD$) is $r_{\text{AD}} = r_{1} + r_{2} + r_{3}$, where $r_1, r_2, r_3$ are the radii of the semicircles with diameters $AB, BC$, and $CD$ respectively.
+- The radius of the semicircle with diameter $AB$ is $r_1$.
+- The radius of the semicircle with diameter $BC$ is $r_2$.
+- The radius of the semicircle with diameter $CD$ is $r_3$.
+
+Given the ratio, let's denote $r_1 = k$, $r_2 = 2k$, and $r_3 = 3k$ for some constant $k$. Therefore, the radius of the largest semicircle with diameter $AD$ will be $r_{\text{AD}} = k + 2k + 3k = 6k$.
+
+Next, we will compute the areas of the semicircles and then determine the areas of interest (the shaded and unshaded areas).
+
+1. Calculate the area of the largest semicircle with diameter $AD$:
+   \[
+   \text{Area}_{\text{AD}} = \frac{1}{2} \pi (6k)^2 = \frac{1}{2} \pi (36k^2) = 18 \pi k^2
+   \]
+
+2. Calculate the areas of the smaller semicircles with diameters $AB, BC, CD$:
+   \[
+   \text{Area}_{AB} = \frac{1}{2} \pi (k)^2 = \frac{1}{2} \pi k^2
+   \]
+   \[
+   \text{Area}_{BC} = \frac{1}{2} \pi (2k)^2 = \frac{1}{2} \pi (4k^2) = 2 \pi k^2
+   \]
+   \[
+   \text{Area}_{CD} = \frac{1}{2} \pi (3k)^2 = \frac{1}{2} \pi (9k^2) = \frac{9}{2} \pi k^2
+   \]
+
+3. The total area of the unshaded regions (the areas of the smaller semicircles):
+   \[
+   \text{Area}_{\text{unshaded}} = \frac{1}{2} \pi k^2 + 2 \pi k^2 + \frac{9}{2} \pi k^2 = \frac{1}{2} \pi k^2 + \frac{4}{2} \pi k^2 + \frac{9}{2} \pi k^2 = \frac{14}{2} \pi k^2 = 7 \pi k^2
+   \]
+
+4. The shaded area is the area of the largest semicircle minus the area of the unshaded regions:
+   \[
+   \text{Area}_{\text{shaded}} = \text{Area}_{\text{AD}} - \text{Area}_{\text{unshaded}} = 18 \pi k^2 - 7 \pi k^2 = 11 \pi k^2
+   \]
+
+5. Now, we find the ratio of the shaded area to the unshaded area:
+   \[
+   \text{Ratio} = \frac{\text{Area}_{\text{shaded}}}{\text{Area}_{\text{unshaded}}} = \frac{11 \pi k^2}{7 \pi k^2} = \frac{11}{7}
+   \]
+
+Thus, the ratio of the shaded area to the unshaded area is $\frac{11}{7}$. We will use Python to confirm this result by implementing it programmatically.
+```python
+import sympy as sp
+
+# Define the variables and the expression
+k = sp.symbols('k')
+
+# Radii
+r1 = k
+r2 = 2 * k
+r3 = 3 * k
+
+# Calculate the radii of the largest semicircle with diameter AD
+r_AD = r1 + r2 + r3
+
+# Calculate the areas
+area_AD = 0.5 * sp.pi * r_AD**2
+area_AB = 0.5 * sp.pi * r1**2
+area_BC = 0.5 * sp.pi * r2**2
+area_CD = 0.5 * sp.pi * r3**2
+
+# Calculate the total unshaded area
+area_unshaded = area_AB + area_BC + area_CD
+
+# Calculate the shaded area
+area_shaded = area_AD - area_unshaded
+
+# Calculate the ratio of the shaded area to the unshaded area
+ratio = area_shaded / area_unshaded
+
+print(ratio.simplify())
+```
+Code execution result: 1.57142857142857
+
+This result is equivalent to the fraction \(\frac{11}{7}\), since \(1.57142857142857 = \frac{11}{7}\).
+
+Thus, the ratio of the shaded area to the unshaded area in the semi-circle with diameter \(AD\) is \(\boxed{\frac{11}{7}}\). This confirms our solution is accurate.
+

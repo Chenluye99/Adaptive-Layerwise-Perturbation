@@ -1,0 +1,38 @@
+Score: 1.0
+
+To solve the problem, let's first understand the pattern of how numbers are arranged.
+
+1. **Pattern Understanding**:
+    - The 1st row has 1 number.
+    - The 2nd row has 3 numbers.
+    - The 3rd row has 5 numbers.
+    - The 4th row has 7 numbers.
+    - And so on...
+
+We can observe that the number of elements in the $n$-th row is $2n - 1$.
+   
+2. **Generate the Triangle Up to the 10th Row**:
+    - To get the 10th row, we need to know where it starts and ends in the sequence of natural numbers.
+    - The number of elements in the first 9 rows is the sum of the first 9 odd numbers, i.e., $1 + 3 + 5 + 7 + 9 + 11 + 13 + 15 + 17 = 81$. So, the 10th row starts with the 82nd natural number and ends with the 100th natural number (since the 10th row has 19 elements, and $19 + 1 = 20$ elements up to the end of the 9th row, so it starts at position 82 and ends at position 100).
+
+3. **Get the 10th Row and Compute the Sum**:
+    - The 10th row contains the numbers from 82 to 100.
+    - We can then calculate the sum of these numbers.
+
+Let's implement this step-by-step reasoning in Python to get the accurate result.
+```python
+# Get the numbers for the 10th row
+start_of_10th_row = 82
+end_of_10th_row = 100
+
+# Generate the 10th row
+tenth_row = list(range(start_of_10th_row, end_of_10th_row + 1))
+
+# Calculate the sum of the numbers in the 10th row
+sum_of_10th_row = sum(tenth_row)
+print(sum_of_10th_row)
+```
+Code execution result: 1729
+
+Thus, the sum of the numbers in the 10th row is \(\boxed{1729}\). This is our final answer.
+

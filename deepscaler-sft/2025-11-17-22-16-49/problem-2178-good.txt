@@ -1,0 +1,89 @@
+Score: 1.0
+
+1. **Calculate the Length of the Other Base:**
+   - We know the formula for the area of a trapezoid is:
+     \[
+     \text{Area} = \frac{1}{2} \times (\text{Base}_1 + \text{Base}_2) \times \text{Height}
+     \]
+   - Substituting the given values into the formula, we get:
+     \[
+     162 = \frac{1}{2} \times (16 + \text{Base}_2) \times 12
+     \]
+   - Simplifying the equation:
+     \[
+     162 = 6 \times (16 + \text{Base}_2)
+     \]
+     \[
+     162 = 6 \times (16 + \text{Base}_2)
+     \]
+     \[
+     27 = 16 + \text{Base}_2
+     \]
+     \[
+     \text{Base}_2 = 27 - 16 = 11 \text{ cm}
+     \]
+
+2. **Calculate the Lengths of the Sides:**
+   - We have the trapezoid with vertices at \((0, 0)\), \((0, 12)\), \((11, 12)\), and \((16, 0)\).
+   - We need to compute the lengths of the non-parallel sides, i.e., the lengths of the segments connecting \((0, 12)\) to \((11, 12)\) and \((16, 0)\) to \((0, 0)\).
+
+3. **Use the Distance Formula:**
+   - The distance formula between two points \((x_1, y_1)\) and \((x_2, y_2)\) is:
+     \[
+     \text{Distance} = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}
+     \]
+   - Let's calculate the lengths of the sides:
+     - Length of the side between \((0, 12)\) and \((11, 12)\):
+       \[
+       \text{Length}_1 = \sqrt{(11 - 0)^2 + (12 - 12)^2} = \sqrt{11^2} = 11 \text{ cm}
+       \]
+     - Length of the side between \((16, 0)\) and \((0, 0)\):
+       \[
+       \text{Length}_2 = \sqrt{(0 - 16)^2 + (0 - 0)^2} = \sqrt{16^2} = 16 \text{ cm}
+       \]
+     - Length of the side between \((16, 0)\) and \((11, 12)\):
+       \[
+       \text{Length}_3 = \sqrt{(11 - 16)^2 + (12 - 0)^2} = \sqrt{(-5)^2 + 12^2} = \sqrt{25 + 144} = \sqrt{169} = 13 \text{ cm}
+       \]
+     - Length of the side between \((0, 12)\) and \((0, 0)\):
+       \[
+       \text{Length}_4 = \sqrt{(0 - 0)^2 + (12 - 0)^2} = \sqrt{12^2} = 12 \text{ cm}
+       \]
+
+4. **Calculate the Perimeter:**
+   - The perimeter of the trapezoid is the sum of all its sides:
+     \[
+     \text{Perimeter} = 16 + 11 + 13 + 12 = 52 \text{ cm}
+     \]
+
+Let's confirm this solution by implementing it in Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Given values
+height = 12
+base1 = 16
+area = 162
+
+# Calculate the other base (base2)
+base2 = (2 * area / height) - base1
+
+# Calculate the lengths of the non-parallel sides using the distance formula
+x1, y1 = 0, 12
+x2, y2 = 11, 12
+x3, y3 = 16, 0
+x4, y4 = 0, 0
+
+side1 = sp.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+side2 = sp.sqrt((x3 - x4)**2 + (y3 - y4)**2)
+side3 = sp.sqrt((x3 - x2)**2 + (y3 - y2)**2)
+side4 = sp.sqrt((x1 - x4)**2 + (y1 - y4)**2)
+
+# Calculate the perimeter
+perimeter = side1 + side2 + side3 + side4
+print(perimeter)
+```
+Code execution result: 52
+
+Thus, the perimeter of the trapezoid is \(\boxed{52}\) cm. This confirms our solution is accurate.
+

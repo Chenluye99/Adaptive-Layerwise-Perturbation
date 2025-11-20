@@ -1,0 +1,114 @@
+Score: 0.0
+
+To solve this problem, we need to determine the probability that all three mathematics textbooks end up in the same box when Melinda randomly packs her 12 textbooks into three boxes, one which holds 3, one which holds 4, and one which holds 5 textbooks.
+
+First, let's define the steps:
+
+1. **Understand the Problem:**
+    - We have 12 textbooks, 3 of which are mathematics textbooks.
+    - One box will hold 3 textbooks, one will hold 4 textbooks, and one will hold 5 textbooks.
+    - We want to find the probability that all 3 mathematics textbooks end up in the same box.
+
+2. **Set Up the Combinatorial Scenarios:**
+    - We need to consider all ways of distributing the 12 textbooks into the three boxes.
+    - We need to count the number of ways to distribute the textbooks such that all 3 mathematics textbooks end up in the same box, and then divide that by the total number of ways to distribute the textbooks.
+
+3. **Calculate Total Ways to Distribute Textbooks:**
+    - The total number of ways to distribute 12 textbooks into three boxes of sizes 3, 4, and 5 is the number of ways to choose 3 out of 12 for the first box, then 4 out of the remaining 9 for the second box, and the last 5 will automatically go into the third box. This can be calculated as:
+      \[
+      \binom{12}{3} \times \binom{9}{4} \times \binom{5}{5}
+      \]
+
+4. **Calculate Ways Where All 3 Math Textbooks End Up in the Same Box:**
+    - We need to consider the 3 cases where all 3 math textbooks end up in each of the 3 boxes (i.e., the 3-book box, the 4-book box, or the 5-book box).
+
+**Case 1: All 3 Math Textbooks in the 3-Book Box:**
+- Choose 3 positions out of 3 for the math textbooks: 1 way to choose the 3 specific slots for the 3 math textbooks.
+- Choose the remaining 0 textbooks out of the 9 non-math textbooks to fill up the 3-book box: \(\binom{9}{0} = 1\) way.
+- Distribute the remaining 9 textbooks into a 4-book and a 5-book box: Choose 4 out of the 9 for the 4-book box, and the remaining 5 go into the 5-book box: \(\binom{9}{4} \times \binom{5}{5} = \binom{9}{4} \times 1 = \binom{9}{4}\).
+
+**Case 2: All 3 Math Textbooks in the 4-Book Box:**
+- Choose 3 positions out of 4 for the math textbooks: \(\binom{4}{3} = 4\) ways to choose 3 positions for the 3 math textbooks.
+- Choose 1 position out of the remaining 9 for-of-the-9 non-math textbooks to fill up the 4-book box: \(\binom{9}{1} = 9\) ways to choose 1 specific slot for the 1 additional textbook.
+- Distribute the remaining 8 textbooks into a 3-book and a 5-book box: Choose 3 out of the 8 for the 3-book box, and the remaining 5 go into the 5-book box: \(\binom{8}{3} \times \binom{5}{5} = \binom{8}{3}\).
+
+**Case 3: All 3 Math Textbooks in the 5-Book Box:**
+- Choose 3 positions out of 5 for the math textbooks: \(\binom{5}{3} = 10\) ways to choose 3 positions for the 3 math textbooks.
+- Choose 2 positions out of the remaining 9 for-of-the-9 non-math textbooks to fill up the 5-book box: \(\binom{9}{2} = 36\) ways to choose 2 specific slots for the 2 additional textbooks.
+- Distribute the remaining 7 textbooks into a 3-book and a 4-book box: Choose 3 out of the 7 for the 3-book box, and the remaining 4 go into the 4-book box: \(\binom{7}{3} \times \binom{4}{4} = \binom{7}{3}\).
+
+5. **Combine and Get the Probability:**
+    - Add all the successful ways together and then get the probability by dividing the number of successful ways by the total number of ways.
+    - Simplify the fraction and get it in the form \(\frac{m}{n}\) where \(m\) and \(n\) are relatively prime and find \(m + n\).
+
+Let's implement this in Python.
+```python
+import sympy as sp
+from math import comb
+
+# Calculate total ways to distribute 12 books into boxes 
+total_ways = comb(12, 3) * comb(9, 4) * comb(5, 5)
+
+# Calculate the ways where all 3 math textbooks end up in the same box
+
+# Case 1: All 3 Math Textbooks in the 3-Book Box
+ways_case_1 = comb(9, 0) * comb(9, 4) * comb(5, 5)  # 3 math books in 1 way, choose 0 additional for 3-book box, then 4 out of 9, and 5 out of 5
+
+# Case 2: All 3 Math Textbooks in the 4-Book Box
+ways_case_2 = comb(4, 3) * comb(9, 1) * comb(8, 3) * comb(5, 5)  # 3 math books in 4 ways, choose 1 additional for 4-book box, then 3 out of 8, and 5 out of 5
+
+# Case 3: All 3 Math Textbooks in the 5-Book Box
+ways_case_3 = comb(5, 3) * comb(9, 2) * comb(7, 3) * comb(4, 4)  # 3 math books in 10 ways, choose 2 additional for 5-book box, then 3 out of 7 and 4 out of 4
+
+# Total ways where all 3 math textbooks end up in the same box
+successful_ways = ways_case_1 + ways_case_2 + ways_case_3
+
+# Calculate the probability
+probability = sp.Rational(successful_ways, total_ways)
+
+# Get m and n from the probability fraction m/n
+m, n = probability.numerator(), probability.denominator()
+
+# Get the final result m + n
+result = m + n
+print(result)
+```
+Code execution result: TypeError: 'int' object is not callable
+It seems there was an error because I mistakenly assumed `numerator` and `denominator` are callable methods, which are not. Instead, they are properties of the `Rational` object. Let's correct this and get the final answer.
+
+Let's rework the code to ensure that we correctly extract the numerator and the denominator and get the final answer \( m + n \).
+```python
+import sympy as sp
+from math import comb
+
+# Calculate total ways to distribute 12 books into boxes 
+total_ways = comb(12, 3) * comb(9, 4) * comb(5, 5)
+
+# Calculate the ways where all 3 math textbooks end up in the same box
+
+# Case 1: All 3 Math Textbooks in the 3-Book Box
+ways_case_1 = comb(9, 0) * comb(9, 4) * comb(5, 5)
+
+# Case 2: All 3 Math Textbooks in the 4-Book Box
+ways_case_2 = comb(4, 3) * comb(9, 1) * comb(8, 3) * comb(5, 5)
+
+# Case 3: All 3 Math Textbooks in the 5-Book Box
+ways_case_3 = comb(5, 3) * comb(9, 2) * comb(7, 3) * comb(4, 4)
+
+# Total ways where all 3 math textbooks end up in the same box
+successful_ways = ways_case_1 + ways_case_2 + ways_case_3
+
+# Calculate the probability
+probability = sp.Rational(successful_ways, total_ways)
+
+# Get m and n from the probability fraction m/n
+m, n = probability.numerator, probability.denominator
+
+# Get the final result m + n
+result = m + n
+print(result)
+```
+Code execution result: 337
+
+Thus, the probability that all three mathematics textbooks end up in the same box is \(\frac{m}{n}\) where \( m \) and \( n \) are relatively prime, and the sum \( m + n \) is \(\boxed{337}\). This is the final answer.
+

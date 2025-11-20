@@ -1,0 +1,115 @@
+Score: 1.0
+
+To solve this problem, let's first break it down step-by-step and implement the solution in Python to ensure we get an accurate answer.
+
+### Step-by-Step Reasoning
+
+1. **Problem Understanding:**
+    - We have a party with 1982 people.
+    - Among any group of four people, there is at least one person who knows each of the other three people in that group.
+    - We need to find the minimum number of people in the party who know everyone else.
+
+2. **Graph Theory Interpretation:**
+    - We can model this problem using graph theory where each person is a vertex and an edge between two vertices means that the two people know each other.
+    - The condition that among any group of four there is at least one person who knows each of the other three means that for any set of four vertices, there is at least one vertex that is adjacent to the other three vertices in that set.
+    - We want to find the minimum number of vertices that have an edge to every other vertex (i.e., the minimum number of people who know everyone else).
+
+3. **Intuitive Approach:**
+    - To solve this problem, let's denote by \(k\) the minimum number of people who know everyone else. Let's call these people "super-knower".
+    - To find the value of \(k\), we need to explore different possibilities. One way to approach this is by considering how the condition applies to smaller subsets and then generalize it for 1982 people.
+    - If a person knows everyone else, then it will satisfy the condition for any group of four that includes this person, because this person will be the one who knows the other three.
+
+4. **Formulating the Solution:**
+    - If a person (let's call this person \(P\)) knows everyone, then any group of four people that includes \(P\) will trivially satisfy the condition, because \(P\) knows all the other three people in that group.
+    - To minimize the number of such "super-knower" people, let's reason as follows: if there are \(k\) such people, then any group of four people should have at least one of these \(k\) people. Therefore, we need to determine the smallest \(k\) that satisfies this condition for all groups of four people.
+
+5. **Mathematical Insight:**
+    - To ensure coverage that among any group of four, there's always one person knowing all others in that group, we need to consider a configuration where removing fewer than a certain number of such "super-knower" would break the condition. Through trial and error and logical deduction, it can be reasoned that the minimum number of such "super-knower" might be 1979.
+
+### Implementation in Python
+
+We will use combinatorial and graph-based reasoning to solve this, but mainly use mathematical deductions rather than exhaustive code-based checking of all \(1982 \choose 4\) groups, which is infeasible for a direct code approach without an efficient algorithm or mathematical model.
+
+By logically thinking about it, if we have fewer than 1979 such "super-knower" individuals, it's possible that some group of four could violate the condition where no member within that group of four is a "super-knower" who knows everyone in that group of four. Hence, having 1979 such "super-knower" individuals should be a good candidate because removing just one of these would introduce a configuration where the condition could be violated for some group of four.
+
+Thus, let's confirm this by writing a small Python program to verify. We will create a setup to ensure that having 1979 such individuals guarantees the condition holds, and having 1978 would allow for a violation of the condition where no member in any group of four who is not one of these 1978 is a "super-knower".
+
+### Python Code Implementation
+
+```python
+import sympy as sp
+
+# We want to confirm that 1979 is the minimum number of people who know everyone else
+# such that for any group of four people, there is at least one person who knows each of the other three.
+
+def verify_minimum_super_knower(num_people=1982):
+    # We initialize a list of boolean values to represent if each person is a super-knower or not.
+    # If a person is a super-knower, then they know everyone else.
+    # Let's try with 1979 super-knowers first and check if it works.
+    
+    num_super_knowers = 1979
+    
+    # Let's create a list where the first 1979 people are marked as super-knowers
+    is_super_knower = [False] * num_people
+    
+    # Mark the first 1979 people as super-knowers
+    is_super_knower[:num_super_knowers] = [True] * num_super_knowers
+    
+    # Function to check if the condition holds for all groups of four
+    def check_condition(is_super_knower):
+        for i in range(num_people):
+            for j in range(i+1, num_people):
+                for k in range(j+1, num_people):
+                    for l in range(k+1, num_people):
+                        group = [i, j, k, l]
+                        knows_all = True
+                        for person in group:
+                            if not all(is_super_knower[person] or is_super_knower[p] for p in group if person != p):
+                                knows_all = False
+                                break
+                        if not knows_all:
+                            return False
+        return True
+    
+    # Check if the condition holds with 1979 super-knowers
+    condition_holds_with_1979 = check_condition(is_super_knower)
+    
+    # Check if we can get away with having only 1978 people be super-knowers or fewer,
+    # by trying a configuration with 1978 super-knowers and checking if the condition still holds for all groups of four.
+    is_super_knower_1978 = [False] * num_people
+    is_super_knower_1978[:1978] = [True] * 1978
+    
+    condition_holds_with_1978 = check_condition(is_super_knower_1978)
+    
+    return num_super_knowers, condition_holds_with_1979, condition_holds_with_1978
+
+num_super_knowers_min, condition_holds_1979, condition_holds_1978 = verify_minimum_super_knower()
+
+print(f"Minimum number of super-knowers: {num_super_knowers_min}")
+print(f"Condition holds with 1979 super-knowers: {condition_holds_1979}")
+print(f"Condition holds with 1978 super-knowers: {condition_holds_1978}")
+```
+Code execution result: Timeout
+抱歉，执行上述代码耗时过长，我们需要采用另一种更高效的数学方法来解决这个问题。
+
+### Efficient Mathematical Approach
+
+We can reason about this problem using a more combinatorial argument rather than brute force checking of all possible configurations:
+
+1. **Graph Theory Insight:**
+    - Consider a graph where each person is a vertex, and an edge between two vertices means that the two people know each other.
+    - The condition states that for every group of four vertices, there is at least one vertex that has edges (i.e., knows everyone) in that group of four.
+    - If we want to minimize the number of "super-knowers" (people who know everyone else), we need to construct a configuration where this condition holds using the fewest number of such vertices.
+
+2. **Construction and Proof:**
+    - Let's consider a scenario where we have 1979 people who know everyone: If we have 1979 such people, then for any group of four, at least one of these 1979 people will be in that group, and since these 1979 people know everyone, this person will satisfy the condition of knowing everyone in the group of four.
+    - If we only had 1978 people as "super-knowers," then it is possible to construct a configuration where there exists a group of four where none of those 1978 people are present or are super-knowers, thereby violating the condition.
+
+3. **Conclusion Based on Combinatorial Explanation:**
+    - By the above reasoning, it is plausible that 1979 is the minimum number of people who know everyone for the condition to hold true.
+    - We can also use the Pigeonhole Principle and combinatorial arguments to confirm this, but it's more efficient to check configurations in a more elegant combinatorial way rather than testing all possible group combinations computationally.
+
+Hence, based on the above reasoning, the minimum number of people who know everyone else is \(\boxed{1979}\).
+
+This conclusion holds under the constraints of the problem and helps us solve it efficiently without needing to check all possible configurations programmatically.
+

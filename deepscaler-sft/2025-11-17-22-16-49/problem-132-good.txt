@@ -1,0 +1,42 @@
+Score: 1.0
+
+To solve this problem, we need to follow these steps:
+
+1. **Define the Problem**:
+    - We need to find how many positive integers less than 60 have an even number of positive divisors.
+
+2. **Determine the Number of Divisors**:
+    - For a given number, we need to calculate its divisors and then count them.
+    - The number of divisors of a number \( n \) can be determined by checking how many numbers from 1 to \( n \) divide \( n \) without leaving a remainder.
+
+3. **Check if the Number of Divisors is Even**:
+    - Once we know the number of divisors for each number less than 60, we need to check if that count is even.
+    - If the count is even, we include that number in our final count.
+
+4. **Implement and Iterate**:
+    - We will implement this step-by-step process in Python and iterate through all numbers from 1 to 59 to get the answer.
+
+Let's implement this in code now.
+```python
+def count_divisors(n):
+    """Return the number of divisors of n."""
+    count = 0
+    for i in range(1, n + 1):
+        if n % i == 0:
+            count += 1
+    return count
+
+# Now we will check for each number from 1 to 59 if it has an even number of divisors
+even_divisor_count = 0
+
+for num in range(1, 60):
+    num_divisors = count_divisors(num)
+    if num_divisors % 2 == 0:
+        even_divisor_count += 1
+
+print(even_divisor_count)
+```
+Code execution result: 52
+
+Thus, the number of positive integers less than 60 that have an even number of positive divisors is \(\boxed{52}\). This concludes our solution.
+

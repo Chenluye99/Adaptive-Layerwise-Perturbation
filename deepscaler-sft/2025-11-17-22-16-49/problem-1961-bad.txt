@@ -1,0 +1,48 @@
+Score: 0.0
+
+To solve this problem, we need to generate a sequence that contains all positive integers that are neither perfect squares, nor perfect cubes, nor perfect fifth powers. Then, we need to find the 1000th term of this sequence.
+
+1. **Generate the Sequence:**
+    - We will iterate through the positive integers and check if each integer is a perfect square, perfect cube, or a perfect fifth power.
+    - If an integer is not a perfect square, perfect cube, or perfect fifth power, we will add it to our list.
+
+2. **Check for Perfect Squares, Cubes, and Fifth Powers:**
+    - A number is a perfect square if its square root is an integer.
+    - A number is a perfect cube if its cube root is an integer.
+    - A number is a perfect fifth power if its fifth root is an integer.
+
+3. **Find the 1000th Term:**
+    - We will continue generating the sequence until it contains 1000 terms, and then return the 1000th term.
+
+Let's implement this step-by-step in Python:
+```python
+import sympy
+
+# Initialize variables
+sequence = []
+num = 1
+
+# Generate the sequence until it contains 1000 terms
+while len(sequence) < 1000:
+    num += 1
+    is_valid = True
+    
+    # Check if the number is a perfect square, cube, or fifth power
+    root_square = int(num ** 0.5)
+    root_cube = int(num ** (1/3))
+    root_fifth = int(num ** (1/5))
+    
+    if root_square ** 2 == num or root_cube ** 3 == num or root_fifth ** 5 == num:
+        is_valid = False
+    
+    if is_valid:
+        sequence.append(num)
+
+# Get the 1000th term (index 999)
+term_1000 = sequence[999]
+print(term_1000)
+```
+Code execution result: 1036
+
+Thus, the 1000th term of the sequence is \(\boxed{1036}\). This is our final answer. The sequence generation process ensures that all numbers added to the sequence are neither perfect squares, perfect cubes, nor perfect fifth powers, and by finding the 1000th term, we get 1036.
+

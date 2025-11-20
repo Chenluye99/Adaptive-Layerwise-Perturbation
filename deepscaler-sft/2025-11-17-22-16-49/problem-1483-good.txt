@@ -1,0 +1,62 @@
+Score: 1.0
+
+First, let's start by setting up the given equation:
+
+\[
+\frac{13x - x^2}{x + 1} \left( x + \frac{13 - x}{x + 1} \right) = 42.
+\]
+
+We'll introduce a substitution to make it easier to handle. Let's define:
+
+\[ y = \frac{13x - x^2}{x + 1}. \]
+
+Then the equation becomes:
+
+\[ y \left( x + \frac{13 - x}{x + 1} \right) = 42. \]
+
+Next, let's simplify the term inside the parentheses:
+
+\[ x + \frac{13 - x}{x + 1}. \]
+
+To combine these terms, get a common denominator:
+
+\[ x + \frac{13 - x}{x + 1} = \frac{x(x + 1) + (13 - x)}{x + 1} = \frac{x^2 + x + 13 - x}{x + 1} = \frac{x^2 + 13}{x + 1}. \]
+
+So, the equation now becomes:
+
+\[ y \cdot \frac{x^2 + 13}{x + 1} = 42. \]
+
+Substitute back \( y = \frac{13x - x^2}{x + 1} \):
+
+\[ \frac{13x - x^2}{x + 1} \cdot \frac{x^2 + 13}{x + 1} = 42. \]
+
+This can be written as:
+
+\[ \frac{(13x - x^2)(x^2 + 13)}{(x + 1)^2} = 42. \]
+
+To solve this equation, we can clear the fraction by multiplying both sides by \((x + 1)^2\):
+
+\[ (13x - x^2)(x^2 + 13) = 42 (x + 1)^2. \]
+
+This results in a polynomial equation, so let's iterate using Python to find the solutions. We'll solve this equation by employing numerical methods or symbolic computation. Let's use Python's `sympy` library to solve this equation for \(x\).
+```python
+import sympy as sp
+
+# Define the variable
+x = sp.symbols('x')
+
+# Define the equation
+equation = (13 * x - x**2) * (x**2 + 13) - 42 * (x + 1)**2
+
+# Solve the equation
+solutions = sp.solve(equation, x)
+print(solutions)
+```
+Code execution result: [1, 6, 3 - sqrt(2), sqrt(2) + 3]
+
+Thus, the solutions to the equation \(\frac{13x - x^2}{x + 1} \left( x + \frac{13 - x}{x + 1} \right) = 42\) are:
+
+\[
+\boxed{1, 6, 3 - \sqrt{2}, 3 + \sqrt{2}}
+\]
+

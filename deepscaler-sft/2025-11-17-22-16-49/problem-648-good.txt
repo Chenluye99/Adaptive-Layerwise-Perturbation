@@ -1,0 +1,70 @@
+Score: 1.0
+
+Let's solve the problem step-by-step using reasoning and Python code to ensure the result is accurate.
+
+1. **Problem Understanding:**
+    - Given: \(\triangle XYZ\) is a right triangle with \(\angle X = 90^\circ\).
+    - We also know that \(\tan Z = 3\).
+    - We need to find \(\cos Z\).
+
+2. **Trigonometric Relationships:**
+    - The tangent of an angle in a right triangle is defined as the ratio of the length of the opposite side to the length of the adjacent side. So, \(\tan Z = \frac{\text{opposite}}{\text{adjacent}} = 3\). This means that if the length of the side opposite \(\angle Z\) is 3 units, then the length of the side adjacent to \(\angle Z\) is 1 unit. 
+    - To find \(\cos Z\), we need the ratio of the length of the adjacent side to the length of the hypotenuse. To get this, we first need to find the length of the hypotenuse using the Pythagorean theorem. If the side opposite \(\angle Z\) is 3 and the side adjacent to \(\angle Z\) is 1, then the hypotenuse \(h\) is:
+      \[
+      h = \sqrt{3^2 + 1^2} = \sqrt{9 + 1} = \sqrt{10}
+      \]
+    - Therefore, \(\cos Z = \frac{\text{adjacent}}{\text{hypotenuse}} = \frac{1}{\sqrt{10}}\). To rationalize the denominator, we get:
+      \[
+      \cos Z = \frac{1}{\sqrt{10}} = \frac{\sqrt{10}}{10}
+      \]
+
+3. **Verification Using Python Code:**
+    - We can verify this by using Python to ensure our values and calculations are accurate.
+
+Let's implement this in Python.
+```python
+import sympy as sp
+
+# Define the variables
+Z = sp.symbols('Z')
+
+# Given tan(Z) = 3, solve for Z
+tan_Z = 3
+Z_value = sp.atan(tan_Z)
+
+# Now, compute cos(Z)
+cos_Z = sp.cos(Z_value)
+cos_Z_rationalized = sp.Rational(cos_Z).limit_denominator()  # Not needed, just to ensure rationalized form
+
+print(cos_Z)
+```
+Code execution result: TypeError: invalid input: sqrt(10)/10
+It seems that directly applying `sp.Rational` to the symbolic expression returned by `sp.cos(Z_value)` is causing an issue as it doesn't return a form that `sp.Rational` can accept in this context. Instead, we will just leave it in its simplest form and print it as is.
+
+Let's proceed by confirming that our derived formula is accurate and print it directly.
+```python
+import sympy as sp
+
+# We know: tan(Z) = 3
+# So, we set up the relationship involving sin, cos, and tan.
+# We know that: tan(Z) = opposite / adjacent = 3 / 1, so let's call the sides as 3k and k for some k.
+# By using Pythagorean theorem, hypotenuse (h) would be: h = sqrt((3k)^2 + (k)^2) = k * sqrt(10)
+
+k = sp.symbols('k', positive=True)
+opposite = 3 * k
+adjacent = k
+hypotenuse = sp.sqrt(opposite**2 + adjacent**2)
+
+# Now compute cos(Z)
+cos_Z = adjacent / hypotenuse
+cos_Z_simplified = sp.simplify(cos_Z)
+print(cos_Z_simplified)
+```
+Code execution result: sqrt(10)/10
+
+Thus, the value of \(\cos Z\) is \(\frac{\sqrt{10}}{10}\).
+
+So, the final answer is:
+
+\(\boxed{\frac{\sqrt{10}}{10}}\)
+

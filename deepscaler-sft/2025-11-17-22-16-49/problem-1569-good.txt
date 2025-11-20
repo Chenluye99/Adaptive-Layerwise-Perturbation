@@ -1,0 +1,80 @@
+Score: 1.0
+
+To solve the problem, we first need to determine the directrix of the parabola given by the equation \( y = -2x^2 + 4x - 8 \).
+
+1. **Convert the Equation to Vertex Form:**
+   The given equation is in the standard form \( y = ax^2 + bx + c \). To find the directrix, it is often easier to convert this equation to vertex form \( y = a(x - h)^2 + k \), where \((h, k)\) is the vertex of the parabola.
+
+2. **Find the Vertex:**
+   The x-coordinate of the vertex of a parabola given by \( y = ax^2 + bx + c \) can be found using the formula:
+   \[
+   h = -\frac{b}{2a}
+   \]
+   For the equation \( y = -2x^2 + 4x - 8 \), we have \( a = -2 \), \( b = 4 \), and \( c = -8 \). Substituting these values into the formula, we get:
+   \[
+   h = -\frac{4}{2 \cdot (-2)} = -\frac{4}{-4} = 1
+   \]
+   To find the y-coordinate of the vertex, we substitute \( x = 1 \) back into the original equation:
+   \[
+   y = -2(1)^2 + 4(1) - 8 = -2 + 4 - 8 = -6
+   \]
+   So, the vertex of the parabola is \((1, -6)\).
+
+3. **Convert to Vertex Form:**
+   We can now rewrite the equation in vertex form by completing the square. Starting with \( y = -2x^2 + 4x - 8 \):
+   \[
+   y = -2(x^2 - 2x) - 8
+   \]
+   To complete the square inside the parentheses, we take the coefficient of \( x \), which is \(-2\), halve it to get \(-1\), and then square it to get \(1\). We add and subtract this square inside the parentheses:
+   \[
+   y = -2(x^2 - 2x + 1 - 1) - 8 = -2((x - 1)^2 - 1) - 8 = -2(x - 1)^2 + 2 - 8 = -2(x - 1)^2 - 6
+   \]
+   So, the equation in vertex form is:
+   \[
+   y = -2(x - 1)^2 - 6
+   \]
+   This is now in the form \( y = a(x - h)^2 + k \), where \( a = -2 \), \( h = 1 \), and \( k = -6 \).
+
+4. **Find the Directrix:**
+   For a parabola given by \( y = a(x - h)^2 + k \), the directrix is a horizontal line given by the equation:
+   \[
+   y = k - \frac{1}{4a}
+   \]
+   Substituting \( a = -2 \) and \( k = -6 \) into this formula, we get:
+   \[
+   y = -6 - \frac{1}{4(-2)} = -6 - \frac{1}{-8} = -6 + \frac{1}{8} = -6 + \frac{1}{8} = -\frac{48}{8} + \frac{1}{8} = -\frac{47}{8}
+   \]
+   So, the equation of the directrix is:
+   \[
+   y = -\frac{47}{8}
+   \]
+
+Let's confirm this by implementing it in Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variables
+x, y = sp.symbols('x y')
+
+# Define the equation of the parabola
+parabola_eq = -2 * x**2 + 4 * x - 8
+
+# Find the vertex of the parabola
+a, b, c = -2, 4, -8
+h = -b / (2 * a)
+k = parabola_eq.subs(x, h)
+
+# Get the value of 1/(4 * a)
+inverse_4a = 1 / (4 * a)
+
+# Find the directrix by computing k - 1/(4 * a)
+directrix_y = k - inverse_4a
+
+print(directrix_y)
+```
+Code execution result: -5.87500000000000
+
+We know that \(-\frac{47}{8} = -5.875\), so our analytical solution is confirmed to be accurate.
+
+Thus, the equation of the directrix of the parabola \( y = -2x^2 + 4x - 8 \) is \(\boxed{-\frac{47}{8}}\). This is our final answer.
+

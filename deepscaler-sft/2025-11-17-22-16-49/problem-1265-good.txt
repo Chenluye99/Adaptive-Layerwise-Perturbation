@@ -1,0 +1,91 @@
+Score: 1.0
+
+To solve this problem, let's start by using some trigonometric identities and properties of triangles.
+
+Given that \(a, b, c\) are the sides of a triangle opposite to angles \(\alpha, \beta, \gamma\) respectively, we know from the Law of Cosines that:
+
+\[
+\cos \gamma = \frac{a^2 + b^2 - c^2}{2ab}, \quad \cos \alpha = \frac{b^2 + c^2 - a^2}{2bc}, \quad \cos \beta = \frac{a^2 + c^2 - b^2}{2ac}
+\]
+
+We also know that for any triangle, the cotangent of an angle is given by:
+
+\[
+\cot \gamma = \frac{\cos \gamma}{\sin \gamma}, \quad \cot \alpha = \frac{\cos \alpha}{\sin \alpha}, \quad \cot \beta = \frac{\cos \beta}{\sin \beta}
+\]
+
+Using the Law of Sines, we have:
+
+\[
+\frac{a}{\sin \alpha} = \frac{b}{\sin \beta} = \frac{c}{\sin \gamma} = 2R
+\]
+
+where \(R\) is the radius of the circumcircle of the triangle. This implies:
+
+\[
+\sin \alpha = \frac{a}{2R}, \quad \sin \beta = \frac{b}{2R}, \quad \sin \gamma = \frac{c}{2R}
+\]
+
+Substituting these into the cotangent expressions, we get:
+
+\[
+\cot \gamma = \frac{\cos \gamma}{\sin \gamma} = \frac{\frac{a^2 + b^2 - c^2}{2ab}}{\frac{c}{2R}} = \frac{R (a^2 + b^2 - c^2)}{ab c}
+\]
+
+\[
+\cot \alpha = \frac{\cos \alpha}{\sin \alpha} = \frac{\frac{b^2 + c^2 - a^2}{2bc}}{\frac{a}{2R}} = \frac{R (b^2 + c^2 - a^2)}{abc}
+\]
+
+\[
+\cot \beta = \frac{\cos \beta}{\sin \beta} = \frac{\frac{a^2 + c^2 - b^2}{2ac}}{\frac{b}{2R}} = \frac{R (a^2 + c^2 - b^2)}{abc}
+\]
+
+We need to find the value of:
+
+\[
+\frac{\cot \gamma}{\cot \alpha + \cot \beta}
+\]
+
+Substitute the expressions for \(\cot \gamma, \cot \alpha, \cot \beta\):
+
+\[
+\cot \alpha + \cot \beta = \frac{R (b^2 + c^2 - a^2)}{abc} + \frac{R (a^2 + c^2 - b^2)}{abc} = \frac{R ((b^2 + c^2 - a^2) + (a^2 + c^2 - b^2))}{abc} = \frac{R (2c^2)}{abc} = \frac{2 Rc^2}{abc}
+\]
+
+Thus,
+
+\[
+\frac{\cot \gamma}{\cot \alpha + \cot \beta} = \frac{\frac{R (a^2 + b^2 - c^2)}{ab c}}{\frac{2 Rc^2}{abc}} = \frac{R (a^2 + b^2 - c^2)}{ab c} \cdot \frac{abc}{2 Rc^2} = \frac{a^2 + b^2 - c^2}{2c^2}
+\]
+
+We are given that \(a^2 + b^2 = 1989 c^2\), so substitute this into the expression:
+
+\[
+\frac{a^2 + b^2 - c^2}{2c^2} = \frac{1989 c^2 - c^2}{2c^2} = \frac{1988 c^2}{2c^2} = \frac{1988}{2} = 994
+\]
+
+So, the value of \(\frac{\cot \gamma}{\cot \alpha + \cot \beta}\) is \(994\). Let's confirm this by coding the solution in Python to ensure there are no arithmetic or algebraic mistakes.
+```python
+from sympy import symbols, Eq, solve
+
+# We define the variables
+a, b, c = symbols('a b c', positive=True)
+
+# Given equation
+eq = Eq(a**2 + b**2, 1989 * c**2)
+
+# Solving for a^2 + b^2 - c^2
+lhs = a**2 + b**2 - c**2
+
+# Substitute a^2 + b^2 = 1989 * c^2 into the expression (a^2 + b^2 - c^2) / (2 * c^2)
+lhs_substituted = lhs.subs(a**2 + b**2, 1989 * c**2)
+
+# Calculate the desired value
+result = lhs_substituted / (2 * c**2)
+
+print(result)
+```
+Code execution result: 994
+
+Thus, the value of \(\frac{\cot \gamma}{\cot \alpha + \cot \beta}\) is \(\boxed{994}\). This confirms our solution is correct.
+

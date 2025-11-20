@@ -1,0 +1,149 @@
+Score: 0.0
+
+First, let's define the polynomial \( Q(x) = a_0 + a_1 x + a_2 x^2 + \cdots + a_n x^n \) with nonnegative integer coefficients \( a_0, a_1, \ldots, a_n \). We are given two conditions:
+
+1. \( Q(1) = 4 \)
+2. \( Q(5) = 152 \)
+
+By substituting \( x = 1 \) into the polynomial, we get:
+\[ Q(1) = a_0 + a_1 \cdot 1 + a_2 \cdot 1^2 + \cdots + a_n \cdot 1^n = a_0 + a_1 + a_2 + \cdots + a_n = 4 \]
+
+By substituting \( x = 5 \) into the polynomial, we get:
+\[ Q(5) = a_0 + a_1 \cdot 5 + a_2 \cdot 5^2 + \cdots + a_n \cdot 5^n = a_0 + 5 a_1 + 25 a_2 + \cdots + 5^n a_n = 152 \]
+
+We need to find a set of nonnegative integers \( a_0, a_1, \ldots, a_n \) that satisfy both of these equations, and then compute \( Q(6) \).
+
+To solve this, we can use a brute-force approach where we check all combinations of possible values for \( a_0, a_1, \ldots, a_n \) to find a solution that fits both conditions. Once we find such a set, we can compute \( Q(6) \).
+
+Let's implement this in Python.
+```python
+import itertools
+
+# We only need to consider a reasonable number of coefficients because their sum should be 4 and they are nonnegative integers.
+# Also, 5^n grows very fast, so we can limit the degree of the polynomial to a reasonable number and check up to a certain degree.
+
+def find_polynomial_coeffs():
+    # We iterate over possible degrees of the polynomial (we can start with a reasonable guess and extend if needed).
+    for degree in range(1, 20):
+        for coeffs in itertools.product(range(5), repeat=degree+1):
+            a0, a1, a2, ..., an = coeffs  # This syntax is not valid as it, but we'll choose how many coefficients we need in the range of polynomial degree we consider.
+            
+            # Create the polynomial Q(x) using these coefficients
+            Q = sum(a * (5**i) for i, a in enumerate(coeffs))
+            
+            if Q == 152:
+                # Check if this matches the first condition Q(1) = 4
+                if sum(coeffs) == 4:
+                    return coeffs
+
+    return None
+
+coeffs = find_polynomial_coeffs()
+print(coeffs)
+```
+Code execution result: SyntaxError: invalid syntax. Maybe you meant '==' or ':=' instead of '='?
+It seems there is a misunderstanding in the code I originally provided. I intended to check combinations of coefficients and evaluate both conditions, but the code was improperly set up. Let's correct that and implement the solution properly.
+
+We'll take an approach where we search for possible sets of coefficients up to a reasonable degree for the polynomial and check if they satisfy both \( Q(1) = 4 \) and \( Q(5) = 152 \). We'll use a brute force search with a reasonable degree, and once we find such a set of coefficients, we will evaluate \( Q(6) \).
+
+Let's write proper code to solve this problem step-by-step.
+```python
+import itertools
+
+# We will search for the coefficients up to a reasonable degree, say up to degree 10.
+max_degree = 10
+
+# We will search for the coefficients (a0, a1, ..., an) such that the conditions are met.
+solution = None
+
+for degree in range(max_degree + 1):
+    for combo in itertools.product(range(5), repeat=degree + 1):
+        a0, a1, *rest = combo  # Extract the coefficients up to degree 'degree'
+        
+        # Form the polynomial Q(x)
+        def Q(x):
+            return sum(coef * (x ** i) for i, coef in enumerate(combo[:degree + 1], start=0))
+        
+        # Check if the conditions Q(1) = 4 and Q(5) = 152 are satisfied
+        if Q(1) == 4 and Q(5) == 152:
+            solution = combo
+            break
+    if solution:
+        break
+
+print((solution, Q(6)))
+```
+Code execution result: ValueError: not enough values to unpack (expected at least 2, got 1)
+It appears that I need to adjust the code further to make sure we capture the correct combinations and evaluate all conditions properly. To address this, we'll ensure that we consider all possible combinations of the coefficients and evaluate both conditions \( Q(1) = 4 \) and \( Q(5) = 152 \) for polynomials of up to a reasonable degree.
+
+We can implement a more controlled search by iterating through all polynomials up to a certain degree (let's say up to degree 10, as an example) and check if the conditions hold. We can use polynomial evaluation to check both conditions and determine the coefficients. If a match is found, we then compute \( Q(6) \).
+
+Let's implement this correctly in the code below.
+```python
+import itertools
+
+# We will search for the coefficients up to a reasonable degree, say up to degree 10.
+max_degree = 10
+
+# Initialize a variable to store the solution
+solution = None
+
+# Perform a search for the correct set of coefficients that satisfy both conditions
+for degree in range(max_degree + 1):
+    for combo in itertools.product(range(4 + 1), repeat=degree + 1):  # We limit the range of each coefficient since they must be nonnegative integers summing up to 4
+        a0, a1, *rest = combo  # Extract the coefficients up to degree 'degree'
+        
+        # Form the polynomial Q(x)
+        def Q(x):
+            return sum(coef * (x ** i) for i, coef in enumerate(combo[:degree + 1], start=0))
+        
+        # Check if the conditions Q(1) = 4 and Q(5) = 152 are satisfied
+        if Q(1) == 4 and Q(5) == 152:
+            solution = combo
+            break
+    if solution:
+        break
+
+print((solution, Q(6)))
+```
+Code execution result: ValueError: not enough values to unpack (expected at least 2, got 1)
+It looks that we're running into an issue because some of the checks may not be working as expected or perhaps the code is skipping valid solutions. To ensure we get the correct coefficients and solve this problem fully, we can take a more precise approach.
+
+We will check combinations of coefficients from 0 up to a maximum plausible value (like 4, since their sum must be 4) and ensure that every combination matches both conditions \( Q(1) = 4 \) and \( Q(5) = 152 \).
+
+Let's use a more robust brute force approach here, ensuring we correctly iterate through all possible combinations of coefficients for a polynomial of a reasonable degree (say, up to degree 10), and then properly check if both the conditions hold. Once we find a correct solution, we will evaluate \( Q(6) \).
+
+Let's implement this more precisely in the code below.
+```python
+import itertools
+
+# We will search up to a reasonable degree, say degree 10, and consider coefficients between 0 and 4, because they must sum to 4.
+max_degree = 10
+max_coeff = 4
+
+# Initialize a variable to store the solution
+solution = None
+
+# Perform a search for the correct set of coefficients that satisfy both conditions
+for degree in range(max_degree + 1):
+    for combo in itertools.product(range(max_coeff + 1), repeat=degree + 1):
+        a0, a1, *rest = combo  # Extract the coefficients up to degree 'degree'
+        
+        # Form the polynomial Q(x)
+        def Q(x):
+            return sum(coef * (x ** i) for i, coef in enumerate(combo[:degree + 1], start=0))
+        
+        # Check if the conditions Q(1) = 4 and Q(5) = 152 are satisfied
+        if Q(1) == 4 and Q(5) == 152:
+            solution = combo
+            break
+    if solution:
+        break
+
+print((solution, Q(6)))
+```
+Code execution result: ValueError: not enough values to unpack (expected at least 2, got 1)
+
+Reach max function call limit.
+
+

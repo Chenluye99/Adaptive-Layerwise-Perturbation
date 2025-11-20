@@ -1,0 +1,76 @@
+Score: 1.0
+
+First, let's begin by recalling some properties of quadratic equations. For a quadratic equation of the form \(ax^2 + bx + c = 0\), if the roots are \( \alpha \) and \( \beta \), then:
+
+- The sum of the roots, \( \alpha + \beta = -\frac{b}{a} \).
+- The product of the roots, \( \alpha \beta = \frac{c}{a} \).
+
+For the given quadratic equation \( ax^2 + 5x - 3 = 0 \):
+
+- The sum of the roots, \( \alpha + \beta = -\frac{5}{a} \).
+- The product of the roots, \( \alpha \beta = -\frac{3}{a} \).
+
+The absolute value of the difference of the roots of a quadratic equation \( ax^2 + bx + c = 0 \) is given by:
+
+\[ |\alpha - \beta| = \frac{\sqrt{b^2 - 4ac}}{|a|} \]
+
+For the given equation \( ax^2 + 5x - 3 = 0 \), we have \( b = 5 \) and \( c = -3 \), so:
+
+\[ |\alpha - \beta| = \frac{\sqrt{5^2 - 4(a)(-3)}}{|a|} = \frac{\sqrt{25 + 12a}}{|a|} = \frac{\sqrt{25 + 12a}}{a} \]
+
+We are given that the absolute value of the difference of the two roots is \(\frac{\sqrt{61}}{3}\). Therefore, we can set up the following equation:
+
+\[ \frac{\sqrt{25 + 12a}}{a} = \frac{\sqrt{61}}{3} \]
+
+By cross-multiplying, we get:
+
+\[ 3 \sqrt{25 + 12a} = a \sqrt{61} \]
+
+Square both sides to eliminate the square roots:
+
+\[ 9 (25 + 12a) = a^2 \cdot 61 \]
+
+This expands to:
+
+\[ 225 + 108a = 61a^2 \]
+
+Rearrange the equation to standard quadratic form:
+
+\[ 61a^2 - 108a - 225 = 0 \]
+
+We can solve this quadratic equation for \( a \) using the quadratic formula \( a = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} \), where \( a = 61 \), \( b = -108 \), and \( c = -225 \):
+
+\[ a = \frac{-(-108) \pm \sqrt{(-108)^2 - 4(61)(-225)}}{2(61)} \]
+\[ a = \frac{108 \pm \sqrt{11664 + 54450}}{122} \]
+\[ a = \frac{108 \pm \sqrt{66114}}{122} \]
+\[ a = \frac{108 \pm 257.17}{122} \]
+
+This gives us two potential solutions:
+
+\[ a = \frac{108 + 257.17}{122} \approx \frac{365.17}{122} \approx 3.0014 \]
+\[ a = \frac{108 - 257.17}{122} \approx \frac{-149.17}{122} \approx -1.22 \]
+
+Since \( a \) is given to be positive, we discard the negative solution, and we take:
+
+\[ a \approx 3.0014 \]
+
+To get the most accurate result, we will use Python to solve the quadratic equation numerically and get the precise value for \( a \).
+```python
+import sympy as sp
+
+# Define the variables
+a = sp.symbols('a', positive=True)
+
+# Set up the equation based on our derivation
+equation = 61 * a**2 - 108 * a - 225
+
+# Solve the equation
+solution = sp.solve(equation, a)
+print(solution)
+```
+Code execution result: [3]
+
+Thus, the solution to the equation is \( a = 3 \).
+
+So, the value of \( a \) is \(\boxed{3}\). This is the final answer.
+

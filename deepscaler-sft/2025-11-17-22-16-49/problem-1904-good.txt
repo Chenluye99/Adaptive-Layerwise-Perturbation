@@ -1,0 +1,60 @@
+Score: 1.0
+
+To solve the problem, let's start by using the relationship between the greatest common divisor (GCD) and least common multiple (LCM) of two numbers. For any two integers \( m \) and \( n \), the following relationship holds:
+
+\[ \text{GCD}(m, n) \times \text{LCM}(m, n) = m \times n \]
+
+Given that \(\text{GCD}(m, n) = 8\) and \(\text{LCM}(m, n) = 112\), we substitute these values into the equation to get:
+
+\[ 8 \times 112 = m \times n \implies m \times n = 896 \]
+
+Let \( m = 8a \) and \( n = 8b \), where \(\text{GCD}(a, b) = 1\) (since 8 is the GCD of \( m \) and \( n \)). Substituting these into the equation \( m \times n = 896 \), we get:
+
+\[ (8a) \times (8b) = 896 \implies 64ab = 896 \implies ab = 14 \]
+
+Now, we need to find all pairs \((a, b)\) such that \(\text{GCD}(a, b) = 1\) and then determine the corresponding values of \( m \) and \( n \). We will then find the pair that gives the minimum value of \( m + n \).
+
+The pairs \((a, b)\) that multiply to 14 are \((1, 14)\), \((2, 7)\), \((7, 2)\), and \((14, 1)\). We need to check which of these pairs have \(\text{GCD}(a, b) = 1\):
+
+- \(\text{GCD}(1, 14) = 1\)
+- \(\text{GCD}(2, 7) = 1\)
+- \(\text{GCD}(7, 2) = 1\)
+- \(\text{GCD}(14, 1) = 1\)
+
+So, all of these pairs are valid. Now, we calculate the corresponding values of \( m \) and \( n \) and then find the minimum value of \( m + n \):
+
+1. For \((a, b) = (1, 14)\):
+   \[ m = 8 \cdot 1 = 8, \quad n = 8 \cdot 14 = 112 \implies m + n = 8 + 112 = 120 \]
+
+2. For \((a, b) = (2, 7)\):
+   \[ m = 8 \cdot 2 = 16, \quad n = 8 \cdot 7 = 56 \implies m + n = 16 + 56 = 72 \]
+
+3. For \((a, b) = (7, 2)\):
+   \[ m = 8 \cdot 7 = 56, \quad n = 8 \cdot 2 = 16 \implies m + n = 56 + 16 = 72 \]
+
+4. For \((a, b) = (14, 1)\):
+   \[ m = 8 \cdot 14 = 112, \quad n = 8 \cdot 1 = 8 \implies m + n = 112 + 8 = 120 \]
+
+From the above calculations, the minimum value of \( m + n \) is 72, which occurs for both \((a, b) = (2, 7)\) and \((a, b) = (7, 2)\).
+
+Thus, the least possible value of \( m + n \) is \(\boxed{72}\). To ensure the accuracy, let's confirm this by implementing the logic in Python and verifying all conditions.
+```python
+import math
+
+# Initialize a variable to store the minimum value of m + n found so far
+min_sum = float("inf")
+
+# Iterate over possible values of m and n to check the conditions
+for m in range(1, 1000):
+    for n in range(1, 1000):
+        if math.gcd(m, n) == 8 and (m * n) == 896:
+            lcm = (m * n) // math.gcd(m, n)
+            if lcm == 112:
+                min_sum = min(min_sum, m + n)
+
+print(min_sum)
+```
+Code execution result: 72
+
+
+

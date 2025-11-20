@@ -1,0 +1,66 @@
+Score: 1.0
+
+First, let's start by noting that if a polynomial with rational coefficients has a root that is irrational, then its "conjugate" must also be a root of the polynomial. The root given is \(5 - \sqrt{2}\), so its conjugate, \(5 + \sqrt{2}\), must also be a root of the polynomial.
+
+Let's denote the integer root by \( r \). Since the polynomial is of the form \( x^3 + bx + c = 0 \), it has roots \( 5 - \sqrt{2} \), \( 5 + \sqrt{2} \), and \( r \). By Vieta's formulas, for a cubic polynomial \( x^3 + px^2 + qx + r = 0 \) (though our polynomial doesn't have an \( x^2 \) term, so \( p = 0 \)), the sum of the roots of \( x^3 + bx + c = 0 \) is 0 (since the coefficient of \( x^2 \) is 0). So, we have:
+
+\[
+(5 - \sqrt{2}) + (5 + \sqrt{2}) + r = 0
+\]
+
+Simplifying the left side, we get:
+
+\[
+5 - \sqrt{2} + 5 + \sqrt{2} + r = 0 \implies 10 + r = 0 \implies r = -10
+\]
+
+So, the integer root of the polynomial is \(-10\). To verify, we can construct the polynomial from its roots and confirm that \( b \) and \( c \) are rational numbers.
+
+The polynomial with roots \( 5 - \sqrt{2} \), \( 5 + \sqrt{2} \), and \(-10\) can be written as:
+
+\[
+(x - (5 - \sqrt{2}))(x - (5 + \sqrt{2}))(x + 10)
+\]
+
+First, let's find the product \((x - (5 - \sqrt{2}))(x - (5 + \sqrt{2}))\):
+
+\[
+(x - (5 - \sqrt{2}))(x - (5 + \sqrt{2})) = ((x - 5) + \sqrt{2})((x - 5) - \sqrt{2}) = (x - 5)^2 - (\sqrt{2})^2 = (x - 5)^2 - 2
+\]
+
+Expanding \((x - 5)^2 - 2\):
+
+\[
+(x - 5)^2 - 2 = x^2 - 10x + 25 - 2 = x^2 - 10x + 23
+\]
+
+Now, we multiply this result by \((x + 10)\):
+
+\[
+(x^2 - 10x + 23)(x + 10)
+\]
+
+We expand this product to get the polynomial in standard form:
+
+\[
+(x^2 - 10x + 23)(x + 10) = x^3 + 10x^2 - 10x^2 - 100x + 23x + 230 = x^3 - 77x + 230
+\]
+
+So, we have the polynomial \( x^3 - 77x + 230 = 0 \). Here, we can see that the coefficients \(-77\) and \(230\) are integers, and since the original polynomial was stated to have rational coefficients, this confirms that our solution is correct as long as we are only considering the form \( x^3 + bx + c = 0 \). The coefficients of our polynomial match this form if we rewrite it as \( x^3 + 0x^2 - 77x + 230 = 0 \), where \( b = -77 \) and \( c = 230 \), both of which are rational numbers. 
+
+Thus, the integer root of the polynomial is \(-10\). We will confirm this with Python code to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the polynomial with roots 5 - sqrt(2), 5 + sqrt(2), and -10
+x = sp.symbols('x')
+poly = (x - (5 - sp.sqrt(2))) * (x - (5 + sp.sqrt(2))) * (x + 10)
+
+# Expand the polynomial to get it in standard form
+expanded_poly = sp.expand(poly)
+print(expanded_poly)
+```
+Code execution result: x**3 - 77*x + 230
+
+This confirms that the polynomial is \( x^3 - 77x + 230 \), which is of the form \( x^3 + bx + c = 0 \) where \( b = -77 \) and \( c = 230 \), both of which are rational numbers. Hence, the integer root of the polynomial is \(\boxed{-10}\). This confirms our solution is accurate.
+

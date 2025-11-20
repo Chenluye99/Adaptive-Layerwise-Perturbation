@@ -1,0 +1,54 @@
+Score: 1.0
+
+First, let's go through and outline the solution step-by-step in Python.
+
+1. **Find Multiples of 5 within the Range**:
+    - We need to find all the multiples of 5 that lie strictly between 121 and 1331. So, the range of multiples of 5 is from 125 (the first multiple of 5 that is greater than 121) to 1325 (the last multiple of 5 that is less than 1331).
+
+2. **Convert Numbers to Base 11**:
+    - For each multiple of 5 in this range, we need to convert it to base 11 and ensure that it has no leading zeros. We also need to check if its rightmost digit (in base 11) is strictly greater than its leftmost digit.
+
+3. **Check the Condition on Digits**:
+    - To convert a number to base 11 and check the condition, we need to represent the number in base 11 and compare the first and last digits of this representation.
+
+Let's implement this step-by-step check in Python.
+```python
+def to_base_11(n):
+    """Convert a number n to its base 11 representation as a list of digits."""
+    if n == 0:
+        return [0]
+    
+    base_11_digits = []
+    while n > 0:
+        base_11_digits.append(n % 11)
+        n = n // 11
+    
+    # The digits are generated in reverse order, so we need to reverse the list
+    base_11_digits.reverse()
+    return base_11_digits
+
+count = 0
+
+# Get all multiples of 5 in the range 121 < x < 1331
+for x in range(125, 1331):
+    if x % 5 == 0:
+        base_11_rep = to_base_11(x)
+        
+        # Ensure there are no leading zeros (which means the representation should not start with 0 if it's the first digit)
+        if len(base_11_rep) > 1 and base_11_rep[0] == 0:
+            continue
+        
+        # Get the leftmost (first) and rightmost (last) digits of the base 11 representation
+        leftmost_digit = base_11_rep[0]
+        rightmost_digit = base_11_rep[-1]
+        
+        # Check if the rightmost digit is strictly greater than the leftmost digit
+        if rightmost_digit > leftmost_digit:
+            count += 1
+
+print(count)
+```
+Code execution result: 99
+
+Thus, the number of integers \( x \) that satisfy all three conditions is \(\boxed{99}\). This is our final answer.
+

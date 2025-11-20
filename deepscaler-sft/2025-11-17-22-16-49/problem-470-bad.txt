@@ -1,0 +1,134 @@
+Score: 0.0
+
+Let's solve each part of the problem step-by-step using Python and SymPy:
+
+### Part (Ⅰ)
+1. **Understand the Problem:**
+    - The box contains 3 black balls, 2 red balls, and 1 white ball, making a total of 6 balls.
+    - If a customer can draw 2 balls at once, the total reward money will be at least 4 yuan.
+    - The reward for drawing is as follows:
+        - Each black ball gives 1 yuan.
+        - Each red ball gives 2 yuan.
+        - Each white ball gives 3 yuan.
+    - We need to calculate the probability that the total reward is at least 4 yuan.
+
+2. **Enumerate All Possible Outcomes:**
+    - We can draw 2 balls out of 6 in different combinations.
+    - We need to check each combination to see if the total reward is at least 4 yuan.
+
+3. **Find All Possible Combinations:**
+    - We will enumerate all ways to draw 2 balls from the 6 balls and compute the rewards for each combination.
+
+Let's start implementing this in Python:
+
+```python
+import itertools
+
+# Define the balls in the box
+balls = ['black', 'black', 'black', 'red', 'red', 'white']
+
+# Get all possible ways to draw 2 balls out of 6
+combinations = list(itertools.combinations(balls, 2))
+
+# Calculate the rewards for each combination and count the number of combinations that give at least 4 yuan
+count_at_least_4 = 0
+total_combinations = len(combinations)
+
+for combo in combinations:
+    reward = sum(1 * (ball == 'black') + 2 * (ball == 'red') + 3 * (ball == 'white') for ball in combo)
+    if reward >= 4:
+        count_at_least_4 += 1
+
+# Calculate the probability
+prob_at_least_4 = count_at_least_4 / total_combinations
+
+print(prob_at_least_4)
+```
+Code execution result: 0.4
+
+### Part (Ⅱ)
+1. **Understand the Problem:**
+    - If the customer spends more than 500 yuan, they can draw one ball twice with replacement.
+    - Each black or white ball gives a reward of 5 yuan, and each red ball gives a reward of 10 yuan.
+    - We need to calculate the probability that the total reward money is less than 20 yuan.
+
+2. **Enumerate All Possible Outcomes:**
+    - There are 6 balls in total, with the reward values assigned as described earlier.
+    - For each draw of 1 ball, it can be one of the 3 black balls, 2 red balls, or 1 white ball. After drawing one ball and replacing it, the process is repeated.
+    - We need to calculate all possible outcomes of drawing 2 balls and determine the probability that the total reward for these 2 draws is less than 20 yuan.
+
+3. **Find All Possible Combinations:**
+    - We can use a straightforward approach to compute all the outcomes by looping through each possible ball being drawn in the first and second draw and calculate their rewards.
+    - We then check if the total reward is less than 20 yuan, and count all such cases.
+
+Let's start implementing this in Python:
+
+```python
+import itertools
+
+# Define the balls in the box
+balls = ['black', 'black', 'black', 'red', 'red', 'white']
+
+# Initialize a counter for total outcomes and those with reward less than 20
+count_less_than_20 = 0
+total_outcomes = 0
+
+# To get all possible outcomes of drawing 1 ball twice (with replacement)
+for first_draw in balls:
+    for second_draw in balls:
+        reward_first = sum(1 * (first_draw == 'black') + 2 * (first_draw == 'red') + 3 * (first_draw == 'white'))
+        reward_second = sum(1 * (second_draw == 'black') + 2 * (second_draw == 'red') + 3 * (second_draw == 'white'))
+        total_reward = reward_first + reward_second
+        if total_reward < 20:
+            count_less_than_20 += 1
+        total_outcomes += 1
+
+# Calculate the probability
+prob_less_than_20 = count_less_than_20 / total_outcomes
+
+print(prob_less_than_20)
+```
+Code execution result: TypeError: 'int' object is not iterable
+It seems like I've made an error in my code. Instead of using `itertools.combinations` for this problem, let's use a more straightforward approach to get all possible outcomes by considering each draw separately, and then compute the total reward for each of the 36 possible outcomes (since there are 6 possible choices for the first draw and 6 possible choices for the second draw).
+
+We will list all outcomes by iterating over all possible draws for the two draws and then check if the condition of the total reward being less than 20 yuan is satisfied.
+
+Let's fix that and implement it correctly below:
+```python
+# Define rewards for different colored balls
+reward_black = 5
+reward_red = 10
+reward_white = 5
+
+# Enumerate all 6 * 6 = 36 possible outcomes where a customer can draw any of the 6 balls twice with replacement
+count_less_than_20 = 0
+total_outcomes = 0
+
+for first_draw in ['black', 'black', 'black', 'red', 'red', 'white']:
+    for second_draw in ['black', 'black', 'black', 'red', 'red', 'white']:
+        reward1 = (1 * (first_draw == 'black') + 2 * (first_draw == 'red') + 3 * (first_draw == 'white')) * 5
+        reward2 = (1 * (second_draw == 'black') + 2 * (second_draw == 'red') + 3 * (second_draw == 'white')) * 5
+        
+        total_reward = reward1 + reward2
+        
+        if total_reward < 20:
+            count_less_than_20 += 1
+        
+        total_outcomes += 1
+
+# Calculate the probability
+prob_less_than_20 = count_less_than_20 / total_outcomes
+
+print(prob_less_than_20)
+```
+Code execution result: 0.5833333333333334
+
+### Final Answers
+Now, we can present the final answers based on our computations:
+
+1. **Part (Ⅰ):**
+   The probability that the total reward money is at least 4 yuan is \(\boxed{0.4}\).
+
+2. **Part (Ⅱ):**
+   The probability that the total reward money is less than 20 yuan is \(\boxed{0.5833333333333334}\). This can also be written as \(\boxed{\frac{7}{12}}\) (since \(0.5833333333333334 \approx \frac{7}{12} \)).
+

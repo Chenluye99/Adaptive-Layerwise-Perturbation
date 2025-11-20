@@ -1,0 +1,46 @@
+Score: 1.0
+
+To solve the problem, we need to count the number of ways to arrange six distinguishable frogs (two green, three red, and one blue) such that no green frog is next to any red frog.
+
+1. **Generate All Permutations:**
+    - First, we generate all permutations of the six frogs.
+    - The six frogs can be represented as a list, for example, `['G1', 'G2', 'R1', 'R2', 'R3', 'B']`, where 'G1' and 'G2' are the two green frogs, 'R1', 'R2', and 'R3' are the three red frogs, and 'B' is the blue frog.
+
+2. **Check the Condition:**
+    - For each permutation, we need to check if any green frog is next to any red frog.
+    - If the condition is violated (i.e., a green frog is next to a red frog), we discard that permutation.
+
+3. **Count Valid Permutations:**
+    - We count only those permutations that meet the condition that no green frog is next to a red frog.
+
+Let's implement this step-by-step plan in Python to get the accurate result.
+```python
+import itertools
+
+# Define the frogs
+frogs = ['G1', 'G2', 'R1', 'R2', 'R3', 'B']
+
+# Generate all permutations of the frogs
+all_permutations = list(itertools.permutations(frogs))
+
+count_valid_permutations = 0
+
+# Check each permutation to see if it meets the condition that no green frog is next to a red frog
+for perm in all_permutations:
+    green_frogs_next_to_red_frog = False
+    
+    for i, frog in enumerate(perm):
+        if frog.startswith('G'):  # Check if the frog is green
+            if (i > 0 and perm[i - 1].startswith('R')) or (i < len(perm) - 1 and perm[i + 1].startswith('R')):
+                green_frogs_next_to_red_frog = True
+                break
+    
+    if not green_frogs_next_to_red_frog:
+        count_valid_permutations += 1
+
+print(count_valid_permutations)
+```
+Code execution result: 24
+
+Thus, the number of ways to arrange the six distinguishable frogs such that no green frog is next to any red frog is \(\boxed{24}\). This is our final answer.
+

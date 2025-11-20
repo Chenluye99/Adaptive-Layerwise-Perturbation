@@ -1,0 +1,50 @@
+Score: 1.0
+
+To convert the point \((-2, -2)\) from rectangular (Cartesian) coordinates to polar coordinates, we need to use the following formulas:
+
+1. **Radius \( r \):**
+   \[
+   r = \sqrt{x^2 + y^2}
+   \]
+   where \( x = -2 \) and \( y = -2 \).
+
+2. **Angle \( \theta \):**
+   \[
+   \theta = \arctan\left(\frac{y}{x}\right)
+   \]
+   However, the \(\arctan\) function only gives results in the range \(-\frac{\pi}{2} < \theta < \frac{\pi}{2}\), so we need to adjust for the correct quadrant. For the point \((-2, -2)\), which is in the third quadrant, we know that:
+   \[
+   \theta = \arctan\left(\frac{-2}{-2}\right) = \arctan(1) = \frac{\pi}{4}
+   \]
+   But since it's in the third quadrant, we have to add \(\pi\) to \(\frac{\pi}{4}\), resulting in:
+   \[
+   \theta = \pi + \frac{\pi}{4} = \frac{5\pi}{4}
+   \]
+
+Let's calculate this step-by-step using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Rectangular coordinates
+x, y = -2, -2
+
+# Calculate r
+r = sp.sqrt(x**2 + y**2)
+
+# Calculate θ
+theta = sp.atan2(y, x)
+
+# Ensure θ is in the range [0, 2π)
+if theta < 0:
+    theta += 2 * sp.pi
+
+print(((r, theta)))
+```
+Code execution result: (2*sqrt(2), 5*pi/4)
+
+Thus, the point \((-2, -2)\) in rectangular coordinates is equivalent to \((2 \sqrt{2}, \frac{5 \pi}{4})\) in polar coordinates.
+
+So, the final answer is:
+
+\(\boxed{(2 \sqrt{2}, \frac{5 \pi}{4})}\)
+

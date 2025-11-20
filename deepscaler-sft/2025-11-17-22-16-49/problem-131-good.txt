@@ -1,0 +1,53 @@
+Score: 1.0
+
+To solve this problem, we need to find the maximum value of \( |MA| + |MB| \) where \( M \) is a point on the ellipse \(\frac{x^2}{25} + \frac{y^2}{9} = 1 \), and points \( A \) and \( B \) are given as \( A(4,0) \) and \( B(2,2) \).
+
+### Step-by-Step Solution:
+
+1. **Parameterize the Ellipse:**
+   A point on the ellipse \(\frac{x^2}{25} + \frac{y^2}{9} = 1\) can be parameterized as:
+   \[
+   M = (5 \cos \theta, 3 \sin \theta)
+   \]
+   where \(\theta\) is a parameter ranging from \(0\) to \(2 \pi\).
+
+2. **Express \( |MA| + |MB| \):**
+   The distances \( |MA| \) and \( |MB| \) can be written as:
+   \[
+   |MA| = \sqrt{(5 \cos \theta - 4)^2 + (3 \sin \theta - 0)^2}
+   \]
+   \[
+   |MB| = \sqrt{(5 \cos \theta - 2)^2 + (3 \sin \theta - 2)^2}
+   \]
+   Therefore, \( |MA| + |MB| \) is:
+   \[
+   |MA| + |MB| = \sqrt{(5 \cos \theta - 4)^2 + (3 \sin \theta)^2} + \sqrt{(5 \cos \theta - 2)^2 + (3 \sin \theta - 2)^2}
+   \]
+
+3. **Find the Maximum Value Using Python:**
+   We can use Python to find the value of \(\theta\) that maximizes \( |MA| + |MB| \) by evaluating it over a range of \(\theta\) from 0 to \(2 \pi\).
+
+Let's implement this in Python.
+```python
+import numpy as np
+
+# Define the function for |MA| + |MB|
+def ma_mb_sum(theta):
+    x_m = 5 * np.cos(theta)
+    y_m = 3 * np.sin(theta)
+    ma = np.sqrt((x_m - 4)**2 + (y_m - 0)**2)
+    mb = np.sqrt((x_m - 2)**2 + (y_m - 2)**2)
+    return ma + mb
+
+# Generate values for theta from 0 to 2 * pi
+theta_values = np.linspace(0, 2 * np.pi, 10000)
+ma_mb_values = [ma_mb_sum(theta) for theta in theta_values]
+
+# Find the maximum value of |MA| + |MB|
+max_m_a_mb = max(ma_mb_values)
+print(max_m_a_mb)
+```
+Code execution result: 16.324554951013354
+
+Thus, the maximum value of \( |MA| + |MB| \) is \(\boxed{16.324554951013354}\). This is the final answer.
+

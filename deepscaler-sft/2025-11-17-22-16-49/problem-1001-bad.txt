@@ -1,0 +1,59 @@
+Score: 0.0
+
+To solve the problem, we need to find the smallest positive integer \( n \) such that
+
+\[
+\sum_{k=0}^n \log_2 \left( 1 + \frac{1}{2^{2^k}} \right) \ge 1 + \log_2 \frac{2014}{2015}.
+\]
+
+Let's break this down step-by-step:
+
+1. **Evaluate the Right Hand Side (RHS):**
+   \[
+   1 + \log_2 \frac{2014}{2015} = \log_2 2 + \log_2 \frac{2014}{2015} = \log_2 \left( 2 \cdot \frac{2014}{2015} \right) = \log_2 \frac{4028}{2015}.
+   \]
+
+2. **Set Up the Left Hand Side (LHS):**
+   We need to compute the sum on the left hand side:
+   \[
+   \sum_{k=0}^n \log_2 \left( 1 + \frac{1}{2^{2^k}} \right).
+   \]
+   Using properties of logarithms, we can combine the sum of logarithms into a single logarithm:
+   \[
+   \sum_{k=0}^n \log_2 \left( 1 + \frac{1}{2^{2^k}} \right) = \log_2 \left( \prod_{k=0}^n \left( 1 + \frac{1}{2^{2^k}} \right) \right).
+   \]
+
+3. **Iterative Calculation:**
+   We'll iterate through values of \( n \) starting from 1, compute the product inside the logarithm, and check if it is greater than or equal to \(\frac{4028}{2015}\).
+
+Let's implement this step-by-step in Python to ensure accuracy.
+```python
+import math
+
+# Calculate the right-hand side of the inequality
+rhs = math.log2(4028 / 2015)
+
+# Initialize variables for the left-hand side
+lhs = 0
+n = 0
+
+# Now, we will iterate to find the smallest n such that the condition is satisfied
+while True:
+    n += 1
+    lhs = sum(math.log2(1 + 1 / 2**(2**k)) for k in range(n))
+    
+    if lhs >= rhs:
+        break
+
+print(n)
+```
+Code execution result: 4
+
+Thus, the smallest positive integer \( n \) that satisfies the inequality
+
+\[
+\sum_{k=0}^n \log_2 \left( 1 + \frac{1}{2^{2^k}} \right) \ge 1 + \log_2 \frac{2014}{2015}
+\]
+
+is \(\boxed{4}\). This is our final answer.
+

@@ -1,0 +1,54 @@
+Score: 1.0
+
+We start by defining the function \( g(n) \) which computes the product of the proper positive integer divisors of \( n \). A proper divisor of \( n \) is any divisor of \( n \) excluding \( n \) itself.
+
+To solve the problem, we'll follow these steps:
+
+1. **Define a Function to Get Proper Divisors:**
+   - Find all divisors of \( n \).
+   - Exclude \( n \) itself to get the proper divisors.
+
+2. **Define the Function \( g(n) \):**
+   - Compute the product of the proper divisors of \( n \).
+
+3. **Check the Condition \( n \nmid g(n) \):**
+   - For each \( n \) in the range from 2 to 50, compute \( g(n) \).
+   - Check whether \( n \) divides \( g(n) \).
+   - Count how many such \( n \) there are for which \( n \) does not divide \( g(n) \).
+
+Let's implement this step-by-step plan in Python.
+```python
+import math
+
+def proper_divisors(n):
+    """Return the list of proper divisors of n (excluding n itself)."""
+    divisors = [1]  # 1 is a proper divisor for any n > 1
+    for i in range(2, int(math.sqrt(n)) + 1):
+        if n % i == 0:
+            divisors.append(i)
+            if i != n // i:  # add the complement divisor if it's different
+                divisors.append(n // i)
+    return divisors
+
+def g(n):
+    """Return the product of the proper divisors of n."""
+    divisors = proper_divisors(n)
+    product = 1
+    for d in divisors:
+        product *= d
+    return product
+
+count = 0
+
+# Check for 2 <= n <= 50
+for n in range(2, 51):
+    gn = g(n)
+    if gn % n != 0:
+        count += 1
+
+print(count)
+```
+Code execution result: 19
+
+Thus, the number of values of \( n \) for which \( n \) does not divide \( g(n) \) in the range \( 2 \leq n \leq 50 \) is \(\boxed{19}\). This is our final answer.
+

@@ -1,0 +1,50 @@
+Score: 1.0
+
+To solve the problem, let's start by finding the inclination angle of the line given by the equation \(x - y + 1 = 0\).
+
+### Step-by-Step Solution:
+
+1. **Find the Slope of the Line:**
+    - The equation of the line is given as \(x - y + 1 = 0\).
+    - We can rearrange this equation to the slope-intercept form, \(y = mx + c\), where \(m\) is the slope of the line.
+    - Rearrange \(x - y + 1 = 0\):
+      \[
+      -y = -x - 1 \implies y = x + 1
+      \]
+      So, the slope \(m\) of the line is 1.
+
+2. **Find the Inclination Angle:**
+    - The slope \(m\) of a line is related to its inclination angle \(\theta\) by the equation \(m = \tan(\theta)\).
+    - Therefore, for our line, we have:
+      \[
+      \tan(\theta) = 1
+      \]
+    - The inclination angle \(\theta\) is the angle that the line makes with the positive x-axis, and it is given by:
+      \[
+      \theta = \arctan(1)
+      \]
+    - We know that \(\arctan(1) = \frac{\pi}{4}\).
+
+3. **Conclusion:**
+    - The inclination angle of the line \(x - y + 1 = 0\) is \(\frac{\pi}{4}\).
+
+Let's confirm this by implementing it in Python.
+```python
+import sympy as sp
+
+# Define the line equation
+x, y = sp.symbols('x y')
+line_eq = x - y + 1
+
+# Get the slope of the line by converting it to the form y = mx + c
+line_eq_slope = sp.solve(line_eq, y)[0]
+slope = sp.diff(line_eq_slope, x)  # Differentiate to get the slope (since it's already in the form y = mx + c, this is just the coefficient of x)
+
+# Calculate the inclination angle
+theta = sp.atan(slope)
+print(theta)
+```
+Code execution result: pi/4
+
+Thus, the inclination angle of the line \(x - y + 1 = 0\) is \(\boxed{\frac{\pi}{4}}\). This confirms our earlier solution.
+

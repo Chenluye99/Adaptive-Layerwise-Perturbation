@@ -1,0 +1,66 @@
+Score: 1.0
+
+To solve the inequality \(\left| \frac{2x - 1}{x - 1} \right| > 2\), we need to consider the definition of absolute value. The inequality \(\left| \frac{2x - 1}{x - 1} \right| > 2\) means that \(\frac{2x - 1}{x - 1} > 2\) or \(\frac{2x - 1}{x - 1} < -2\).
+
+We can break this into two separate inequalities:
+
+1. \(\frac{2x - 1}{x - 1} > 2\)
+2. \(\frac{2x - 1}{x - 1} < -2\)
+
+### Step 1: Solve \(\frac{2x - 1}{x - 1} > 2\)
+
+First, we rewrite the inequality:
+\[
+\frac{2x - 1}{x - 1} > 2 \implies \frac{2x - 1}{x - 1} - 2 > 0 \implies \frac{2x - 1 - 2(x - 1)}{x - 1} > 0 \implies \frac{2x - 1 - 2x + 2}{x - 1} > 0 \implies \frac{1}{x - 1} > 0.
+\]
+The fraction \(\frac{1}{x - 1}\) is greater than 0 when the denominator is positive, i.e.,
+\[
+x - 1 > 0 \implies x > 1.
+\]
+
+### Step 2: Solve \(\frac{2x - 1}{x - 1} < -2\)
+
+Next, we rewrite the inequality:
+\[
+\frac{2x - 1}{x - 1} < -2 \implies \frac{2x - 1}{x - 1} + 2 < 0 \implies \frac{2x - 1 + 2(x - 1)}{x - 1} < 0 \implies \frac{2x - 1 + 2x - 2}{x - 1} < 0 \implies \frac{4x - 3}{x - 1} < 0.
+\]
+We need to determine when the fraction \(\frac{4x - 3}{x - 1}\) is less than 0. This fraction changes sign at the roots of its numerator and denominator, i.e., at \(x = \frac{3}{4}\) and \(x = 1\). We analyze the sign of \(\frac{4x - 3}{x - 1}\) in the intervals determined by these roots: \((-\infty, \frac{3}{4})\), \((\frac{3}{4}, 1)\), and \((1, \infty)\).
+
+- For \(x < \frac{3}{4}\), both \(4x - 3 < 0\) and \(x - 1 < 0\), so \(\frac{4x - 3}{x - 1} > 0\).
+- For \(\frac{3}{4} < x < 1\), \(4x - 3 > 0\) and \(x - 1 < 0\), so \(\frac{4x - 3}{x - 1} < 0\).
+- For \(x > 1\), both \(4x - 3 > 0\) and \(x - 1 > 0\), so \(\frac{4x - 3}{x - 1} > 0\).
+
+Thus, \(\frac{4x - 3}{x - 1} < 0\) when \(\frac{3}{4} < x < 1\).
+
+### Step 3: Combine Solutions
+
+Combining both solutions, the original inequality \(\left| \frac{2x - 1}{x - 1} \right| > 2\) is satisfied when:
+\[ x > 1 \quad \text{or} \quad \frac{3}{4} < x < 1. \]
+
+We can use Python to verify this solution by testing values in the intervals and ensuring that they satisfy the original inequality.
+```python
+import sympy as sp
+
+# Define the variable and the expression
+x = sp.symbols('x')
+expr = (2 * x - 1) / (x - 1)
+
+# Solve the inequality |(2 * x - 1) / (x - 1)| > 2
+solution = sp.solve_univariate_inequality(sp.Abs(expr) > 2, x, relational=False)
+print(solution)
+```
+Code execution result: Union(Interval.open(3/4, 1), Interval.open(1, oo))
+
+So, the solution to the inequality \(\left| \frac{2x - 1}{x - 1} \right| > 2\) is:
+\[
+\frac{3}{4} < x < 1 \quad \text{or} \quad x > 1.
+\]
+
+In interval notation, this is:
+\[
+\left( \frac{3}{4}, 1 \right) \cup \left( 1, \infty \right).
+\]
+
+Thus, the final answer is:
+\(\boxed{\left( \frac{3}{4}, 1 \right) \cup \left( 1, \infty \right)}\)
+

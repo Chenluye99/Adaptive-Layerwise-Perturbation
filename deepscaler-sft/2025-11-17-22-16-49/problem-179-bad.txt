@@ -1,0 +1,55 @@
+Score: 1.0
+
+To solve this problem, we need to determine how many fans received all three items (a free hot dog, a free cup of soda, and a free bag of popcorn). 
+
+To get all three items, a fan must be the 75th, 30th, and 50th fan in the sequence for some multiple of their respective intervals. So, a fan must be at the least common multiple (LCM) position of 75, 30, and 50 multiples of their respective positions.
+
+First, let's find the LCM of 75, 30, and 50. The LCM of a set of integers is the smallest positive integer that is divisible by each of them. Once we have the LCM, we can determine how many such fans exist in a stadium that holds 4000 fans.
+
+### Step-by-Step Solution:
+
+1. **Find the LCM of 75, 30, and 50:**
+    - To find the LCM, it is useful to start by finding the prime factorizations of the numbers:
+        - \(75 = 3 \times 5^2\)
+        - \(30 = 2 \times 3 \times 5\)
+        - \(50 = 2 \times 5^2\)
+    - The LCM is found by taking the highest power of each prime that appears in the factorizations:
+        - The highest power of 2 is \(2^1\)
+        - The highest power of 3 is \(3^1\)
+        - The highest power of 5 is \(5^2\)
+    - Therefore, the LCM is:
+      \[
+      \text{LCM} = 2^1 \times 3^1 \times 5^2 = 2 \times 3 \times 25 = 150
+      \]
+
+2. **Determine How Many Fans Get All Three Items:**
+    - A fan who gets all three items will be every 150th fan (since 150 is the LCM of 75, 30, and 50).
+    - We need to find how many multiples of 150 are there in the first 4000 fans.
+
+This can be done by computing:
+\[
+\left\lfloor \frac{4000}{150} \right\rfloor
+\]
+
+Let's compute this step-by-step using Python to make sure accuracy.
+```python
+import math
+
+# Find the LCM of 75, 30, and 50
+def lcm(x, y):
+    return abs(x * y) // math.gcd(x, y)
+
+lcm_75_30 = lcm(75, 30)
+lcm_75_30_50 = lcm(lcm_75_30, 50)
+
+# Number of fans in the stadium
+num_fans = 4000
+
+# Find how many fans get all three items
+count_fans_with_all_three = num_fans // lcm_75_30_50
+print(count_fans_with_all_three)
+```
+Code execution result: 26
+
+Thus, the number of fans who received all three free items (a free hot dog, a free cup of soda, and a free bag of popcorn) is \(\boxed{26}\). This is our final answer.
+

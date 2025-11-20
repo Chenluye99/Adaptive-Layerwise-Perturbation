@@ -1,0 +1,68 @@
+Score: 1.0
+
+1. **Problem Understanding:**
+    - We need to find the y-coordinate of a point on the y-axis that is equidistant from two given points \( A(-2, 0) \) and \( B(-1, 4) \).
+    - Any point on the y-axis has coordinates of the form \((0, y)\).
+
+2. **Distance Formula:**
+    - The distance from a point \((0, y)\) to point \( A(-2, 0) \) is given by:
+      \[
+      d_1 = \sqrt{(0 - (-2))^2 + (y - 0)^2} = \sqrt{2^2 + y^2} = \sqrt{4 + y^2}
+      \]
+    - The distance from the same point \((0, y)\) to point \( B(-1, 4) \) is given by:
+      \[
+      d_2 = \sqrt{(0 - (-1))^2 + (y - 4)^2} = \sqrt{1^2 + (y - 4)^2} = \sqrt{1 + (y - 4)^2}
+      \]
+
+3. **Setting the Distances Equal:**
+    - Since the point \((0, y)\) is equidistant from points \( A \) and \( B \), we set the distances \( d_1 \) and \( d_2 \) equal to each other:
+      \[
+      \sqrt{4 + y^2} = \sqrt{1 + (y - 4)^2}
+      \]
+
+4. **Solving the Equation:**
+    - We can square both sides of the equation to eliminate the square roots:
+      \[
+      4 + y^2 = 1 + (y - 4)^2
+      \]
+    - Expand the right side:
+      \[
+      4 + y^2 = 1 + (y^2 - 8y + 16)
+      \]
+    - Simplify the equation:
+      \[
+      4 + y^2 = 1 + y^2 - 8y + 16
+      \]
+    - Cancel out \( y^2 \) from both sides:
+      \[
+      4 = 1 - 8y + 16
+      \]
+    - Simplify further:
+      \[
+      4 = 17 - 8y
+      \]
+    - Isolate \( y \):
+      \[
+      4 - 17 = -8y \implies -13 = -8y \implies 13 = 8y \implies y = \frac{13}{8}
+      \]
+
+Let's confirm this solution using Python to ensure its accuracy.
+```python
+import sympy as sp
+
+# Define the variables
+y = sp.symbols('y')
+
+# Define the distances
+distance_1 = sp.sqrt((0 - (-2))**2 + (y - 0)**2)
+distance_2 = sp.sqrt((0 - (-1))**2 + (y - 4)**2)
+
+# Set the distances equal to each other and solve for y
+equation = sp.Eq(distance_1, distance_2)
+solution = sp.solve(equation, y)
+print(solution)
+```
+Code execution result: [13/8]
+
+Thus, the \( y \)-coordinate of the point on the \( y \)-axis that is equidistant from points \( A(-2, 0) \) and \( B(-1, 4) \) is \(\boxed{\frac{13}{8}}\). This is our final answer, verified by solving the equation using Python.
+

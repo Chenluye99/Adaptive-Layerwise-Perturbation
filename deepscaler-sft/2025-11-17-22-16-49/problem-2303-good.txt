@@ -1,0 +1,73 @@
+Score: 1.0
+
+To solve this problem, let's start by considering that \( P(x) \) is a polynomial with integer coefficients. We are given the following conditions:
+
+1. \( P(17) = 10 \)
+2. \( P(24) = 17 \)
+3. \( P(n) = n + 3 \) has two distinct integer solutions \( n_1 \) and \( n_2 \).
+
+If \( P(n) = n + 3 \), then substituting \( n_1 \) and \( n_2 \) into this equation, we get:
+\[ P(n_1) = n_1 + 3 \]
+\[ P(n_2) = n_2 + 3 \]
+
+This means that the polynomial \( Q(x) = P(x) - (x + 3) \) has roots at \( n_1 \) and \( n_2 \). Therefore, we can write:
+\[ Q(x) = (x - n_1)(x - n_2)R(x) \]
+where \( R(x) \) is some polynomial with integer coefficients.
+
+So, we have:
+\[ P(x) = (x - n_1)(x - n_2)R(x) + x + 3 \]
+
+We know that:
+\[ P(17) = 10 \]
+\[ P(24) = 17 \]
+
+Substituting these into the equation above, we get:
+\[ P(17) = (17 - n_1)(17 - n_2)R(17) + 17 + 3 = 10 \]
+\[ (17 - n_1)(17 - n_2)R(17) + 20 = 10 \]
+\[ (17 - n_1)(17 - n_2)R(17) = -10 \]
+
+And:
+\[ P(24) = (24 - n_1)(24 - n_2)R(24) + 24 + 3 = 17 \]
+\[ (24 - n_1)(24 - n_2)R(24) + 27 = 17 \]
+\[ (24 - n_1)(24 - n_2)R(24) = -10 \]
+
+So, we have the system of equations:
+\[ (17 - n_1)(17 - n_2)R(17) = -10 \]
+\[ (24 - n_1)(24 - n_2)R(24) = -10 \]
+
+Both expressions on the left-hand side must be integer factors of \(-10\). The factor pairs of \(-10\) are \((1, -10)\), \((-1, 10)\), \((2, -5)\), and \((-2, 5)\). We need to find pairs of integers \((n_1, n_2)\) that satisfy both equations.
+
+We can iterate through all possible pairs of integers for \( n_1 \) and \( n_2 \) and check which pairs make both equations true. We will then check if there exist integer values of \( R(17) \) and \( R(24) \) that satisfy these equations.
+
+Let's implement this step-by-step in Python to find the correct values for \( n_1 \) and \( n_2 \).
+```python
+import sympy as sp
+
+# We need to find n1 and n2 such that the above conditions hold.
+# We will iterate through potential values for n1 and n2 and check the constraints.
+
+results = []
+
+# We iterate through a reasonable range of integers, say -100 to 100, for n1 and n2, to check for solutions.
+for n1 in range(-100, 101):
+    for n2 in range(-100, 101):
+        if n1 != n2:
+            # Check the first condition (17 - n1)(17 - n2) * R(17) = -10
+            for R_17 in [-10, -5, -2, -1, 1, 2, 5, 10]:
+                lhs_1 = (17 - n1) * (17 - n2) * R_17
+                if lhs_1 == -10:
+                    # Check the second condition (24 - n1)(24 - n2) * R(24) = -10
+                    for R_24 in [-10, -5, -2, -1, 1, 2, 5, 10]:
+                        lhs_2 = (24 - n1) * (24 - n2) * R_24
+                        if lhs_2 == -10:
+                            results.append((n1, n2))
+
+print(results)
+```
+Code execution result: [(19, 22), (22, 19)]
+
+So, the distinct integer solutions \( n_1 \) and \( n_2 \) that satisfy the conditions are \( 19 \) and \( 22 \).
+
+Thus, the final answer is:
+\(\boxed{19, 22}\)
+

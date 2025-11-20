@@ -1,0 +1,47 @@
+Score: 1.0
+
+Let's start solving the problem step-by-step:
+
+1. **Understand the Problem:**
+    - The lateral surface area of a cylinder is given by the formula: \[ A = 2 \pi r h \]
+    - We are given that the height \( h = 6 \) cm, and the lateral surface area is \( 48 \pi \) square centimeters. We can substitute these values into the formula to find the radius \( r \):
+      \[
+      2 \pi r \cdot 6 = 48 \pi
+      \]
+    - Simplifying this equation, we get:
+      \[
+      12 \pi r = 48 \pi \implies 12 r = 48 \implies r = \frac{48}{12} = 4
+      \]
+      So, the radius \( r = 4 \) cm.
+    - The volume \( V \) of a cylinder is given by the formula: \[ V = \pi r^2 h \]
+    - Substituting the values of \( r \) and \( h \):
+      \[
+      V = \pi \cdot 4^2 \cdot 6 = \pi \cdot 16 \cdot 6 = 96 \pi
+      \]
+
+2. **Implement the Solution in Python:**
+Let's confirm our result with Python code.
+```python
+import sympy as sp
+
+# Define the variables
+r = sp.symbols('r')
+
+# Given values
+h = 6
+lateral_surface_area = 48 * sp.pi
+
+# Equation for lateral surface area
+eq = 2 * sp.pi * r * h - lateral_surface_area
+
+# Solve for r
+radius_solution = sp.solve(eq, r)[0]
+
+# Calculate the volume of the cylinder
+volume = sp.pi * radius_solution**2 * h
+print(volume)
+```
+Code execution result: 96*pi
+
+Thus, the volume of the cylindrical tube is \(\boxed{96 \pi}\) cubic centimeters. The calculation is confirmed to be accurate.
+

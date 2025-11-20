@@ -1,0 +1,174 @@
+Score: 0.0
+
+First, let's set up the problem and solve it step-by-step.
+
+1. **Problem Understanding:**
+    - Krista starts with putting 1 cent into her bank on Sunday.
+    - Each subsequent day, she doubles the amount of money she puts into her bank.
+    - We need to determine on which day the total amount of money in her bank first exceeds \$5 (which is 500 cents).
+
+2. **Implementation Plan:**
+    - We will start by initializing the amount put in on Sunday and then iterate through each day, doubling the amount deposited each day.
+    - We will maintain a cumulative total of the money in the bank and check after each day if the cumulative total exceeds 500 cents.
+    - We will keep track of the day of the week as we iterate.
+
+3. **Days of the Week and Iteration:**
+    - We can use a list or dictionary to map the day names (Sunday, Monday, ..., Saturday) for easy reference.
+    - We'll iterate for 14 days (two weeks) and check the condition mentioned above.
+
+Let's implement this step-by-step in Python to get the precise answer.
+```python
+# Initialize variables
+initial_amount = 1  # Amount put in the bank on Sunday
+amount_put_in = initial_amount
+total_in_bank = amount_put_in  # Start with the amount put in on Sunday
+
+# Days of the week starting from Sunday
+days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+day_index = 0  # Start with Sunday
+
+# We will iterate for 14 days (2 weeks)
+for day in range(1, 15):
+    amount_put_in *= 2  # Double the amount for the next day
+    total_in_bank += amount_put_in  # Add the new amount to the total in the bank
+    
+    if total_in_bank > 500:  # Check if the total amount exceeds 500 cents ($5)
+        day_of_week = days_of_week[day_index]
+        break
+    
+    day_index = (day_index + 1) % 7  # Move to the next day of the week
+
+print(day_of_week)
+```
+Code execution result: Sunday
+
+It appears that the code returned "Sunday," but that doesn't make sense in the context of our problem because the amount starts out as 1 cent on Sunday, and it needs to grow to exceed 500 cents within two weeks (14 days). Let's debug this by printing intermediary results and ensuring the logic is accurately implemented. We'll also ensure that we correctly track the cumulative total and day of the week throughout the iteration.
+
+Let's implement this again with printing statements to better understand what's happening each day and ensure the logic is correct. We should also make sure to start the day index at 0 for Sunday and correctly increment it to track each day's corresponding day of the week.
+```python
+# Initialize variables
+initial_amount = 1  # Amount put in the bank on Sunday
+amount_put_in = initial_amount
+total_in_bank = amount_put_in  # Start with the amount put in on Sunday
+
+# Days of the week starting from Sunday
+days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+day_index = 0  # Start with Sunday
+
+# We will iterate for 14 days (2 weeks)
+day_of_exceedance = None
+
+for day in range(1, 15):
+    amount_put_in *= 2  # Double the amount for the next day
+    total_in_bank += amount_put_in  # Add the new amount to the total in the bank
+    
+    if total_in_bank > 500:  # Check if the total amount exceeds 500 cents ($5)
+        day_of_exceedance = days_of_week[day_index]
+        break
+    
+    day_index = (day_index + 1) % 7  # Move to the next day of the week
+
+print(day_of_exceedance)
+```
+Code execution result: Sunday
+
+It looks like there's still an issue with our implementation because the logic should lead us to the correct day when the total amount first exceeds \$5. We need to make sure that we accurately track the amount being deposited each day and that we get the right day of the week.
+
+Let's debug this a bit more by printing out the amount deposited each day and the cumulative total until we find the correct day. We'll ensure that we start from Sunday and go through each day doubling the previous day's deposit until the condition is met.
+```python
+# Initialize variables
+initial_amount = 1  # amount put in the bank on Sunday
+amount_put_in = initial_amount
+total_in_bank = amount_put_in  # Start with the amount put in on Sunday
+
+# Days of the week starting from Sunday
+days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+# We will iterate until the total amount exceeds 500 cents ($5)
+day_index = 0  # Start with Sunday
+day_of_exceedance = None
+
+for day in range(1, 100):  # We are using 100 days as an upper bound, just in case it takes that long (it shouldn't for two weeks)
+    amount_put_in *= 2  # Double the amount for the next day
+    total_in_bank += amount_put_in  # Add the new amount to the total in the bank
+    
+    if total_in_bank > 500:  # Check if the total amount exceeds 500 cents ($5)
+        day_of_exceedance = days_of_week[day_index]
+        break
+    
+    day_index = (day_index + 1) % 7  # Move to the next day of the week
+
+print(day_of_exceedance)
+```
+Code execution result: Sunday
+
+There's still an apparent issue, likely because I misunderstood how to correctly map the days or the logic wasn't implemented as intended for the problem constraints properly. 
+
+To ensure accuracy, let's implement a more straightforward and detailed approach where we clearly track each day's deposit and the cumulative total. We can also ensure to print out the deposits and the cumulative total at each step for clarity. Let's ensure to start from Sunday and iterate through each day appropriately, checking if the total first exceeds 500 cents and recording the corresponding day of the week.
+
+Let's correct and confirm this by ensuring proper tracking and print the details if needed. I will also make sure not to iterate unnecessarily more than required and handle it in a way that it aligns well with the constraints (two weeks or 14 days).
+```python
+# Initialize variables
+initial_amount = 1  # Amount put in the bank on Sunday
+amount_put_in = initial_amount
+total_in_bank = amount_put_in  # Start with the amount put in on Sunday
+
+# Days of the week starting from Sunday
+days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+day_index = 0  # Start with Sunday
+day_exceeding = None
+
+# We will iterate until the total amount exceeds 500 cents ($5)
+for day in range(1, 15):  # We know it will take up to 14 days to check fully in a two-week period
+    amount_put_in *= 2  # Double the amount for the next day
+    total_in_bank += amount_put_in  # Add the new amount to the total in the bank
+    
+    if total_in_bank > 500:  # Check if the total amount exceeds 500 cents ($5)
+        day_exceeding = days_of_week[day_index]
+        break
+    
+    day_index = (day_index + 1) % 7  # Move to the next day of the week
+
+print(day_exceeding)
+```
+Code execution result: Sunday
+
+
+It seems there is still inconsistency in the code or understanding of the problem, and we need to ensure the implementation is correct and matches the intended solution. 
+
+Let's take a more detailed and manual approach by checking the amount accumulated day-by-day until it exceeds 500 cents and align it strictly with the correct day of the week pattern. We can systematically compute the values step-by-step and note the cumulative total and corresponding day.
+
+We know that:
+- On Sunday, she puts in 1 cent.
+- On Monday, she puts in 2 cents.
+- On Tuesday, she puts in 4 cents.
+- This doubling continues, so the amounts by day would be: 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, and so on.
+
+Let's manually iterate through these values up to two weeks (14 days) and check when the cumulative total of these amounts first exceeds 500 cents. We can write Python code to do this explicitly to ensure accuracy.
+```python
+# Initialize variables
+daily_deposits = [1]  # Starting with 1 cent on Sunday
+total_in_bank = 1  # Starting total on Sunday as 1 cent
+day_of_week = "Sunday"
+
+# Generate the daily deposits and update the cumulative total
+for day in range(1, 14):  # From Monday to Saturday of the second week (total 13 days after Sunday)
+    next_deposit = daily_deposits[-1] * 2  # Double the previous day's deposit
+    daily_deposits.append(next_deposit)
+    total_in_bank += next_deposit  # Add the new deposit to the cumulative total
+    
+    if total_in_bank > 500:  # Check if the cumulative total exceeds 500 cents
+        exceeding_day = day_of_week
+        break
+    
+    day_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][
+                  (days_of_week.index(day_of_week) + 1) % 7]  # Get the next day of the week
+
+print(exceeding_day)
+```
+Code execution result: NameError: name 'days_of_week' is not defined. Did you mean: 'day_of_week'?
+
+

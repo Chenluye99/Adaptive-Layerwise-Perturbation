@@ -1,0 +1,59 @@
+Score: 1.0
+
+To solve this problem, we will use the Angle Bisector Theorem and the formula for the length of the angle bisector of a triangle.
+
+1. **Understand the Problem:**
+    - We have a triangle \(ABC\) with \(AB = 3\), \(AC = 6\), and \(\cos \angle A = \frac{1}{8}\).
+    - We need to find the length of the angle bisector \(AD\), where \(D\) is the point on \(BC\) such that \(AD\) bisects \(\angle A\).
+
+2. **Use the Law of Cosines to Find \(BC\):**
+    - By the Law of Cosines, we have:
+      \[
+      BC^2 = AB^2 + AC^2 - 2 \cdot AB \cdot AC \cdot \cos \angle A
+      \]
+      Substituting the given values:
+      \[
+      BC^2 = 3^2 + 6^2 - 2 \cdot 3 \cdot 6 \cdot \frac{1}{8} = 9 + 36 - \frac{36}{8} = 45 - \frac{9}{2} = 45 - 4.5 = 40.5 = \frac{81}{2}
+      \]
+      So,
+      \[
+      BC = \sqrt{\frac{81}{2}} = \frac{9}{\sqrt{2}} = \frac{9 \sqrt{2}}{2}
+      \]
+
+3. **Find the Length of the Angle Bisector Using the Angle Bisector Length Formula:**
+    - The length of the angle bisector \(AD\) of angle \(A\) in a triangle with sides \(a = BC\), \(b = AC\), and \(c = AB\) is given by:
+      \[
+      AD = \frac{2 \cdot AB \cdot AC \cdot \cos \left(\frac{\angle A}{2}\right)}{AB + AC}
+      \]
+      To get \(\cos \left(\frac{\angle A}{2}\right)\), we use the half-angle formula:
+      \[
+      \cos \left(\frac{\angle A}{2}\right) = \sqrt{\frac{1 + \cos \angle A}{2}} = \sqrt{\frac{1 + \frac{1}{8}}{2}} = \sqrt{\frac{\frac{9}{8}}{2}} = \sqrt{\frac{9}{16}} = \frac{3}{4}
+      \]
+      Now substituting \(\cos \left(\frac{\angle A}{2}\right) = \frac{3}{4}\), \(AB = 3\), and \(AC = 6\) into the formula for the length of the angle bisector:
+      \[
+      AD = \frac{2 \cdot 3 \cdot 6 \cdot \frac{3}{4}}{3 + 6} = \frac{2 \cdot 3 \cdot 6 \cdot \frac{3}{4}}{9} = \frac{2 \cdot 3 \cdot 6 \cdot 3}{4 \cdot 9} = \frac{108}{36} = 3
+      \]
+
+Let's verify this with Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Given values
+AB = 3
+AC = 6
+cos_A = 1 / 8
+
+# Calculate BC using the Law of Cosines
+BC = sp.sqrt(AB**2 + AC**2 - 2 * AB * AC * cos_A)
+
+# Calculate cos(angle A / 2) using the half-angle formula
+cos_A_half = sp.sqrt((1 + cos_A) / 2)
+
+# Calculate the length of the angle bisector AD
+AD = (2 * AB * AC * cos_A_half) / (AB + AC)
+print(AD.evalf())
+```
+Code execution result: 3.00000000000000
+
+Thus, the length of the angle bisector \( \overline{AD} \) is \(\boxed{3}\). This confirms that our solution is accurate.
+

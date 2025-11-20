@@ -1,0 +1,107 @@
+Score: 1.0
+
+Given:
+- \(|\vec{a}| = 1\)
+- \(\vec{b} = (1, \sqrt{3})\)
+- \((\vec{b} - \vec{a}) \perp \vec{a}\)
+
+First, substitute the given values into the equation \((\vec{b} - \vec{a}) \perp \vec{a}\). By definition, if \((\vec{b} - \vec{a}) \perp \vec{a}\), then their dot product is zero:
+\[
+(\vec{b} - \vec{a}) \cdot \vec{a} = 0.
+\]
+
+Expanding this, we get:
+\[
+\vec{b} \cdot \vec{a} - \vec{a} \cdot \vec{a} = 0.
+\]
+Since \(\vec{a} \cdot \vec{a} = |\vec{a}|^2 = 1^2 = 1\), the equation simplifies to:
+\[
+\vec{b} \cdot \vec{a} - 1 = 0 \implies \vec{b} \cdot \vec{a} = 1.
+\]
+
+Next, calculate \(\vec{b} \cdot \vec{a}\):
+\[
+\vec{b} \cdot \vec{a} = 1 \cdot a_1 + \sqrt{3} \cdot a_2 = a_1 + \sqrt{3} \cdot a_2 = 1.
+\]
+So, we have the equation:
+\[
+a_1 + \sqrt{3} \cdot a_2 = 1 \quad \text{(1)}
+\]
+where \(\vec{a} = (a_1, a_2)\).
+
+Now, we want to determine the angle \(\theta\) between \(\vec{a}\) and \(\vec{b}\). The dot product of \(\vec{a}\) and \(\vec{b}\) can also be written in terms of the magnitudes and cosine of the angle between them:
+\[
+\vec{a} \cdot \vec{b} = |\vec{a}| |\vec{b}| \cos \theta.
+\]
+We already know that \(\vec{a} \cdot \vec{b} = 1\), \(|\vec{a}| = 1\), and we need to determine \(|\vec{b}|\):
+\[
+|\vec{b}| = \sqrt{1^2 + (\sqrt{3})^2} = \sqrt{1 + 3} = \sqrt{4} = 2.
+\]
+So,
+\[
+1 = 1 \cdot 2 \cdot \cos \theta \implies 1 = 2 \cos \theta \implies \cos \theta = \frac{1}{2}.
+\]
+The angle \(\theta\) for which \(\cos \theta = \frac{1}{2}\) is:
+\[
+\theta = \frac{\pi}{3}.
+\]
+
+Let's confirm this result with Python by solving the equation \(a_1 + \sqrt{3} \cdot a_2 = 1\) and then verifying the angle calculation.
+```python
+import sympy as sp
+
+# Define the variables
+a1, a2 = sp.symbols('a1 a2', real=True, positive=True)
+
+# Set up the equation a1 + sqrt(3) * a2 = 1
+eq = sp.Eq(a1 + sp.sqrt(3) * a2, 1)
+
+# Solve the equation for a1 in terms of a2 (or vice versa)
+solution = sp.solve(eq, a1)[0]
+
+print(solution)
+```
+Code execution result: -sqrt(3)*a2 + 1
+
+This confirms that \(a_1 = 1 - \sqrt{3} \cdot a_2\). We know that \(\vec{a}\) is a unit vector, so its magnitude must be 1:
+\[
+|\vec{a}| = \sqrt{a_1^2 + a_2^2} = 1 \implies a_1^2 + a_2^2 = 1.
+\]
+Substitute \(a_1 = 1 - \sqrt{3} \cdot a_2\) into this equation:
+\[
+(1 - \sqrt{3} \cdot a_2)^2 + a_2^2 = 1.
+\]
+Let's solve this equation for \(a_2\).
+```python
+import sympy as sp
+
+# Define the variables
+a2 = sp.symbols('a2', real=True, positive=True)
+
+# Substitute a1 from the equation a1 = 1 - sqrt(3) * a2 into the equation a1^2 + a2^2 = 1
+a1 = 1 - sp.sqrt(3) * a2
+eq = sp.Eq((a1)**2 + a2**2, 1)
+
+# Solve for a2
+solutions = sp.solve(eq, a2)
+
+print(solutions)
+```
+Code execution result: [sqrt(3)/2]
+
+So, we have \(a_2 = \frac{\sqrt{3}}{2}\). Now, we substitute this back to get \(a_1\):
+\[
+a_1 = 1 - \sqrt{3} \cdot \frac{\sqrt{3}}{2} = 1 - \frac{3}{2} = -\frac{1}{2}.
+\]
+However, since we previously assumed \(\vec{a} = (a_1, a_2)\) with both components as real numbers, and \(\vec{a}\) must be a unit vector, we need to choose the correct positive value for both components ensuring that \(\vec{a}\) remains a unit vector. 
+
+Let's consider the correct positive value by checking if another solution fits better. Because both components of \(\vec{a}\) should be valid and maintain \(\vec{a}\) as a unit vector, we can verify by checking if another valid pair exists. But since the dot product \(\vec{a} \cdot \vec{b} = 1\) had only one valid solution set satisfying both the vector equation and unit vector condition in the question's context, we confirm and accept this solution as accurate.
+
+Therefore, as previously derived analytically, we get:
+\[
+\cos \theta = \frac{1}{2} \implies \theta = \frac{\pi}{3}.
+\]
+
+Thus, our final answer is:
+\(\boxed{\frac{\pi}{3}}\)
+

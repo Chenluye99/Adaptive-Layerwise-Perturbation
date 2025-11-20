@@ -1,0 +1,42 @@
+Score: 1.0
+
+To solve the problem, we will follow these steps:
+
+1. **Generate All Possible 4-letter Words:**
+   We need to generate all possible 4-letter words that can be formed using the letters {A, B, C, D, E}. Each position in the 4-letter word can be any of the 5 letters, so there are \(5^4\) possible 4-letter words.
+
+2. **Check for Consonants:**
+   For each generated 4-letter word, we need to check if it contains at least one consonant. The consonants in our set of letters are {B, C, D}.
+
+3. **Count Valid Words:**
+   We count how many of these 4-letter words contain at least one consonant.
+
+Let's implement this step-by-step process in Python to get the accurate result.
+```python
+import itertools
+
+# Given letters
+letters = ['A', 'B', 'C', 'D', 'E']
+
+# Generate all 4-letter words from the given letters
+all_4_letter_words = [''.join(word) for word in set(itertools.product(letters, repeat=4))]
+
+# Define the set of consonants from the given letters
+consonants = {'B', 'C', 'D'}
+
+# Function to check if a word contains at least one consonant
+def contains_consonant(word):
+    for char in word:
+        if char in consonants:
+            return True
+    return False
+
+# Count the number of 4-letter words that contain at least one consonant
+count_valid_words = sum(1 for word in all_4_letter_words if contains_consonant(word))
+
+print(count_valid_words)
+```
+Code execution result: 609
+
+Thus, the number of 4-letter words with at least one consonant that can be constructed from the letters {A, B, C, D, E} is \(\boxed{609}\). This is the final answer.
+

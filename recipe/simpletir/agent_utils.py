@@ -444,7 +444,7 @@ class AgentHelper:
         self,
         gen_batch,
         initial_input_ids: torch.Tensor,
-        timeout: int = 5,
+        timeout: int = 50,
     ) -> Tuple[Dict, Dict]:
         """Run main LLM generation loop."""
         batch_size = gen_batch.batch["input_ids"].shape[0]

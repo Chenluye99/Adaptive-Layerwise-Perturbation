@@ -1,0 +1,43 @@
+Score: 1.0
+
+To solve the problem, we need to find the smallest positive value of \( m \) such that the quadratic equation \( 10x^2 - mx + 420 = 0 \) has integral solutions.
+
+If the quadratic equation \( 10x^2 - mx + 420 = 0 \) has integral solutions, let's denote these solutions by \( p \) and \( q \). By Vieta's formulas, we have:
+
+1. \( p + q = \frac{m}{10} \)
+2. \( pq = \frac{420}{10} = 42 \)
+
+From the second equation, we know that \( p \) and \( q \) are integers that multiply to 42. So, we list the pairs of integers whose product is 42:
+
+\[
+(1, 42), (-1, -42), (2, 21), (-2, -21), (3, 14), (-3, -14), (6, 7), (-6, -7)
+\]
+
+For each pair \((p, q)\), we can compute \( m \) using the first equation:
+
+\[
+m = 10 (p + q)
+\]
+
+We want to find the smallest positive value of \( m \). So, we will iterate through each of these pairs, compute the corresponding \( m \), and determine the smallest positive value of \( m \) from these computations.
+
+Let's implement this in Python to get the accurate result.
+```python
+# Define the list of pairs (p, q) whose product is 42
+pairs = [(1, 42), (-1, -42), (2, 21), (-2, -21), (3, 14), (-3, -14), (6, 7), (-6, -7)]
+
+# Initialize a variable to store the smallest positive value of m
+smallest_m = float("inf")
+
+# Check each pair and compute the corresponding m, then find the smallest positive m
+for p, q in pairs:
+    m = 10 * (p + q)
+    if 0 < m < smallest_m:
+        smallest_m = m
+
+print(smallest_m)
+```
+Code execution result: 130
+
+Thus, the smallest positive value of \( m \) so that the equation \( 10x^2 - mx + 420 = 0 \) has integral solutions is \(\boxed{130}\). This is our final answer.
+

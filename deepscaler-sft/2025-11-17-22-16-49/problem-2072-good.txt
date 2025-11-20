@@ -1,0 +1,56 @@
+Score: 1.0
+
+First, we start by solving the equation $(x-a)(x-b) + (x-b)(x-c) = 0$.
+
+1. Factor out the common term $(x - b)$ from the equation:
+   \[
+   (x - a)(x - b) + (x - b)(x - c) = (x - b)((x - a) + (x - c)) = 0
+   \]
+2. This gives us two factors that must be set to zero:
+   \[
+   (x - b) = 0 \quad \text{or} \quad (x - a) + (x - c) = 0
+   \]
+3. From $(x - b) = 0$, we get one root:
+   \[
+   x = b
+   \]
+4. From $(x - a) + (x - c) = 0$, we get:
+   \[
+   x - a + x - c = 0 \implies 2x - a - c = 0 \implies 2x = a + c \implies x = \frac{a + c}{2}
+   \]
+   So, the other root is:
+   \[
+   x = \frac{a + c}{2}
+   \]
+
+5. The roots of the equation are $x = b$ and $x = \frac{a + c}{2}$. The sum of the roots of the equation is:
+   \[
+   b + \frac{a + c}{2}
+   \]
+
+6. To find the maximum value of this sum, we need to consider all possible distinct one-digit numbers for $a$, $b$, and $c$ (i.e., integers from 0 to 9), and compute the sum $b + \frac{a + c}{2}$ for each combination, then take the maximum value.
+
+Let's write a Python code to iterate through all possible distinct values of $a$, $b$, and $c$ and find the maximum value of the sum of the roots.
+```python
+import itertools
+
+max_sum = 0
+best_a, best_b, best_c = 0, 0, 0
+
+# Iterate over all distinct one-digit numbers for a, b, c
+for a, b, c in itertools.permutations(range(10), 3):
+    sum_of_roots = b + (a + c) / 2
+    if sum_of_roots > max_sum:
+        max_sum = sum_of_roots
+        best_a, best_b, best_c = a, b, c
+
+print(((max_sum, best_a, best_b, best_c)))
+```
+Code execution result: (16.5, 7, 9, 8)
+
+This means that the maximum value of the sum of the roots is \( 16.5 \), and this occurs when \( a = 7 \), \( b = 9 \), and \( c = 8 \).
+
+Thus, the final answer is:
+
+\(\boxed{16.5}\)
+

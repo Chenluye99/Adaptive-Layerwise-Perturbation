@@ -1,0 +1,52 @@
+Score: 0.0
+
+To solve this problem, we need to use the property of square roots. If a number \( n \) has two square roots, they are either the same (which is not the case here since we have different expressions \( a+2 \) and \( 2a-11 \)) or they are opposites of each other. That is, if \( a + 2 \) and \( 2a - 11 \) are the square roots of the same number, then one of them must be the negative of the other. So, we have:
+
+\[ a + 2 = -(2a - 11) \]
+
+We'll solve this equation for \( a \):
+
+\[ a + 2 = -2a + 11 \]
+\[ a + 2a = 11 - 2 \]
+\[ 3a = 9 \]
+\[ a = 3 \]
+
+Now that we have the value of \( a \), we can substitute it back into either expression for the square root to find the actual square root of the number. We'll substitute \( a = 3 \) into \( a + 2 \):
+
+\[ a + 2 = 3 + 2 = 5 \]
+
+So, the square root of the number is 5, and the number itself is:
+
+\[ 5^2 = 25 \]
+
+To ensure this is correct, we can also check by substituting \( a = 3 \) into the other expression \( 2a - 11 \):
+
+\[ 2a - 11 = 2(3) - 11 = 6 - 11 = -5 \]
+
+So, the other square root of the number is -5, and indeed, 5 and -5 are the square roots of 25. Therefore, the positive number is 25.
+
+Let's confirm this by coding it in Python.
+```python
+# We solve for 'a' using the equation a + 2 = -(2a - 11)
+from sympy import symbols, Eq, solve
+
+# Define the variable
+a = symbols('a')
+
+# Create the equation based on the problem statement
+equation = Eq(a + 2, -(2 * a - 11))
+
+# Solve for 'a'
+solution = solve(equation, a)[0]
+
+# Now that we have the value of 'a', we substitute it back to get one of the square roots
+square_root_1 = solution + 2
+
+# The positive number is the square of this square root
+positive_number = square_root_1 ** 2
+print(positive_number)
+```
+Code execution result: 25
+
+Thus, the positive number is \(\boxed{25}\). This confirms our previous solution is correct.
+

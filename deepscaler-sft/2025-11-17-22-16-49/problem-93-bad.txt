@@ -1,0 +1,48 @@
+Score: 0.0
+
+First, let's break down the problem step-by-step.
+
+1. **Understand the Problem:**
+    - We have a standard 52-card deck.
+    - We need to find the probability that, when drawing 6 cards, exactly 4 of these cards have the same value.
+
+2. **Formulate the Solution:**
+    - A standard deck has 52 cards with 13 different values (Ace, 2, 3, ..., 10, Jack, Queen, King) and each value has 4 suits (hearts, diamonds, clubs, spades).
+    - To satisfy the condition that four of the six cards drawn have the same value, we need to choose a value for those 4 cards, and then choose the suits for those 4 cards, and then choose the remaining 2 cards from the other 48 cards in such a way that they do not share the same value as the 4 cards we chose initially.
+
+3. **Calculate the Number of Successful Outcomes:**
+    - First, choose the rank for the four cards: there are 13 different choices for this rank.
+    - There are \(\binom{4}{4} = 1\) way to choose 4 suits from the 4 available suits for this rank.
+    - Next, we need to choose 2 more cards from the remaining 48 cards such that they do not share the same rank as the first 4 cards. There are \(12\) ranks left to choose from for each of the 2 cards, and we need to choose 2 cards from the 48 cards such that they come from different ranks. For each rank, there are 4 cards, so we need to ensure that the 2 cards are not from the same rank as our initial 4 cards.
+    - There are \( \binom{12}{2} = 66 \) ways to choose 2 different ranks from the 12 remaining ranks. And for each of these 2 ranks, there are 4 choices for each card, so there are \(4 \times 4 = 16\) ways to choose 2 cards from these 2 ranks. Therefore, the number of ways to choose the 2 additional cards is \(66 \times 16 = 1056\).
+    - Thus, the total number of successful outcomes is \( 13 \times 1 \times 1056 = 13776 \).
+
+4. **Calculate the Total Number of Possible Outcomes:**
+    - The total number of ways to choose 6 cards from a 52-card deck is given by the combination formula \(\binom{52}{6}\):
+    \[
+    \binom{52}{6} = \frac{52!}{6!(52-6)!} = \frac{52!}{6! \cdot 46!}
+    \]
+    - We can calculate this value using Python.
+
+5. **Calculate the Probability:**
+    - The probability is the ratio of the number of successful outcomes to the total number of outcomes:
+    \[
+    P = \frac{13776}{\binom{52}{6}}
+    \]
+
+Let's implement this in Python to ensure accuracy.
+```python
+import math
+
+# Calculate the binomial coefficient
+numerator = 13 * 1 * 1056  # Calculated as per our reasoning above
+denominator = math.comb(52, 6)  # Total number of ways to choose 6 cards from 52
+
+# Calculate the probability
+probability = numerator / denominator
+print(probability)
+```
+Code execution result: 0.0006743122781027305
+
+Thus, the probability that four of the cards that Eddy draws have the same value is \(\boxed{0.0006743122781027305}\). This is the final answer.
+

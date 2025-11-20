@@ -1,0 +1,50 @@
+Score: 1.0
+
+To solve the problem, we will follow these steps:
+
+1. **List All Possible Permutations:**
+   First, generate all possible ways to arrange the three students A, B, and C. The number of permutations of three distinct items is \(3! = 6\). The possible arrangements are:
+   - ABC
+   - ACB
+   - BAC
+   - BCA
+   - CAB
+   - CBA
+
+2. **Count Favorable Outcomes:**
+   Next, we need to check how many of these permutations have students A and B standing together. To check this, we can examine each permutation to see if A and B are adjacent.
+
+3. **Calculate Probability:**
+   The probability is the number of favorable outcomes divided by the total number of outcomes. If there are \(n\) favorable outcomes out of 6 possible arrangements, the probability is \(\frac{n}{6}\).
+
+Let's implement this step-by-step plan in Python.
+```python
+import itertools
+
+# List the three students
+students = ['A', 'B', 'C']
+
+# Generate all possible permutations of the three students
+permutations = list(itertools.permutations(students))
+
+# Count the total number of permutations
+num_permutations = len(permutations)
+
+# Count the number of permutations where A and B are standing together
+count_AB_together = 0
+
+for perm in permutations:
+    # Check if 'A' and 'B' are adjacent (i.e., they appear next to each other in the list)
+    index_A = perm.index('A')
+    index_B = perm.index('B')
+    if abs(index_A - index_B) == 1:
+        count_AB_together += 1
+
+# Calculate the probability
+probability = count_AB_together / num_permutations
+print(probability)
+```
+Code execution result: 0.6666666666666666
+
+Thus, the probability that students A and B stand together among three students A, B, and C lined up in a row is \(\boxed{0.6666666666666666}\). This fraction is equivalent to \(\frac{2}{3}\).
+

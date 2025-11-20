@@ -1,0 +1,39 @@
+Score: 1.0
+
+To solve this problem, we need to follow these steps:
+
+1. **Find the Least Common Multiple (LCM) of 30 and 40:**
+    - The LCM of two numbers is the smallest number that is a multiple of both of them.
+    - First, we need to compute the LCM of 30 and 40.
+
+2. **Check for Multiples of 16:**
+    - After getting the LCM of 30 and 40, we need to check if this LCM is also a multiple of 16. If it is, we need to find the next multiple of this LCM and check if it is not a multiple of 16.
+
+3. **Implement in Python:**
+    - We'll write Python code to get the LCM of 30 and 40, and then check the multiples of this LCM to ensure they are not multiples of 16.
+
+Let's start by writing the code to solve this step-by-step.
+```python
+import math
+
+# Function to compute LCM of two numbers
+def lcm(x, y):
+    return abs(x * y) // math.gcd(x, y)
+
+# Compute LCM of 30 and 40
+lcm_30_40 = lcm(30, 40)
+
+# Find the smallest positive integer that is a multiple of both 30 and 40 but not a multiple of 16
+multiple = lcm_30_40
+while True:
+    if multiple % 16 != 0:
+        result = multiple
+        break
+    multiple += lcm_30_40
+
+print(result)
+```
+Code execution result: 120
+
+Thus, the smallest positive integer that is a multiple of both 30 and 40 but not a multiple of 16 is \(\boxed{120}\). This is our final answer.
+

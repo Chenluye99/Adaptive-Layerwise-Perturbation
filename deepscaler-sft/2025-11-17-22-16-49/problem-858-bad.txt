@@ -1,0 +1,40 @@
+Score: 0.0
+
+First, let's start by breaking down the problem:
+
+1. **Problem Understanding:**
+    - We have an 8-foot by 10-foot floor which is covered with 1-foot by 1-foot square tiles. So, the total number of tiles is \(8 \times 10 = 80\).
+    - Each tile has a pattern of four white quarter circles at each of its corners, and each quarter circle has a radius of \( \frac{1}{2} \) foot.
+    - Each full circle formed by four such quarter circles will have a radius of \( \frac{1}{2} \) foot, so its area is \(\pi \left( \frac{1}{2} \right)^2 = \pi \cdot \frac{1}{4} = \frac{\pi}{4}\).
+    - Since there are four such quarter circles on each tile, the total area of the white portion of each tile is \(\frac{\pi}{4} \times 4 = \pi\).
+    - The area of each 1-foot by 1-foot tile is 1 square foot. So, the shaded area of each tile is \(1 - \pi\).
+
+2. **Computing the Total Shaded Area:**
+    - Since there are 80 tiles and each tile has a shaded area of \(1 - \pi\), the total shaded area on the floor will be \(80 \times (1 - \pi)\).
+
+Let's now implement this in Python to get the precise answer.
+```python
+import sympy as sp
+
+# Number of tiles
+num_tiles = 8 * 10
+
+# Area of each tile
+area_of_each_tile = 1
+
+# Area of the white part on each tile
+radius = 1 / 2
+area_of_circle = sp.pi * (radius ** 2)
+area_of_white_pattern = 4 * area_of_circle
+
+# Area of the shaded part on each tile
+area_of_shaded_pattern = area_of_each_tile - area_of_white_pattern
+
+# Total shaded area on the floor
+total_shaded_area = num_tiles * area_of_shaded_pattern
+print(total_shaded_area)
+```
+Code execution result: 80 - 80.0*pi
+
+Thus, the total shaded area of the floor is \(\boxed{80 - 80\pi}\) square feet. This is the final answer.
+

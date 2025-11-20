@@ -1,0 +1,55 @@
+Score: 1.0
+
+To solve this problem, let's start by setting up the equations based on the problem description. We have four distinct integers \(a, b, c, d\) such that the six pairwise sums of these integers are 16, 19, 20, 21, 22, and 25.
+
+Without loss of generality, we can say:
+
+\[
+a + b = 16, \quad a + c = 19, \quad a + d = 20, \quad b + c = 21, \quad b + d = 22, \quad c + d = 25
+\]
+
+We need to solve this system of equations to get the values of \(a, b, c, d\). We can solve it step-by-step by using Python to ensure accuracy.
+
+Let's use Python to solve for \(a, b, c, d\).
+```python
+from sympy import symbols, Eq, solve
+
+# Define the variables
+a, b, c, d = symbols('a b c d', integers=True)
+
+# Set up the system of equations based on the pairwise sums
+eq1 = Eq(a + b, 16)
+eq2 = Eq(a + c, 19)
+eq3 = Eq(a + d, 20)
+eq4 = Eq(b + c, 21)
+eq5 = Eq(b + d, 22)
+eq6 = Eq(c + d, 25)
+
+# Solve the system of equations
+solution = solve((eq1, eq2, eq3, eq4, eq5, eq6), (a, b, c, d))
+
+print(solution)
+```
+Code execution result: {a: 7, b: 9, c: 12, d: 13}
+
+Thus, the solutions for the variables \(a, b, c, d\) are:
+
+\[
+a = 7, \quad b = 9, \quad c = 12, \quad d = 13
+\]
+
+To ensure these solutions are accurate, we can verify that these values yield the correct pairwise sums:
+
+1. \(a + b = 7 + 9 = 16\)
+2. \(a + c = 7 + 12 = 19\)
+3. \(a + d = 7 + 13 = 20\)
+4. \(b + c = 9 + 12 = 21\)
+5. \(b + d = 9 + 13 = 22\)
+6. \(c + d = 12 + 13 = 25\)
+
+All of these match the originally given pairwise sums, so the solution is correct. The four integers in increasing order are:
+
+\[
+\boxed{7, 9, 12, 13}
+\]
+

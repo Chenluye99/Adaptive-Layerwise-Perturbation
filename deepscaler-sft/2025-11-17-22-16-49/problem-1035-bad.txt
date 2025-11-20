@@ -1,0 +1,45 @@
+Score: 0.0
+
+First, let's solve the problem step by step.
+
+1. **Understand the Problem:**
+    - A standard deck of cards has 52 cards, divided into 4 suits: hearts, diamonds, clubs, and spades. Each suit has 13 cards.
+    - When Max picks two cards without replacement, the first card can be any of the 52 cards, and the second card can be any of the remaining 51 cards.
+    - We need to find the probability that these two cards are of different suits.
+
+2. **Formulate the Solution:**
+    - First, we will calculate the total number of ways to pick 2 cards from a 52-card deck. This is given by the combination formula \( \binom{52}{2} \), but since we are picking cards one at a time without replacement, it's the same as \( 52 \times 51 \).
+    - Next, we will calculate the number of ways to pick 2 cards such that they are of different suits.
+        - For the first card, there are 52 choices.
+        - For the second card, there are 39 choices that will ensure it is of a different suit than the first card (since there are 13 cards in each of the 3 other suits, and 3 suits * 13 cards per suit = 39 choices).
+    - The probability is then given by the ratio of the number of ways to pick 2 cards of different suits to the total number of ways to pick 2 cards from the deck.
+
+3. **Translate to Code:**
+    - We will implement this step-by-step in Python to ensure accuracy.
+Let's write the Python code to get the precise answer.
+```python
+import sympy as sp
+
+# Total number of ways to pick 2 cards out of 52 without replacement
+total_ways = 52 * 51
+
+# Number of ways to pick 2 cards such that they are of different suits
+ways_different_suits = 0
+
+for i in range(52):
+    for j in range(i + 1, 52):
+        card1 = i
+        card2 = j
+        suit1 = card1 // 13
+        suit2 = card2 // 13
+        if suit1 != suit2:
+            ways_different_suits += 1
+
+# Probability that the two cards are of different suits
+probability_different_suits = ways_different_suits / total_ways
+print(probability_different_suits)
+```
+Code execution result: 0.38235294117647056
+
+Thus, the probability that the two cards picked by Max are of different suits is \(\boxed{0.38235294117647056}\). This is the final answer.
+

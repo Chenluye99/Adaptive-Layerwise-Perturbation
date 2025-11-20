@@ -1,0 +1,76 @@
+Score: 0.0
+
+First, let's define the problem and solve it step-by-step.
+
+1. **Problem Understanding:**
+    - The cook has 10 red peppers and 5 green peppers, making a total of 15 peppers.
+    - We need to find the probability that, when the cook selects 6 peppers at random, at least 4 of them are green.
+    - "At least 4 green peppers" means we need to consider the cases where the cook selects 4 green peppers, 5 green peppers, or 6 green peppers.
+
+2. **Mathematical Formulation:**
+    - To solve this, we can use combinations. The number of ways to choose 6 peppers out of 15 is given by \(\binom{15}{6}\).
+    - We then need to consider the different ways in which the number of green peppers selected can be 4, 5, or 6.
+    - The number of ways to choose \(k\) green peppers out of 5 is \(\binom{5}{k}\), and the number of ways to choose the remaining \(6 - k\) peppers from the 10 red peppers is \(\binom{10}{6 - k}\).
+    - So, the number of ways to get exactly \(k\) green peppers in the selection of 6 peppers is \(\binom{5}{k} \times \binom{10}{6 - k}\).
+    - We need to consider the valid ranges for \(k\) such that \(0 \leq k \leq 5\) and \(0 \leq 6 - k \leq 10\), but since there are only 5 green peppers, the relevant values of \(k\) are 4, 5, and 6 (as having 6 green peppers would mean selecting all 6 out of the available 5, which isn't possible directly but we can consider cases stepwise).
+
+3. **Use Python to Calculate:**
+    - We will loop through the possible cases and sum up the successful outcomes, then divide by the total number of outcomes to get the probability.
+
+Let's implement this in Python.
+```python
+import math
+
+# Total ways to choose 6 peppers out of 15
+total_ways = math.comb(15, 6)
+
+# Initialize counter for successful outcomes (at least 4 green peppers)
+successful_outcomes = 0
+
+# Check through all possible ways of choosing 6 peppers and count how many of those ways include at least 4 green peppers
+for green_count in range(6):
+    if 0 <= green_count <= 5:
+        red_count = 6 - green_count
+        
+        if 0 <= red_count <= 10 and red_count + green_count == 6:
+            successful_outcomes += math.comb(5, green_count) * math.comb(10, red_count)
+
+# Calculate probability
+probability = successful_outcomes / total_ways
+print(probability)
+```
+Code execution result: 1.0
+
+It appears that the code execution result is 1.0, which isn't reasonable considering that there are only 5 green peppers and it's impossible to select 6 green peppers out of 5. We need to make sure our code accounts for all possible combinations correctly and only counts those that satisfy the condition of having at least 4 green peppers when selecting 6 peppers in total.
+
+Let's correct and ensure that we handle properly by coding each case individually where we get 4, 5, or 6 green peppers when 6 peppers are chosen, excluding impossible cases. 
+
+Let's correct this and ensure that our implementation is thorough and accounts for only reasonable numbers of green peppers (from 0 to 5, because there are only 5 green peppers total). We'll handle overflows and ensure we only count valid selections.
+```python
+import sympy as sp
+
+# Initialize counter for successful outcomes (at least 4 green peppers)
+successful_outcomes = 0
+
+# Loop through all possible ways to choose 6 peppers from 15 and count how many of those ways include at least 4 green peppers
+for i in range(16):
+    for j in range(16):
+        if i + j == 6:
+            green_peppers = min(i, 5)
+            red_peppers = j
+            if green_peppers >= 4:  # Need at least 4 green peppers
+                successful_outcomes += sp.binomial(5, green_peppers) * sp.binomial(10, red_peppers)
+
+# Total ways to choose 6 peppers out of 15
+total_ways = sp.binomial(15, 6)
+
+# Calculate probability
+probability = successful_outcomes / total_ways
+print(probability)
+```
+Code execution result: 236/5005
+
+Hence, the probability that the cook selects at least 4 green peppers when choosing 6 peppers at random from a total of 15 (10 red and 5 green) is:
+
+\(\boxed{\frac{236}{5005}}\)
+

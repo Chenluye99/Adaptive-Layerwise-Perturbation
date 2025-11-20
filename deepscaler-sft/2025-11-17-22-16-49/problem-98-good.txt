@@ -1,0 +1,70 @@
+Score: 1.0
+
+To determine the solution, we need to analyze the invertibility of each function. A function is invertible if and only if it is one-to-one (injective), meaning that no two different elements in the domain map to the same element in the range.
+
+1. **Function (6):** $y = x^3 - 3x$
+    - This is a polynomial function, and it is not one-to-one over all real numbers because it is not a strictly monotonic function. For example, the function \( y = x^3 - 3x \) has critical points where its derivative is zero, indicating that it does not always increase or decrease monotonically.
+    - We can check if it is one-to-one over its domain by evaluating its derivative and observing if it changes sign, or by plotting the function and checking if any horizontal line intersects the graph more than once.
+
+2. **Function (7):** A set of discrete points: $\{(-6, 3), (-5, -5), (-4, 1), (-3, 0), (-2, -2), (-1, 4), (0, -4), (1, 2)\}$
+    - To determine if this function is one-to-one, we need to check if all the y-values are unique. By looking at the given points, we can see that each x-value maps to a unique y-value, so the function defined by these discrete points is one-to-one and thus invertible.
+
+3. **Function (8):** $y = \tan(x)$, defined over $(-\frac{\pi}{2}, \frac{\pi}{2})$
+    - The function $y = \tan(x)$ is one-to-one over the interval $(-\frac{\pi}{2}, \frac{\pi}{2})$ because the tangent function is strictly increasing over this interval, and it maps this interval to all real numbers, indicating it is bijective.
+
+4. **Function (9):** $y = \frac{5}{x}$, defined over all real numbers except $x = 0$
+    - The function $y = \frac{5}{x}$ is one-to-one over its domain because it is strictly decreasing over the intervals $(-\infty, 0)$ and $(0, \infty)$. Any horizontal line will intersect the graph at most once over its domain, making it invertible.
+
+So, the functions that are invertible are (7), (8), and (9). Their labels are 7, 8, and 9 respectively.
+
+To get the product of the labels of the invertible functions, we compute:
+\[ 7 \times 8 \times 9 \]
+
+Let's implement this in Python to ensure the correctness of the solution.
+```python
+# We will define a function to test if a function is invertible based on its properties and given data points.
+import sympy as sp
+
+# Function (6): y = x^3 - 3x
+x = sp.symbols('x')
+y = x**3 - 3 * x
+# To check if the function is one-to-one, we check if its derivative changes sign.
+dy_dx = sp.diff(y, x)
+critical_points = sp.solve(dy_dx, x)
+print(f"Critical Points for (6): {critical_points}")
+
+# Function (7): Given discrete points: {(-6, 3), (-5, -5), (-4, 1), (-3, 0), (-2, -2), (-1, 4), (0, -4), (1, 2)}
+# To check if it is one-to-one, we can just check the uniqueness of y-values.
+points_7 = [(-6, 3), (-5, -5), (-4, 1), (-3, 0), (-2, -2), (-1, 4), (0, -4), (1, 2)]
+y_values_7 = [point[1] for point in points_7]
+is_one_to_one_7 = len(set(y_values_7)) == len(y_values_7)
+
+# Function (8): y = tan(x) over (-pi/2, pi/2)
+# We know that tangent function is one-to-one over (-pi/2, pi/2) because it is strictly increasing in this interval.
+is_one_to_one_8 = True
+
+# Function (9): y = 5 / x over all real numbers except 0
+# We know that 1/x is one-to-one over its domain because it is strictly decreasing over (-∞, 0) and (0, ∞).
+is_one_to_one_9 = True
+
+# Determine which functions are invertible
+invertible_labels = []
+if is_one_to_one_7:
+    invertible_labels.append(7)
+if is_one_to_one_8:
+    invertible_labels.append(8)
+if is_one_to_one_9:
+    invertible_labels.append(9)
+
+# Calculate the product of the labels of the invertible functions
+product_of_labels = 1
+for label in invertible_labels:
+    product_of_labels *= label
+
+print(product_of_labels)
+```
+Code execution result: Critical Points for (6): [-1, 1]
+504
+
+Thus, the product of the labels of the functions that are invertible is \(\boxed{504}\).
+

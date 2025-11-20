@@ -1,0 +1,75 @@
+Score: 1.0
+
+First, we need to set up equations for the cost of printing shirts at both Acme T-Shirt Company and Beta T-Shirt Company.
+
+1. **Cost Equation for Acme T-Shirt Company:**
+   - Acme has a set-up fee of \$50 and charges \$9 per shirt.
+   - So, the cost for printing \( n \) shirts at Acme, \( C_{\text{Acme}}(n) \), can be represented as:
+     \[
+     C_{\text{Acme}}(n) = 50 + 9n
+     \]
+
+2. **Cost Equation for Beta T-Shirt Company:**
+   - Beta has no set-up fee and charges \$14 per shirt.
+   - So, the cost for printing \( n \) shirts at Beta, \( C_{\text{Beta}}(n) \), can be represented as:
+     \[
+     C_{\text{Beta}}(n) = 14n
+     \]
+
+To find the minimum number of shirts for which a customer saves money by using Acme, we need to determine the smallest value of \( n \) such that the cost of using Acme is less than the cost of using Beta:
+\[
+C_{\text{Acme}}(n) < C_{\text{Beta}}(n)
+\]
+
+Substitute the cost equations into the inequality:
+\[
+50 + 9n < 14n
+\]
+
+Rearrange the inequality to solve for \( n \):
+\[
+50 < 14n - 9n \implies 50 < 5n \implies 10 < n \implies n > 10
+\]
+
+This means \( n \) must be greater than 10. So, the smallest integer value for \( n \) that satisfies this inequality is 11. To ensure accuracy, we can check this by evaluating both cost functions at \( n = 11 \) and \( n = 10 \).
+
+Let's compute this using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variables
+n = sp.symbols('n', positive=True, integer=True)
+
+# Define the cost functions
+C_acme = 50 + 9 * n
+C_beta = 14 * n
+
+# Find the minimum number of shirts for which the cost of using Acme is less than the cost of using Beta
+solution = sp.solve(C_acme - C_beta, n)
+
+print(solution)
+```
+Code execution result: [10]
+
+The solution to the equation \( 50 + 9n = 14n \) is \( n = 10 \). This means that at \( n = 10 \), the costs of Acme and Beta are equal. For \( n > 10 \), Acme's cost will be less than Beta's cost. To ensure accuracy, let's check the costs for \( n = 10 \) and \( n = 11 \):
+
+- For \( n = 10 \):
+  \[
+  C_{\text{Acme}}(10) = 50 + 9 \cdot 10 = 50 + 90 = 140
+  \]
+  \[
+  C_{\text{Beta}}(10) = 14 \cdot 10 = 140
+  \]
+  At \( n = 10 \), the costs are equal.
+
+- For \( n = 11 \):
+  \[
+  C_{\text{Acme}}(11) = 50 + 9 \cdot 11 = 50 + 99 = 149
+  \]
+  \[
+  C_{\text{Beta}}(11) = 14 \cdot 11 = 154
+  \]
+  At \( n = 11 \), \( C_{\text{Acme}}(11) = 149 \) which is less than \( C_{\text{Beta}}(11) = 154 \).
+
+Thus, the minimum number of shirts for which a customer saves money by using Acme is \( \boxed{11} \). This confirms our solution is correct.
+

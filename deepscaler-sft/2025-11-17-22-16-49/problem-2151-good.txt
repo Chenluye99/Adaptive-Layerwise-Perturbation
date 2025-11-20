@@ -1,0 +1,49 @@
+Score: 1.0
+
+We are given the following equations:
+
+\[ 3x = 8y \]
+\[ 5y = 15z \]
+
+First, let's solve these equations step-by-step.
+
+1. From the second equation, \( 5y = 15z \), we can solve for \( y \) in terms of \( z \):
+
+\[ y = \frac{15z}{5} = 3z \]
+
+2. Now substitute \( y = 3z \) into the first equation \( 3x = 8y \):
+
+\[ 3x = 8(3z) \]
+\[ 3x = 24z \]
+\[ x = \frac{24z}{3} = 8z \]
+
+3. Now we have \( x = 8z \) and \( y = 3z \). To find the value of \(\frac{x}{z}\), we can substitute \( x = 8z \) into \(\frac{x}{z}\):
+
+\[ \frac{x}{z} = \frac{8z}{z} = 8 \]
+
+Thus, the value of \(\frac{x}{z}\) is 8. Let's confirm this by coding the solution in Python.
+```python
+from sympy import symbols, Eq, solve
+
+# Define the variables
+x, y, z = symbols('x y z')
+
+# Create the equations based on the problem statement
+eq1 = Eq(3 * x, 8 * y)
+eq2 = Eq(5 * y, 15 * z)
+
+# Solve the system of equations for x and y in terms of z
+solution = solve((eq1, eq2), (x, y))
+
+# Get the values of x and y in terms of z
+x_sol = solution[x]
+y_sol = solution[y]
+
+# Calculate x / z
+x_over_z = x_sol / z
+print(x_over_z)
+```
+Code execution result: 8
+
+Thus, the value of \(\frac{x}{z}\) is \(\boxed{8}\). This confirms our solution is accurate.
+

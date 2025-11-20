@@ -1,0 +1,35 @@
+Score: 1.0
+
+To solve this problem, let's break down the equation $4 \cdot 12 = 103$ in base $b$. 
+
+1. **Understand the Equation in Base b**:
+    - The number 12 in base $b$ means $1 \cdot b + 2 \cdot 1 = b + 2$.
+    - The number 103 in base $b$ means $1 \cdot b^2 + 0 \cdot b + 3 \cdot 1 = b^2 + 3$.
+    - So, the equation $4 \cdot 12 = 103$ in base $b$ translates to $4 \cdot (b + 2) = b^2 + 3$.
+
+2. **Formulate the Equation**:
+    - Set up the equation: $4 \cdot (b + 2) = b^2 + 3$.
+
+3. **Solve the Equation**:
+    - We need to find the positive integer value of $b$ that satisfies this equation. Let's implement this step-by-step in Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variable
+b = sp.symbols('b', positive=True, integer=True)
+
+# Define the equation 4 * (b + 2) = b^2 + 3
+equation = 4 * (b + 2) - (b**2 + 3)
+
+# Solve the equation
+solution = sp.solve(equation, b)
+
+# Filter out the positive integer solution
+positive_solution = [sol for sol in solution if sol > 0 and sol == int(sol)]
+
+print(positive_solution)
+```
+Code execution result: [5]
+
+Thus, the positive base $b$ that satisfies the equation $4 \cdot 12 = 103$ is \(\boxed{5}\). This is our final answer.
+

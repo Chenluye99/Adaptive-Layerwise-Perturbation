@@ -1,0 +1,29 @@
+Score: 0.0
+
+To solve this problem, we need to calculate the probability that Joan will solve the problem before her sixth try. This means we need to consider the events where she solves the problem on her first try, second try, third try, fourth try, or fifth try.
+
+We can use the complementary probability approach. The complementary event here is that Joan does not solve the problem in the first 5 tries and then she still does not solve it on her sixth try. 
+
+1. First, calculate the probability that Joan does not solve the problem in one day, which is \(1 - \frac{1}{4} = \frac{3}{4}\).
+2. Then, calculate the probability that Joan does not solve the problem in the first 5 tries. This is \(\left(\frac{3}{4}\right)^5\).
+3. Next, if Joan does not solve it in the first 5 tries, she must also not solve it on her sixth try. So, the probability that she does not solve it on her sixth try is \(\frac{3}{4}\).
+4. Therefore, the probability that Joan does not solve the problem in her first 6 tries is \(\left(\frac{3}{4}\right)^5 \cdot \frac{3}{4} = \left(\frac{3}{4}\right)^6\).
+5. The probability that Joan solves the problem before her sixth try is the complement of the above probability, i.e., \(1 - \left(\frac{3}{4}\right)^6\).
+
+Let's compute this using Python for accuracy.
+```python
+# Calculate the probability
+prob_solve_per_day = 1/4
+prob_not_solve_per_day = 1 - prob_solve_per_day
+
+# Probability that Joan does not solve the problem in the first 6 tries
+prob_not_solve_in_6_tries = (prob_not_solve_per_day) ** 6
+
+# Probability that Joan solves the problem before her sixth try
+prob_solve_before_6th_try = 1 - prob_not_solve_in_6_tries
+print(prob_solve_before_6th_try)
+```
+Code execution result: 0.822021484375
+
+Thus, the probability that Joan will solve the problem before her sixth try is \(\boxed{0.822021484375}\). This is the final answer.
+

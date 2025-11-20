@@ -1,0 +1,57 @@
+Score: 1.0
+
+First, we need to identify all two-digit integers such that the integer is equal to the sum of its first digit, its second digit, and the product of its first and second digits. After identifying these integers, we will then compute their arithmetic mean.
+
+Let's denote a two-digit number as \( n = 10a + b \), where \( a \) is the tens digit (ranging from 1 to 9) and \( b \) is the units digit (ranging from 0 to 9).
+
+According to the problem, the number \( n \) should satisfy the condition:
+\[ n = a + b + a \cdot b \]
+Substituting \( n = 10a + b \) into the equation, we get:
+\[ 10a + b = a + b + a \cdot b \]
+This simplifies to:
+\[ 10a = a + a \cdot b \]
+\[ 10a = a (1 + b) \]
+We can divide both sides by \( a \) (since \( a \neq 0 \)):
+\[ 10 = 1 + b \]
+\[ 9 = b \]
+So, \( b = 9 \). Substituting \( b = 9 \) back into the equation, we get:
+\[ 10a + 9 = a + 9 + 9a \]
+\[ 10a = a + 9a \]
+\[ 10a = 10a \]
+This equation is always true for any \( a \) as long as it satisfies 1 ≤ \( a \) ≤ 9 (since \( a \) is a digit of a two-digit number). Hence, any number of the form 19, 29, 39, 49, 59, 69, 79, 89, 99 should satisfy the condition if we check each of them:
+
+- For 19: \( 19 = 1 + 9 + 1 \cdot 9 = 1 + 9 + 9 = 19 \) (true)
+- For 29: \( 29 = 2 + 9 + 2 \cdot 9 = 2 + 9 + 18 = 29 \) (true)
+- For 39: \( 39 = 3 + 9 + 3 \cdot 9 = 3 + 9 + 27 = 39 \) (true)
+- For 49: \( 49 = 4 + 9 + 4 \cdot 9 = 4 + 9 + 36 = 49 \) (true)
+- For 59: \( 59 = 5 + 9 + 5 \cdot 9 = 5 + 9 + 45 = 59 \) (true)
+- For 69: \( 69 = 6 + 9 + 6 \cdot 9 = 6 + 9 + 54 = 69 \) (true)
+- For 79: \( 79 = 7 + 9 + 7 \cdot 9 = 7 + 9 + 63 = 79 \) (true)
+- For 89: \( 89 = 8 + 9 + 8 \cdot 9 = 8 + 9 + 72 = 89 \) (true)
+- For 99: \( 99 = 9 + 9 + 9 \cdot 9 = 9 + 9 + 81 = 99 \) (true)
+
+So, the numbers that satisfy this condition are 19, 29, 39, 49, 59, 69, 79, 89, and 99. Next, we will compute their arithmetic mean.
+
+The arithmetic mean of a set of numbers is given by the sum of the numbers divided by the count of the numbers.
+
+Let's write the Python code to confirm these numbers and compute their arithmetic mean.
+```python
+# List to store the numbers that satisfy the condition
+valid_numbers = []
+
+# Check each two-digit number to see if it meets the condition
+for n in range(10, 100):
+    a = n // 10  # tens digit
+    b = n % 10   # units digit
+    
+    if n == a + b + a * b:
+        valid_numbers.append(n)
+
+# Calculate the arithmetic mean of the valid numbers
+mean = sum(valid_numbers) / len(valid_numbers)
+print((valid_numbers, mean))
+```
+Code execution result: ([19, 29, 39, 49, 59, 69, 79, 89, 99], 59.0)
+
+Therefore, the arithmetic mean of all the positive two-digit integers that satisfy the condition is \(\boxed{59.0}\)
+

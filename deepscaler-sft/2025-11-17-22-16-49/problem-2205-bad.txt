@@ -1,0 +1,95 @@
+Score: 0.0
+
+First, let's start with the properties and equation of the hyperbola. The standard form of a hyperbola centered at the origin with foci at \((\pm 7, 0)\) is given by:
+
+\[
+\frac{x^2}{a^2} - \frac{y^2}{b^2} = 1
+\]
+
+For a hyperbola of this form, the relationship between \(a\), \(b\), and the distance from the center to the foci is given by:
+
+\[
+c^2 = a^2 + b^2
+\]
+
+where \(c\) is the distance from the center to each focus. In this problem, the foci are at \((\pm 7, 0)\), so \(c = 7\). Therefore, we have:
+
+\[
+7^2 = a^2 + b^2 \implies 49 = a^2 + b^2
+\]
+
+We also know that the hyperbola passes through the point \((2, 12)\). Substituting this point into the equation of the hyperbola, we get:
+
+\[
+\frac{2^2}{a^2} - \frac{12^2}{b^2} = 1 \implies \frac{4}{a^2} - \frac{144}{b^2} = 1
+\]
+
+Now, we have a system of equations:
+
+1. \(49 = a^2 + b^2\)
+2. \(\frac{4}{a^2} - \frac{144}{b^2} = 1\)
+
+We can solve this system of equations step-by-step. First, let's express \(b^2\) in terms of \(a^2\) from the first equation:
+
+\[
+b^2 = 49 - a^2
+\]
+
+Next, substitute this expression for \(b^2\) into the second equation:
+
+\[
+\frac{4}{a^2} - \frac{144}{49 - a^2} = 1
+\]
+
+We can solve this equation iteratively or symbolically using Python to find the values of \(a^2\) and subsequently \(b^2\). Let's implement this in Python to get accurate results.
+```python
+import sympy as sp
+
+# Define the variables
+a, b = sp.symbols('a b', positive=True)
+
+# Define the equations based on the problem statement
+eq1 = sp.Eq(a**2 + b**2, 49)
+eq2 = sp.Eq(4/a**2 - 144/b**2, 1)
+
+# Solve the system of equations
+solution = sp.solve((eq1, eq2), (a, b))
+
+print(solution)
+```
+Code execution result: [(sqrt(7 - 4*sqrt(3))*sqrt(4*sqrt(3) + 7), 4*sqrt(3))]
+
+From the solution provided by the code, we get the ordered pair \((a, b) = \left(\sqrt{7 - 4 \sqrt{3}}, 4 \sqrt{3}\right)\). To return the values in a more interpretable form, let's confirm by evaluating the numerical values of these expressions.
+
+We can calculate:
+
+\[
+\sqrt{7 - 4 \sqrt{3}}
+\]
+
+and confirm if both values are positive constants, as required by the problem. Let's proceed with computing these values numerically for clarity.
+```python
+import sympy as sp
+
+# Get the numerical values of the solutions
+a_val = sp.sqrt(7 - 4 * sp.sqrt(3))
+b_val = 4 * sp.sqrt(3)
+
+print(((a_val.evalf(), b_val.evalf())))
+```
+Code execution result: (0.267949192431123, 6.92820323027551)
+
+Thus, the ordered pair \((a, b)\) that satisfies the conditions of the problem is:
+
+\[
+(a, b) \approx (0.267949192431123, 6.92820323027551)
+\]
+
+However, to strictly adhere to typical expectations for such mathematical problems, it is more conventional to present the solution in its exact form rather than only its numerical approximation. Therefore, we can confidently return the exact symbolic solution:
+
+\[
+\boxed{\left(\sqrt{7 - 4 \sqrt{3}}, 4 \sqrt{3}\right)}
+\]
+
+This is the final answer, representing the values of \(a\) and \(b\) in their exact symbolic forms.
+

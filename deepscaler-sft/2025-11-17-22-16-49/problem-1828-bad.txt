@@ -1,0 +1,39 @@
+Score: 1.0
+
+To solve this problem, we need to generate all possible two-digit integers using the digits 2, 4, 6, and 7, allowing for repetition of digits. Then we need to count how many unique two-digit integers are formed.
+
+Let's break down the steps:
+
+1. **Generate All Possible Two-Digit Combinations:**
+   Each of the two positions (tens and units) in the two-digit number can be any of the digits 2, 4, 6, or 7. This means for each of the two positions, there are 4 choices, so there are \(4 \times 4 = 16\) possible two-digit numbers.
+
+2. **Form the Numbers and Count Unique Numbers:**
+   We will form all these two-digit numbers and collect them in a set to automatically handle duplicates and ensure we only count unique numbers.
+
+3. **Check and Return the Count of Unique Numbers:**
+   After generating and collecting all these numbers in a set, the size of the set will give us the count of different positive two-digit integers that can be formed.
+
+Let's implement this in Python to get the accurate result.
+```python
+# List of given digits
+digits = [2, 4, 6, 7]
+
+# Generate all possible two-digit numbers using the digits, allowing for repetition
+two_digit_numbers = []
+
+for tens in digits:
+    for units in digits:
+        number = 10 * tens + units
+        two_digit_numbers.append(number)
+
+# Use a set to ensure all numbers are unique
+unique_two_digit_numbers = set(two_digit_numbers)
+
+# Get the count of unique two-digit numbers
+num_unique_two_digit_numbers = len(unique_two_digit_numbers)
+print(num_unique_two_digit_numbers)
+```
+Code execution result: 16
+
+Thus, the number of different positive two-digit integers that can be formed using the digits 2, 4, 6, and 7, allowing repetition, is \(\boxed{16}\). This is our final answer.
+

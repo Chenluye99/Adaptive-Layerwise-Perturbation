@@ -1,0 +1,82 @@
+Score: 1.0
+
+Let's solve this step-by-step using Python and SymPy.
+
+### Part (1): Find the General Equation of Curve \( C \) and the Rectangular Coordinate Equation of Line \( l \)
+
+1. **Find the General Equation of Curve \( C \):**
+   - Given the parametric equations of curve \( C \):
+     \[
+     \begin{cases}
+     x = 2 + 3 \cos \alpha, \\
+     y = 3 \sin \alpha
+     \end{cases}
+     \]
+   - We can eliminate the parameter \(\alpha\) by using the identity \(\cos^2 \alpha + \sin^2 \alpha = 1\):
+     \[
+     \left( \frac{x - 2}{3} \right)^2 + \left( \frac{y}{3} \right)^2 = 1 \implies \frac{(x - 2)^2}{9} + \frac{y^2}{9} = 1 \implies (x - 2)^2 + y^2 = 9
+     \]
+   - So, the general equation of curve \( C \) is \((x - 2)^2 + y^2 = 9\).
+
+2. **Find the Rectangular Coordinate Equation of Line \( l \):**
+   - Given the polar coordinate equation of the line \( l \):
+     \[
+     2 \rho \cos \theta - \rho \sin \theta - 1 = 0
+     \]
+   - We know that in Cartesian coordinates, \(\rho = \sqrt{x^2 + y^2}\), \(\cos \theta = \frac{x}{\sqrt{x^2 + y^2}}\), and \(\sin \theta = \frac{y}{\sqrt{x^2 + y^2}}\). Substituting these into the polar equation, we get:
+     \[
+     2 \frac{x}{\sqrt{x^2 + y^2}} \cdot \sqrt{x^2 + y^2} - \frac{y}{\sqrt{x^2 + y^2}} \cdot \sqrt{x^2 + y^2} - 1 = 0 \implies 2x - y - 1 = 0
+     \]
+   - So, the rectangular coordinate equation of line \( l \) is \( 2x - y - 1 = 0 \).
+
+### Part (2): Find the Value of \(\frac{1}{|PA|} + \frac{1}{|PB|}\)
+
+1. **Find Intersection Points of Line \( l \) and Curve \( C \):**
+   - Substitute \( y = 2x - 1 \) (from \( 2x - y - 1 = 0 \)) into the equation of the curve \((x - 2)^2 + y^2 = 9\):
+     \[
+     (x - 2)^2 + (2x - 1)^2 = 9
+     \]
+   - Let's solve this equation for \( x \):
+
+2. **Solve for Intersection Points:**
+   - We will use SymPy to solve this equation.
+```python
+import sympy as sp
+
+# Define variables
+x, y = sp.symbols('x y')
+
+# Equation of the curve C
+curve_eq = (x - 2)**2 + y**2 - 9
+
+# Equation of the line l
+line_eq = 2*x - y - 1
+
+# Substitute y from the line equation into the curve equation
+y_sub = 2*x - 1
+curve_sub = curve_eq.subs(y, y_sub)
+
+# Find the roots of the resulting equation in x
+x_solutions = sp.solve(curve_sub, x)
+
+# Find the corresponding y values for these x values
+points = [(x_val, 2 * x_val - 1) for x_val in x_solutions]
+
+# Define point P
+P = (0, -1)
+
+# Calculate distances |PA| and |PB|
+distances = []
+for point in points:
+    distances.append(sp.sqrt((point[0] - P[0])**2 + (point[1] - P[1])**2))
+
+# Calculate the desired expression
+result = 1 / distances[0] + 1 / distances[1]
+print(result)
+```
+Code execution result: 3*sqrt(5)/5
+
+Thus, the value of \(\frac{1}{|PA|} + \frac{1}{|PB|}\) is \(\boxed{\frac{3\sqrt{5}}{5}}\). 
+
+This completes the solution.
+

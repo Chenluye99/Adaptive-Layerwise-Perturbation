@@ -1,0 +1,38 @@
+Score: 1.0
+
+To solve this problem, we need to find three consecutive integers whose sum is a multiple of 89 and falls between 600 and 900. Let's denote the three consecutive integers by \( n, n+1, n+2 \). The sum of these integers is:
+
+\[ n + (n+1) + (n+2) = 3n + 3 = 3(n + 1) \]
+
+We need this sum to be a multiple of 89 and also lie between 600 and 900. So, we have:
+
+\[ 600 \leq 3(n + 1) \leq 900 \]
+
+First, let's find the range for \( n + 1 \):
+
+\[ \frac{600}{3} \leq n + 1 \leq \frac{900}{3} \]
+\[ 200 \leq n + 1 \leq 300 \]
+
+This means:
+
+\[ 199 \leq n \leq 299 \]
+
+Next, we need to check which of these values of \( n \) make the sum \( 3(n + 1) \) a multiple of 89. We can iterate through each value of \( n \) from 199 to 299 and check if \( 3(n + 1) \) is a multiple of 89 and falls between 600 and 900.
+
+Let's write some Python code to find the correct value.
+```python
+# Initialize an empty list to store the sums that meet the conditions
+valid_sums = []
+
+# Iterate over the range 199 to 299 and check for the conditions
+for n in range(199, 300):
+    sum_of_integers = 3 * (n + 1)
+    if 600 <= sum_of_integers <= 900 and sum_of_integers % 89 == 0:
+        valid_sums.append(sum_of_integers)
+
+print(valid_sums)
+```
+Code execution result: [801]
+
+The code returned that 801 is the only number that meets all the conditions: it is between 600 and 900, and it is a multiple of 89. So, the sum of the three consecutive integers is \(\boxed{801}\). This is our final answer.
+

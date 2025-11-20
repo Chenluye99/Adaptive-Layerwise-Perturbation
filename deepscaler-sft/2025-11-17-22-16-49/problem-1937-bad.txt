@@ -1,0 +1,38 @@
+Score: 1.0
+
+First, let's generate all the 5-digit numbers that can be formed by using the digits 1, 3, 5, 7, and 8 exactly once. Then, we will find their average (mean).
+
+1. **Generate All Permutations:**
+   We can use Python's `itertools.permutations` to generate all permutations of the digits [1, 3, 5, 7, 8]. Each permutation will be a 5-digit number.
+
+2. **Form 5-Digit Numbers:**
+   Convert each permutation from a tuple of digits to an actual 5-digit number.
+
+3. **Calculate the Average:**
+   Find the mean of these 5-digit numbers by summing them up and dividing by the total number of such 5-digit numbers (which is \(5!\) or 120).
+
+Let's implement this step by step in Python.
+```python
+import itertools
+
+# Define the digits to be used
+digits = [1, 3, 5, 7, 8]
+
+# Generate all permutations of the digits
+permutations = list(itertools.permutations(digits))
+
+# Convert each permutation from a tuple to a 5-digit number and store them in a list
+five_digit_numbers = []
+
+for perm in permutations:
+    number = int(''.join(map(str, perm)))
+    five_digit_numbers.append(number)
+
+# Calculate the average (mean) of these 5-digit numbers
+mean_value = sum(five_digit_numbers) / len(five_digit_numbers)
+print(mean_value)
+```
+Code execution result: 53332.8
+
+Thus, the average (mean) of all 5-digit numbers that can be formed by using each of the digits 1, 3, 5, 7, and 8 exactly once is \(\boxed{53332.8}\). This is our final answer.
+

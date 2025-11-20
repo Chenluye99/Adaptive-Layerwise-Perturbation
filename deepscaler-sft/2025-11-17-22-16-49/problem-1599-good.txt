@@ -1,0 +1,36 @@
+Score: 1.0
+
+To solve the problem of finding the remainder when \( 3x^7 - x^6 - 7x^5 + 2x^3 + 4x^2 - 11 \) is divided by \( 2x - 4 \), we can use polynomial long division. However, it is often more efficient to use polynomial remainder theorem and substitution when dealing with polynomial division by a linear divisor of the form \( ax - b \).
+
+Given the polynomial \( P(x) = 3x^7 - x^6 - 7x^5 + 2x^3 + 4x^2 - 11 \), we want to find the remainder when it is divided by \( 2x - 4 \).
+
+1. First, note that the divisor \( 2x - 4 = 2(x - 2) \). So, we can focus on finding the remainder when \( P(x) \) is divided by \( x - 2 \) and then adjust for the factor of 2.
+
+2. By the polynomial remainder theorem, the remainder of the division of \( P(x) \) by \( x - c \) is \( P(c) \). In this case, we want to find \( P(2) \):
+
+\[ P(2) = 3(2)^7 - (2)^6 - 7(2)^5 + 2(2)^3 + 4(2)^2 - 11. \]
+
+3. We will then determine the remainder when dividing by \( 2x - 4 \). If \( R(x) \) is the remainder when \( P(x) \) is divided by \( 2x - 4 \), then \( R(x) \) will be a polynomial of degree less than 1 (i.e., a constant, because the divisor is linear). So, \( R(x) = ax + b \), but because the degree of the remainder must be less than the degree of the divisor (which is 1), the remainder will actually be just a constant, i.e., \( R(x) = c \).
+
+Let's start by calculating \( P(2) \):
+
+\[ P(2) = 3(128) - 64 - 7(32) + 2(8) + 4(4) - 11. \]
+
+We will compute this step-by-step using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the polynomial P(x)
+x = sp.symbols('x')
+P = 3*x**7 - x**6 - 7*x**5 + 2*x**3 + 4*x**2 - 11
+
+# Substitute x = 2 into P(x) to find the remainder when P(x) is divided by 2x - 4
+remainder = P.subs(x, 2)
+print(remainder)
+```
+Code execution result: 117
+
+So, we have determined that \( P(2) = 117 \). This means that the remainder when \( 3x^7 - x^6 - 7x^5 + 2x^3 + 4x^2 - 11 \) is divided by \( 2x - 4 \) is 117. The steps above confirm that the remainder is indeed a constant, and in this case, it is 117.
+
+Thus, the final answer is \(\boxed{117}\). This is our solution.
+

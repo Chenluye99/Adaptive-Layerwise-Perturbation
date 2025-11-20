@@ -1,0 +1,37 @@
+Score: 1.0
+
+To solve the problem, we need to find the closest integer to $\sqrt{n}$ for each $n$ from 1 to 1980, and then compute the sum of the reciprocals of these closest integers.
+
+1. **Find the closest integer to $\sqrt{n}$ for each $n$ from 1 to 1980:**
+   - For each $n$, compute $\sqrt{n}$.
+   - Find the closest integer to $\sqrt{n}$, which we will call $a_n$.
+   - If $\lfloor \sqrt{n} \rfloor = \lceil \sqrt{n} \rceil$, then $a_n = \lfloor \sqrt{n} \rfloor = \lceil \sqrt{n} \rceil$.
+   - Otherwise, $a_n$ is the integer closest to $\sqrt{n}$.
+
+2. **Compute the sum of the reciprocals:**
+   - For each $n$ from 1 to 1980, compute $\frac{1}{a_n}$.
+   - Sum up all these values to get the final answer.
+
+Let's implement this in Python.
+```python
+import math
+
+# Initialize a list to store the closest integers to sqrt(n) for n from 1 to 1980
+a = []
+
+# Find the closest integer to sqrt(n) for each n from 1 to 1980 and store it in the list 'a'
+for n in range(1, 1981):
+    sqrt_n = math.sqrt(n)
+    closest_integer = round(sqrt_n)
+    a.append(closest_integer)
+
+# Compute the sum of the reciprocals of these closest integers
+reciprocal_sum = sum(1 / a_n for a_n in a)
+print(reciprocal_sum)
+```
+Code execution result: 87.99999999999903
+
+Thus, the sum \( \frac{1}{a_1} + \frac{1}{a_2} + \ldots + \frac{1}{a_{1980}} \) is \(\boxed{88}\). 
+
+This is our final answer, rounded appropriately as the decimal value is extremely close to 88.
+

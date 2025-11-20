@@ -1,0 +1,38 @@
+Score: 1.0
+
+To solve this problem, we need to find out how many positive integer multiples of 1001 can be expressed in the form \(10^j - 10^i\) where \(0 \leq i < j \leq 99\).
+
+1. **Factorize 1001:**
+   \[
+   1001 = 7 \times 11 \times 13
+   \]
+   So, a number is a multiple of 1001 if and only if it is divisible by 7, 11, and 13.
+
+2. **Express \(10^j - 10^i\) in a Factorized Form:**
+   \[
+   10^j - 10^i = 10^i (10^{j-i} - 1)
+   \]
+   For \(10^j - 10^i\) to be a multiple of 1001, \(10^i (10^{j-i} - 1)\) must be divisible by 1001. Since 10 is not divisible by 7, 11, or 13, \(10^i\) does not contribute any factors of 7, 11, or 13. Therefore, \(10^{j-i} - 1\) must be divisible by 1001.
+
+3. **Find When \(10^{j-i} - 1\) is Divisible by 1001:**
+   We need to check for which values of \(j - i\), the number \(10^{j-i} - 1\) is divisible by 1001. We can loop through possible values of \(j - i\) from 1 to 99 and check this condition.
+
+4. **Check for Each Pair \((i, j)\):**
+   For each valid \(j - i\) that makes \(10^{j-i} - 1\) divisible by 1001, we need to check if there exist \(i\) and \(j\) such that \(0 \leq i < j \leq 99\) and then count such valid pairs.
+
+Let's implement this step-by-step plan in Python.
+```python
+count = 0
+
+for i in range(100):
+    for j in range(i + 1, 100):
+        value = 10**j - 10**i
+        if value % 1001 == 0:
+            count += 1
+
+print(count)
+```
+Code execution result: 784
+
+Thus, the number of positive integer multiples of 1001 that can be expressed in the form \(10^j - 10^i\) where \(0 \leq i < j \leq 99\) is \(\boxed{784}\). This is our final answer.
+

@@ -1,0 +1,42 @@
+Score: 1.0
+
+To solve the problem of finding the maximum value of the expression \(-5r^2 + 40r - 12\) for real \( r \), we can use calculus or complete the square method. However, a more straightforward approach for this specific problem is to use the properties of quadratic functions.
+
+### Step-by-Step Solution:
+
+1. **Identify the quadratic function:**
+   The given expression is \( f(r) = -5r^2 + 40r - 12 \). This is a quadratic equation of the form \( ar^2 + br + c \), where \( a = -5 \), \( b = 40 \), and \( c = -12 \).
+
+2. **Find the vertex of the parabola:**
+   For a quadratic function \( ar^2 + br + c \), the vertex (which gives the maximum or minimum value) occurs at \( r = -\frac{b}{2a} \). Since the coefficient of \( r^2 \) is \(-5\) (which is negative), the parabola opens downwards, meaning the vertex will give the maximum value.
+
+3. **Calculate the value of \( r \) at the vertex:**
+   Substitute \( a = -5 \) and \( b = 40 \) into the vertex formula:
+   \[
+   r = -\frac{40}{2 \cdot (-5)} = \frac{40}{10} = 4
+   \]
+
+4. **Substitute \( r = 4 \) back into the original expression to get the maximum value:**
+   \[
+   f(4) = -5(4)^2 + 40(4) - 12 = -5 \cdot 16 + 160 - 12 = -80 + 160 - 12 = 68
+   \]
+
+Thus, the maximum value of the expression \(-5r^2 + 40r - 12\) is 68. Let's confirm this by implementing it in Python.
+```python
+import sympy as sp
+
+# Define the variable and expression
+r = sp.symbols('r')
+expression = -5*r**2 + 40*r - 12
+
+# Find the critical points by taking the derivative and setting it to 0
+critical_points = sp.solve(sp.diff(expression, r), r)
+
+# Evaluate the expression at the critical points to find the maximum value
+max_value = max(expression.subs(r, point) for point in critical_points)
+print(max_value)
+```
+Code execution result: 68
+
+Thus, the maximum value of the expression \(-5r^2 + 40r - 12\) for real \( r \) is \(\boxed{68}\). This confirms our earlier solution.
+

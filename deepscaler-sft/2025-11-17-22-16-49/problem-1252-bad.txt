@@ -1,0 +1,63 @@
+Score: 1.0
+
+To solve this problem, we need to express the number \( n \) in both base 7 and base 11, and then find the conditions that must be satisfied for the constraints given.
+
+1. **Express \( n \) in Base 7:**
+   - In base 7, \( n = \overline{ABC}_7 \). This means:
+     \[
+     n = A \cdot 7^2 + B \cdot 7 + C = 49A + 7B + C
+     \]
+     where \( 0 \leq A, B, C \leq 6 \) since they are digits in base 7.
+
+2. **Express \( n \) in Base 11:**
+   - In base 11, \( n = \overline{CBA}_{11} \). This means:
+     \[
+     n = C \cdot 11^2 + B \cdot 11 + A = 121C + 11B + A
+     \]
+     where \( 0 \leq A, B, C \leq 10 \) since they are digits in base 11.
+
+3. **Set Up the Equation:**
+   - We need to find values of \( A, B, C \) such that both expressions for \( n \) are equal:
+     \[
+     49A + 7B + C = 121C + 11B + A
+     \]
+   - Rearrange this equation to:
+     \[
+     49A + 7B + C - 121C - 11B - A = 0 \implies 48A - 4B - 120C = 0 \implies 12A - B - 30C = 0 \implies B = 12A - 30C
+     \]
+
+4. **Find the Valid Digits:**
+   - We need to ensure that \( 0 \leq A, B, C \leq 6 \) for the base 7 representation, and \( 0 \leq A, B, C \leq 10 \) for the base 11 representation. This means that \( 0 \leq B \leq 6 \).
+   - We will iterate through all possible values of \( A, B, C \) and check which of these values make \( B \) a valid digit (i.e., \( 0 \leq B \leq 6 \)).
+
+5. **Find the Maximum Value of \( n \):**
+   - We will then compute the value of \( n \) for each valid combination and find the maximum value of \( n \).
+
+Let's implement this using Python to ensure we get an accurate result.
+```python
+max_n = 0
+best_abc = (0, 0, 0)
+
+# Iterate through all possible values of A, B, C
+for A in range(1, 7):  # A ranges from 1 to 6 because if A were 0, it wouldn't be a valid 3-digit number in base 7
+    for B in range(0, 7):
+        for C in range(0, 7):
+            n_base_7 = 49 * A + 7 * B + C
+            n_base_11 = 121 * C + 11 * B + A
+            
+            if n_base_7 == n_base_11:
+                if n_base_7 > max_n:
+                    max_n = n_base_7
+                    best_abc = (A, B, C)
+
+print((max_n, best_abc))
+```
+Code execution result: (247, (5, 0, 2))
+
+This means that the largest possible value of \( n \) is 247, and this corresponds to \( A = 5 \), \( B = 0 \), and \( C = 2 \). To confirm, we can check:
+
+- In base 7, \( \overline{502}_7 = 5 \cdot 7^2 + 0 \cdot 7 + 2 = 5 \cdot 49 + 0 \cdot 7 + 2 = 245 + 2 = 247 \).
+- In base 11, \( \overline{205}_{11} = 2 \cdot 11^2 + 0 \cdot 11 + 5 = 2 \cdot 121 + 0 \cdot 11 + 5 = 242 + 5 = 247 \).
+
+Both expressions are equal, so the solution is correct. Therefore, the largest possible value of \( n \) is \(\boxed{247}\).
+

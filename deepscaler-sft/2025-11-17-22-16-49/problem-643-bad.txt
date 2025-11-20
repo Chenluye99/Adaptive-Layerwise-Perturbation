@@ -1,0 +1,60 @@
+Score: 1.0
+
+To solve this problem, we start by considering the following steps:
+
+1. **Define the Problem:**
+    - We have 4 packages and 4 houses.
+    - We want to find the probability that exactly 2 out of the 4 packages are delivered to the correct house.
+  
+2. **Permutations and Correct Deliveries:**
+    - First, let's list all possible ways to deliver the 4 packages to the 4 houses. This is simply the number of permutations of 4 items, which is \(4!\) (4 factorial).
+    - Out of these permutations, we need to count how many of them have exactly 2 packages delivered to the correct house.
+
+3. **Count Valid Permutations:**
+    - To have exactly 2 packages delivered correctly, we choose 2 out of the 4 packages to be correctly delivered. The number of ways to choose 2 packages out of 4 is given by the combination formula \(\binom{4}{2}\).
+    - For the remaining 2 packages, they should be delivered to the wrong house, meaning they should be a derangement of 2 items. The only derangement of 2 items (where both are in the wrong position) is exactly 1 way (i.e., swapped with each other).
+
+4. **Calculate Combinations and Derangements:**
+    - There are \(\binom{4}{2} = 6\) ways to choose which 2 out of the 4 packages are delivered correctly.
+    - For each of these ways, the remaining 2 packages must be delivered incorrectly, and as mentioned, there is exactly 1 way to derange 2 items.
+    - Therefore, there are \(6 \times 1 = 6\) ways to have exactly 2 packages delivered correctly.
+
+5. **Find Total Permutations and Desired Outcomes:**
+    - The total number of ways to deliver the 4 packages to 4 houses is \(4! = 24\).
+    - The number of ways to have exactly 2 out of the 4 packages delivered correctly is 6, as calculated above.
+
+6. **Find the Probability:**
+    - The probability is the ratio of the number of favorable outcomes to the total number of outcomes, i.e., \(\frac{6}{24} = \frac{1}{4}\).
+
+Let's confirm this step-by-step using Python to ensure the result is accurate.
+```python
+import itertools
+
+# Define the packages and houses
+packages = [1, 2, 3, 4]
+houses = [1, 2, 3, 4]
+
+# Find all permutations of the packages
+all_permutations = list(itertools.permutations(packages))
+
+count_exactly_two_correct = 0
+
+# Check each permutation and count how many have exactly 2 packages delivered to the correct house
+for perm in all_permutations:
+    correct_count = sum(1 for p, h in zip(perm, houses) if p == h)
+    if correct_count == 2:
+        count_exactly_two_correct += 1
+
+# Total number of permutations is 4!
+total_permutations = len(all_permutations)
+
+# Calculate probability
+probability = count_exactly_two_correct / total_permutations
+print(probability)
+```
+Code execution result: 0.25
+
+So, the probability that exactly two of the packages are delivered to the correct houses is \(\frac{1}{4}\).
+
+Thus, the final answer is \(\boxed{\frac{1}{4}}\). This confirms our reasoning and calculations are accurate.
+

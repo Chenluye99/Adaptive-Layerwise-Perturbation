@@ -1,0 +1,108 @@
+Score: 0.0
+
+Let's start by solving step-by-step.
+
+### Step 1: Calculate Frequencies of First-class Products
+
+From the table, we can see the frequency of first-class products produced by Machine A and Machine B:
+- The frequency of first-class products produced by Machine A is $\frac{150}{200} = 0.75$.
+- The frequency of first-class products produced by Machine B is $\frac{120}{200} = 0.60$.
+
+### Step 2: Perform Chi-Square Test
+
+To determine if we can be 99% confident that there is a difference in the quality of the products produced by Machine A and Machine B, we perform a chi-square test of independence. The null hypothesis is that the quality of product production is independent of the machine tool, and the alternative hypothesis is that there is a difference.
+
+We will use the formula for the chi-square statistic:
+\[ K^2 = \frac{n(ad - bc)^2}{(a + b)(c + d)(a + c)(b + d)} \]
+
+Where:
+- \(a = 150 \) (First-class from Machine A)
+- \(b = 50 \) (Second-class from Machine A)
+- \(c = 120 \) (First-class from Machine B)
+- \(d = 80 \) (Second-class from Machine B)
+- \(n = 400 \) (Total number of products)
+
+Let's calculate this step-by-step in Python.
+```python
+import sympy as sp
+
+# Given values from the table
+a = 150  # First-class from Machine A
+b = 50   # Second-class from Machine A
+c = 120  # First-class from Machine B
+d = 80   # Second-class from Machine B
+n = 400  # Total number of products
+
+# Calculate K^2
+K2 = (n * ((a * d - b * c) ** 2)) / ((a + b) * (c + d) * (a + c) * (b + d))
+
+# Critical value for a 99% confidence level based on the chi-square distribution
+critical_value = 6.635
+
+print((K2, critical_value))
+```
+Code execution result: (10.256410256410257, 6.635)
+
+### Step 3: Interpret the Results
+
+- The calculated \( K^2 \) value is 10.256.
+- The critical value for a 99% confidence level is 6.635.
+
+Since the calculated \( K^2 \) value (10.256) is greater than the critical value (6.635), we reject the null hypothesis. Therefore, we can be 99% confident that there is a difference in the quality of the products produced by Machine A and Machine B.
+
+### Final Answer
+
+1. The frequencies of first-class products produced by Machine A and Machine B are \(0.75\) and \(0.60\), respectively.
+2. Based on the chi-square test, we can be 99% confident that there is a difference in the quality of the products produced by Machine A and Machine B.
+
+Let's print out the final results:
+```python
+# Printing the results
+frequency_A = 150 / 200
+frequency_B = 120 / 200
+
+print(f"Frequency of first-class products produced by Machine A: {frequency_A}")
+print(f"Frequency of first-class products produced by Machine B: {frequency_B}")
+print(f"Chi-square statistic (K^2): {K2}")
+print(f"Critical value for 99% confidence: {critical_value}")
+```
+Code execution result: NameError: name 'K2' is not defined
+It appears there was an issue with referencing the variable \( K^2 \) in the context of printing. I'll make sure to define and print it correctly. Let me correct this and ensure the calculations and outputs are complete and clear.
+```python
+# Re-defining the calculation and ensuring we print all necessary results properly
+
+import sympy as sp
+
+# Given values from the table
+a = 150  # First-class from Machine A
+b = 50   # Second-class from Machine A
+c = 120  # First-class from Machine B
+d = 80   # Second-class from Machine B
+n = 400  # Total number of products
+
+# Calculate K^2
+K2 = (n * ((a * d - b * c) ** 2)) / ((a + b) * (c + d) * (a + c) * (b + d))
+
+# Critical value for a 99% confidence level based on the chi-square distribution
+critical_value = 6.635
+
+# Printing the results
+frequency_A = 150 / 200
+frequency_B = 120 / 200
+
+print(f"Frequency of first-class products produced by Machine A: {frequency_A}")
+print(f"Frequency of first-class products produced by Machine B: {frequency_B}")
+print(f"Chi-square statistic (K^2): {K2}")
+print(f"Critical value for 99% confidence: {critical_value}")
+```
+Code execution result: Frequency of first-class products produced by Machine A: 0.75
+Frequency of first-class products produced by Machine B: 0.6
+Chi-square statistic (K^2): 10.256410256410257
+Critical value for 99% confidence: 6.635
+
+### Final Answer Summary
+
+1. The frequency of first-class products produced by Machine A is \(\boxed{0.75}\).
+2. The frequency of first-class products produced by Machine B is \(\boxed{0.60}\).
+3. Based on the chi-square test, where the calculated \( K^2 \) value (10.256) is greater than the critical value (6.635) for 99% confidence, we can be 99% confident that there is a difference in the quality of the products produced by Machine A and Machine B.
+

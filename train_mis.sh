@@ -319,6 +319,7 @@ PYTHONUNBUFFERED=1 python -m recipe.simpletir.main_simpletir \
     data.val_files=$VALID_FILES \
     data.train_batch_size=$TRAIN_BATCH_SIZE \
     data.val_sample_size=$VAL_SAMPLE_SIZE \
+    data.val_batch_size=256 \
     data.max_prompt_length=$MAX_PROMPT_LENGTH \
     data.max_response_length=$MAX_RESPONSE_LENGTH \
     actor_rollout_ref.model.path=$MODEL_PATH/$MODEL_NAME \

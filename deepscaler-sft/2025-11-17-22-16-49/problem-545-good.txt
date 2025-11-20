@@ -1,0 +1,36 @@
+Score: 1.0
+
+To solve the problem, we start by noting that the sum of the first \( K \) natural numbers is given by the formula:
+
+\[ S = \frac{K(K + 1)}{2} \]
+
+We are told that this sum is a perfect square, i.e.,
+
+\[ \frac{K(K + 1)}{2} = N^2 \]
+
+for some integer \( N \) such that \( N < 100 \). Therefore, we need to find all integers \( K \) that satisfy this equation.
+
+To do this, we can iterate through values of \( K \) and for each \( K \), check whether \(\frac{K(K + 1)}{2}\) is a perfect square. If it is, we check if the corresponding \( N \) is less than 100. If so, we record the value of \( K \).
+
+Let's implement this step-by-step in Python.
+```python
+import math
+
+possible_values_for_K = []
+
+# We will check for values of K that make (K * (K + 1)) / 2 a perfect square, and N < 100
+for K in range(1, 10000):  # We choose an upper limit for K where (K * (K + 1)) / 2 would reasonably give a perfect square N^2 with N < 100
+    sum_first_K_numbers = K * (K + 1) // 2
+    sqrt_sum = int(math.isqrt(sum_first_K_numbers))
+    
+    if sqrt_sum * sqrt_sum == sum_first_K_numbers:
+        N = sqrt_sum
+        if N < 100:
+            possible_values_for_K.append(K)
+
+print(possible_values_for_K)
+```
+Code execution result: [1, 8, 49]
+
+Thus, the possible values for \( K \) that make \(\frac{K(K + 1)}{2}\) a perfect square, with the corresponding \( N \) being less than 100, are \(\boxed{1, 8, 49}\). These are the final answers.
+

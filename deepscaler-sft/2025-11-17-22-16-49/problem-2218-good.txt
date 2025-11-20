@@ -1,0 +1,76 @@
+Score: 1.0
+
+To solve the problem, we will use coordinate geometry and the shoelace formula to calculate the area of triangle $ADE$.
+
+1. **Set up the coordinates:**
+    - Place $A$ at the origin, so $A = (0, 0)$.
+    - Place $B$ at $(9, 0)$, so $B = (9, 0)$.
+    - To find the coordinates of $C$, we use the distance formula based on $AC = 11$ and $BC = 10$:
+      - Let $C = (x, y)$. Then, using the distance formula:
+        \[
+        \text{Distance from } A \text{ to } C: \sqrt{x^2 + y^2} = 11 \implies x^2 + y^2 = 121
+        \]
+        \[
+        \text{Distance from } B \text{ to } C: \sqrt{(x - 9)^2 + y^2} = 10 \implies (x - 9)^2 + y^2 = 100
+        \]
+
+2. **Solve for the coordinates of $C$:**
+    - We can solve these two equations simultaneously:
+      \[
+      \begin{cases}
+      x^2 + y^2 = 121 \\
+      (x - 9)^2 + y^2 = 100
+      \end{cases}
+      \]
+    - Subtract the second equation from the first to eliminate $y^2$:
+      \[
+      x^2 - (x - 9)^2 = 121 - 100 \implies x^2 - (x^2 - 18x + 81) = 21 \implies 18x - 81 = 21 \implies 18x = 102 \implies x = \frac{102}{18} = \frac{51}{9} = \frac{17}{3}
+      \]
+    - Substitute \( x = \frac{17}{3} \) back into the equation \( x^2 + y^2 = 121 \):
+      \[
+      \left( \frac{17}{3} \right)^2 + y^2 = 121 \implies \frac{289}{9} + y^2 = 121 \implies y^2 = 121 - \frac{289}{9} = \frac{1089}{9} - \frac{289}{9} = \frac{800}{9} \implies y = \frac{\sqrt{800}}{3} = \frac{20 \sqrt{2}}{3}
+      \]
+    - So, the coordinates of $C$ are \( C = \left( \frac{17}{3}, \frac{20 \sqrt{2}}{3} \right) \).
+
+3. **Find the coordinates of $D$ and $E$:**
+    - Point $D$ is on $\overline{AB}$ such that $AD = 4$. So, $D = (4 \cdot \frac{9}{9}, 4 \cdot 0) = (4, 0)$.
+    - Point $E$ is on $\overline{AC}$ such that $AE = 7$. To find $E$, we use the section formula based on the ratio $\frac{AE}{AC} = \frac{7}{11}$:
+      \[
+      E = \left( \frac{7 \cdot \frac{17}{3} + 4 \cdot 0}{7 + 4}, \frac{7 \cdot \frac{20 \sqrt{2}}{3} + 4 \cdot 0}{7 + 4} \right) = \left( \frac{7 \cdot \frac{17}{3}}{11}, \frac{7 \cdot \frac{20 \sqrt{2}}{3}}{11} \right) = \left( \frac{119}{33}, \frac{140 \sqrt{2}}{33} \right) = \left( \frac{119}{33}, \frac{140 \sqrt{2}}{33} \right)
+      \]
+
+4. **Use the Shoelace Formula to find the area of triangle $ADE$:**
+    - The coordinates of $A, D, E$ are $A = (0, 0)$, $D = (4, 0)$, and $E = \left( \frac{119}{33}, \frac{140 \sqrt{2}}{33} \right)$. The shoelace formula to find the area of a triangle with vertices \((x_1, y_1)\), \((x_2, y_2)\), \((x_3, y_3)\) is:
+      \[
+      \text{Area} = \frac{1}{2} \left| x_1(y_2 - y_3) + x_2(y_3 - y_1) + x_3(y_1 - y_2) \right|
+      \]
+    - Substituting the coordinates of $A, D, E$ into the formula:
+      \[
+      \text{Area} = \frac{1}{2} \left| 0 \left( 0 - \frac{140 \sqrt{2}}{33} \right) + 4 \left( \frac{140 \sqrt{2}}{33} - 0 \right) + \frac{119}{33} \left( 0 - 0 \right) \right| = \frac{1}{2} \left| 0 + 4 \cdot \frac{140 \sqrt{2}}{33} + 0 \right| = \frac{1}{2} \left| \frac{560 \sqrt{2}}{33} \right| = \frac{280 \sqrt{2}}{33}
+      \]
+
+Let's confirm this by coding the solution to ensure accuracy.
+```python
+import sympy as sp
+
+# Defining the coordinates
+A = (0, 0)
+B = (9, 0)
+C = (17/3, 20 * sp.sqrt(2) / 3)
+
+# Finding the coordinates of D and E
+D = (4, 0)
+E = ((7 * (17 / 3) + 4 * 0) / 11, (7 * (20 * sp.sqrt(2) / 3) + 4 * 0) / 11)
+
+# Using the shoelace formula to calculate the area of triangle ADE
+x1, y1 = A
+x2, y2 = D
+x3, y3 = E
+
+area = sp.Rational(1, 2) * abs(x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
+print(area)
+```
+Code execution result: 280*sqrt(2)/33
+
+So, the area of triangle $ADE$ is \(\boxed{\frac{280 \sqrt{2}}{33}}\). This is our final answer, confirmed by computation.
+

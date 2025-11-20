@@ -1,0 +1,43 @@
+Score: 1.0
+
+To solve this problem, we need to determine the number of ways to choose three points from the 15 points such that they form a triangle with positive area. Three points form a triangle with positive area unless they are collinear. To ensure the points are chosen such that they form a triangle, we must exclude any sets of three points that are collinear.
+
+First, let's outline the steps:
+
+1. **Identify Collinear Points:**
+    - On $\overline{AB}$, there are 3 points along with the vertices $A$ and $B$, so all 5 points on $\overline{AB}$ are collinear.
+    - On $\overline{BC}$, there are 4 points along with the vertices $B$ and $C$, so all 6 points on $\overline{BC}$ are collinear.
+    - On $\overline{CA}$, there are 5 points along with the vertices $C$ and $A$, so all 7 points on $\overline{CA}$ are collinear.
+
+2. **Count the Total Ways to Choose 3 Points from 15:**
+    - The number of ways to choose 3 points from 15 points is given by the combination formula \( \binom{15}{3} \).
+
+3. **Subtract the Number of Collinear Point Triples:**
+    - We must exclude the sets of 3 collinear points from our count.
+    - The number of ways to choose 3 points from the 5 collinear points on $\overline{AB}$ is \( \binom{5}{3} \).
+    - The number of ways to choose 3 points from the 6 collinear points on $\overline{BC}$ is \( \binom{6}{3} \).
+    - The number of ways to choose 3 points from the 7 collinear points on $\overline{CA}$ is \( \binom{7}{3} \).
+
+4. **Calculate the Final Number of Triangles with Positive Area:**
+    - Subtract the number of ways to choose 3 collinear points from the total number of ways to choose 3 points from 15.
+
+Let's implement this step-by-step process using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Calculate total ways to choose 3 points from 15
+total_ways = sp.binomial(15, 3)
+
+# Calculate ways to choose 3 points from each of the collinear sets
+collinear_AB = sp.binomial(5, 3)
+collinear_BC = sp.binomial(6, 3)
+collinear_CA = sp.binomial(7, 3)
+
+# Calculate the number of ways to form triangles with positive area
+ways_with_positive_area = total_ways - (collinear_AB + collinear_BC + collinear_CA)
+print(ways_with_positive_area)
+```
+Code execution result: 390
+
+Therefore, the number of triangles with positive area whose vertices are among these 15 points is \(\boxed{390}\). This is our final answer.
+

@@ -1,0 +1,43 @@
+Score: 1.0
+
+To solve this problem, we need to follow these steps:
+
+1. **Define the Criteria for a Number to be K-Pretty:**
+    - A number \( n \) is \( k \)-pretty if it has exactly \( k \) positive divisors and \( n \) is divisible by \( k \).
+    - We need to check for each number \( n \) from 1 to 2018 if it meets the criteria for being 20-pretty, i.e., it has exactly 20 divisors and is divisible by 20.
+
+2. **Find the Numbers that Meet the Criteria:**
+    - For each number \( n \) from 1 to 2018, we need to determine the number of its divisors.
+    - We also need to check if \( n \) is divisible by 20.
+
+3. **Sum Up All Such Numbers:**
+    - If a number \( n \) meets the criteria, we add it to a list or directly to a sum variable.
+
+4. **Compute the Result:**
+    - Finally, we take the sum \( S \) of all such numbers and compute \(\frac{S}{20}\).
+
+Let's implement this step-by-step in Python to ensure accuracy.
+```python
+def count_divisors(n):
+    count = 0
+    for i in range(1, n + 1):
+        if n % i == 0:
+            count += 1
+    return count
+
+# Find all the numbers that are 20-pretty and sum them up
+sum_20_pretty = 0
+
+for n in range(1, 2019):
+    if n % 20 == 0:  # Check if n is divisible by 20
+        if count_divisors(n) == 20:  # Check if n has exactly 20 divisors
+            sum_20_pretty += n
+
+# Compute S / 20
+result = sum_20_pretty / 20
+print(result)
+```
+Code execution result: 472.0
+
+Thus, the final answer is \(\boxed{472}\). This is achieved by following the steps outlined above and ensuring that all checks for 20-pretty numbers are accurate, then summing those numbers and dividing the sum by 20.
+

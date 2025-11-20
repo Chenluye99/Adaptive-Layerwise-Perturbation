@@ -1,0 +1,132 @@
+Score: 1.0
+
+To solve this problem, we need to leverage properties of polynomials and complex numbers. Specifically, if a polynomial with real coefficients has a complex root, then its complex conjugate must also be a root. 
+
+Given that one of the roots of the polynomial \(x^3 + ax + b = 0\) is \(1 + i \sqrt{3}\), its complex conjugate \(1 - i \sqrt{3}\) must also be a root. Let's denote the third root by \(r\).
+
+By Vieta's formulas, for a cubic polynomial \(x^3 + px^2 + qx + r = 0\):
+
+1. The sum of the roots taken one at a time is equal to the coefficient of \(x^2\) with the opposite sign. Since our polynomial is \(x^3 + ax + b = 0\), the coefficient of \(x^2\) is 0, so we get:
+   \[
+   (1 + i \sqrt{3}) + (1 - i \sqrt{3}) + r = 0
+   \]
+   Simplifying this, we get:
+   \[
+   2 + r = 0 \implies r = -2
+   \]
+
+2. The sum of the product of the roots taken two at a time is equal to the coefficient of \(x\) (which is \(a\) in our polynomial):
+   \[
+   (1 + i \sqrt{3})(1 - i \sqrt{3}) + (1 + i \sqrt{3})(-2) + (1 - i \sqrt{3})(-2) = a
+   \]
+   We can calculate \((1 + i \sqrt{3})(1 - i \sqrt{3})\) first, which is the product of a complex number and its conjugate:
+   \[
+   (1 + i \sqrt{3})(1 - i \sqrt{3}) = 1^2 - (i \sqrt{3})^2 = 1 - (-3) = 1 + 3 = 4
+   \]
+   So, the equation becomes:
+   \[
+   4 + (1 + i \sqrt{3})(-2) + (1 - i \sqrt{3})(-2) = a
+   \]
+   \[
+   4 - 2(1 + i \sqrt{3}) - 2(1 - i \sqrt{3}) = a
+   \]
+   \[
+   4 - 2 \cdot 1 - 2 \cdot i \sqrt{3} - 2 \cdot 1 + 2 \cdot i \sqrt{3} = a
+   \]
+   \[
+   4 - 2 - 2i \sqrt{3} - 2 + 2i \sqrt{3} = a
+   \]
+   \[
+   0 = a
+   \]
+   So, we have \(a = 0\).
+
+3. The product of the roots is equal to the opposite of the constant term (which is \(b\) in our polynomial):
+   \[
+   (1 + i \sqrt{3})(1 - i \sqrt{3})(-2) = -b
+   \]
+   We already know that \((1 + i \sqrt{3})(1 - i \sqrt{3}) = 4\), so:
+   \[
+   4 \cdot (-2) = -b \implies -8 = -b \implies b = 8
+   \]
+
+Thus, we have \(a = 0\) and \(b = 8\). Therefore, \(a + b = 0 + 8 = 8\).
+
+Let's verify this by coding the solution in Python to ensure accuracy.
+```python
+from sympy import symbols, Eq, solve
+
+# Define the variables
+x = symbols('x')
+a, b = symbols('a b', real=True)
+
+# Given root and its conjugate
+root1 = 1 + 1j * (3**0.5)
+root2 = 1 - 1j * (3**0.5)
+
+# The third root can be found as:
+root3 = - (root1 + root2)
+
+# Form the polynomial from the roots: (x - root1)(x - root2)(x - root3)
+polynomial = (x - root1) * (x - root2) * (x - root3)
+
+# Expand the polynomial to get it in standard form
+polynomial_expanded = polynomial.expand()
+
+# Extract the coefficients of the polynomial to match it with x^3 + ax + b
+coefficients = [polynomial_expanded.coeff(x, i) for i in range(4)]  # We get coefficients for x^3, x^2, x, and the constant term respectively
+
+# The expanded polynomial should be in the form x^3 + 0 * x^2 + a * x + b
+a_value = coefficients[2]
+b_value = coefficients[3]
+
+print((a_value, b_value, a_value + b_value))
+```
+Code execution result: (0, 1, 1)
+
+It appears there is a discrepancy between our expectation and the code's result. We need to ensure that the polynomial we constructed matches \(x^3 + ax + b\) and correctly extract the coefficients.
+
+Let's correct this by forming the polynomial from its roots and ensuring we correctly match it to the form \(x^3 + ax + b = 0\). We know the polynomial should be of the form:
+
+\[ (x - (1 + i \sqrt{3}))(x - (1 - i \sqrt{3}))(x - r) = 0 \]
+
+We then expand this product and collect the coefficients corresponding to \(x\) and the constant term. Let's adjust the code accordingly and ensure we get the correct polynomial expansion and extract the coefficients properly.
+```python
+import sympy as sp
+
+# Define the variable
+x = sp.symbols('x')
+
+# Given roots
+root1 = 1 + 1j * (3**0.5)
+root2 = 1 - 1j * (3**0.5)
+root3 = -2
+
+# Form the polynomial from the roots
+polynomial = (x - root1) * (x - root2) * (x - root3)
+
+# Expand the polynomial to get it in standard form
+polynomial_expanded = sp.expand(polynomial)
+
+print(polynomial_expanded)
+```
+Code execution result: x**3 - 4.44089209850063e-16*x + 8.0
+
+From the output, we have the expanded polynomial as:
+
+\[ x^3 - 4.44089209850063 \times 10^{-16} \cdot x + 8.0 \]
+
+This is essentially:
+
+\[ x^3 + 0 \cdot x^2 + 0 \cdot x + 8 \]
+
+This matching form isn't exactly what we want, likely due to how small floating point numbers or numerical approximations are handled. However, it suggests that the coefficient of \(x\) should be 0 and the constant term is 8, as derived earlier.
+
+Thus, we can confidently state that \( a = 0 \) and \( b = 8 \), leading to:
+
+\[ a + b = 0 + 8 = 8 \]
+
+So, the final answer is:
+
+\(\boxed{8}\)
+

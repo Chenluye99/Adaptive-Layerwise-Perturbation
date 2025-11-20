@@ -1,0 +1,59 @@
+Score: 1.0
+
+To solve the problem, let's start by understanding the properties of the quadratic inequality and the parabola.
+
+1. **Problem Understanding:**
+    - The quadratic inequality is given as \( -x^2 + ax + b \leq 0 \).
+    - The solution to this inequality is \( (-\infty, -3] \cup [5, \infty) \).
+    - This means that the quadratic expression \( -x^2 + ax + b \) is non-positive outside the interval \((-3, 5)\), and it is positive inside this interval. Hence, the roots of the quadratic equation \( -x^2 + ax + b = 0 \) are \( x = -3 \) and \( x = 5 \).
+
+2. **Form of the Quadratic Equation:**
+    - If the roots of the quadratic equation \( -x^2 + ax + b = 0 \) are \( x = -3 \) and \( x = 5 \), then we can express the quadratic equation in its factored form as:
+      \[
+      -x^2 + ax + b = - (x + 3)(x - 5)
+      \]
+    - Expanding the right-hand side, we get:
+      \[
+      - (x + 3)(x - 5) = - (x^2 - 5x + 3x - 15) = - (x^2 - 2x - 15) = -x^2 + 2x + 15
+      \]
+    - Therefore, we have:
+      \[
+      -x^2 + ax + b = -x^2 + 2x + 15
+      \]
+    - By comparing the coefficients, we get:
+      \[
+      a = 2 \quad \text{and} \quad b = 15
+      \]
+
+3. **Find the Vertex of the Parabola:**
+    - The vertex form of a parabola given by \( y = -x^2 + ax + b \) has its vertex at \( x = \frac{-b}{2a} \) for the standard quadratic equation \( y = ax^2 + bx + c \). However, for our equation \( y = -x^2 + 2x + 15 \), the coefficient of \( x^2 \) is \(-1\), so the formula becomes:
+      \[
+      x = \frac{-a}{2 \cdot (-1)} = \frac{-2}{-2} = 1
+      \]
+    - Substituting \( x = 1 \) into the equation to get the y-coordinate of the vertex:
+      \[
+      y = - (1)^2 + 2 (1) + 15 = -1 + 2 + 15 = 16
+      \]
+    - Therefore, the vertex of the parabola is at \( (1, 16) \).
+
+Let's confirm this with Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variables
+x = sp.symbols('x')
+a, b = 2, 15
+
+# Define the quadratic equation
+quadratic_eq = -x**2 + a*x + b
+
+# Find the vertex of the parabola y = -x^2 + 2x + 15
+vertex_x = -a / (2 * -1)  # same as -2 / (-2) = 1
+vertex_y = quadratic_eq.subs(x, vertex_x)
+
+print(((vertex_x, vertex_y)))
+```
+Code execution result: (1.0, 16.0000000000000)
+
+Thus, the vertex of the parabola \( y = -x^2 + 2x + 15 \) is \(\boxed{(1, 16)}\). This confirms our solution is accurate.
+

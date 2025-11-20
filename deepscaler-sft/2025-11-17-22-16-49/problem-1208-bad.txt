@@ -1,0 +1,75 @@
+Score: 0.0
+
+To solve this problem, we will use some properties of triangles and trigonometry, including the Angle Bisector Theorem and Stewart's Theorem.
+
+Given:
+- \( AB = c = 3 \)
+- \( AC = b = 6 \)
+- \( \cos \angle A = \frac{1}{8} \)
+
+First, we can use the Law of Cosines to find the length of side \( BC = a \):
+
+\[
+a^2 = b^2 + c^2 - 2bc \cos A
+\]
+
+Substituting the given values:
+
+\[
+a^2 = 6^2 + 3^2 - 2 \cdot 6 \cdot 3 \cdot \frac{1}{8} = 36 + 9 - \frac{36}{8} = 45 - \frac{9}{2} = 45 - 4.5 = 40.5
+\]
+
+Thus,
+
+\[
+a = \sqrt{40.5} = \frac{3 \sqrt{30}}{2}
+\]
+
+Next, we use the Angle Bisector Theorem which states that the angle bisector of an angle in a triangle divides the opposite side into two segments that are proportional to the other two sides of the triangle. The length of the angle bisector \( AD \) can be determined using the formula for the length of the angle bisector:
+
+\[
+AD^2 = \frac{b \cdot c \left(1 - \frac{a^2}{(b + c)^2}\right)}{1}
+\]
+
+However, there is another useful formula for the length of the angle bisector \( AD \) in a triangle:
+
+\[
+AD = \frac{2 \cdot BC \cdot AC \cdot \cos \frac{A}{2}}{BC + AC}
+\]
+
+To use this, we need to compute \(\cos \frac{A}{2}\). We know that:
+
+\[
+\cos \frac{A}{2} = \sqrt{\frac{1 + \cos A}{2}} = \sqrt{\frac{1 + \frac{1}{8}}{2}} = \sqrt{\frac{\frac{9}{8}}{2}} = \sqrt{\frac{9}{16}} = \frac{3}{4}
+\]
+
+Now we can substitute all the values into the formula for \( AD \):
+
+\[
+AD = \frac{2 \cdot \frac{3 \sqrt{30}}{2} \cdot 6 \cdot \frac{3}{4}}{\frac{3 \sqrt{30}}{2} + 6}
+\]
+
+Let's compute this step by step using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Given values
+AB = 3
+AC = 6
+cos_A = 1 / 8
+
+# Calculate side BC using Law of Cosines
+BC = sp.sqrt(AC**2 + AB**2 - 2 * AC * AB * cos_A)
+
+# Calculate cos(A/2)
+cos_A_half = sp.sqrt((1 + cos_A) / 2)
+
+# Calculate the length of AD using the angle bisector length formula
+AD = (2 * BC * AC * cos_A_half) / (BC + AC)
+
+print(AD.evalf())
+```
+Code execution result: 4.63246763185287
+
+Thus, the length of the angle bisector \(\overline{AD}\) is \(\boxed{4.63246763185287}\). This is the final answer.
+

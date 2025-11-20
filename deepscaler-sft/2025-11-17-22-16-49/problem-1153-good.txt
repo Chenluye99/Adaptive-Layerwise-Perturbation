@@ -1,0 +1,87 @@
+Score: 1.0
+
+To solve this problem, we need to maximize the expression \(x - y\) under the constraint given by the equation \(2(x^2 + y^2) = x + y\).
+
+1. **Set up the Constraint:**
+   The constraint is given by the equation:
+   \[
+   2(x^2 + y^2) = x + y.
+   \]
+   Rearrange this equation to form a standard equation:
+   \[
+   2x^2 + 2y^2 - x - y = 0.
+   \]
+
+2. **Set up the Objective Function:**
+   We want to maximize the expression \(x - y\). Let's call this expression \(z\), i.e.,
+   \[
+   z = x - y.
+   \]
+   So, we need to maximize \(z\) subject to the constraint \(2x^2 + 2y^2 - x - y = 0\).
+
+3. **Use Lagrange Multipliers:**
+   To solve this problem, we can use the method of Lagrange multipliers. Define the Lagrange function:
+   \[
+   \mathcal{L} = x - y + \lambda (2x^2 + 2y^2 - x - y),
+   \]
+   where \(\lambda\) is the Lagrange multiplier. To find the extrema, set the partial derivatives of \(\mathcal{L}\) with respect to \(x\), \(y\), and \(\lambda\) to zero:
+   \[
+   \frac{\partial \mathcal{L}}{\partial x} = 1 + \lambda (4x - 1) = 0,
+   \]
+   \[
+   \frac{\partial \mathcal{L}}{\partial y} = -1 + \lambda (4y - 1) = 0,
+   \]
+   \[
+   \frac{\partial \mathcal{L}}{\partial \lambda} = 2x^2 + 2y^2 - x - y = 0.
+   \]
+
+4. **Solve the System of Equations:**
+   From the first two equations, we get:
+   \[
+   1 + \lambda (4x - 1) = 0 \implies \lambda = -\frac{1}{4x - 1},
+   \]
+   \[
+   -1 + \lambda (4y - 1) = 0 \implies \lambda = \frac{1}{4y - 1}.
+   \]
+   Equating the two expressions for \(\lambda\):
+   \[
+   -\frac{1}{4x - 1} = \frac{1}{4y - 1} \implies -1 \cdot (4y - 1) = 1 \cdot (4x - 1) \implies -4y + 1 = 4x - 1 \implies 4x + 4y = 2 \implies 2x + 2y = 1 \implies x + y = \frac{1}{2}.
+   \]
+
+   Substitute \( y = \frac{1}{2} - x \) into the constraint equation:
+   \[
+   2x^2 + 2\left(\frac{1}{2} - x\right)^2 - x - \left(\frac{1}{2} - x\right) = 0.
+   \]
+   Simplify and solve this quadratic equation for \(x\) and then find the corresponding \(y\).
+
+Let's implement this step-by-step in Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variables
+x, y, lambd = sp.symbols('x y lambd', real=True)
+
+# Define the equation and the objective function
+eq = 2*x**2 + 2*y**2 - x - y
+objective = x - y
+
+# Set up the Lagrange function
+L = objective + lambd * eq
+
+# Take the partial derivatives
+partial_x = sp.diff(L, x)
+partial_y = sp.diff(L, y)
+partial_lambd = sp.diff(L, lambd)
+
+# Solve the system of equations
+solutions = sp.solve([partial_x, partial_y, partial_lambd], (x, y, lambd))
+
+# Find the maximum value of the objective function from the solutions
+max_value = max([objective.subs({x: sol[0], y: sol[1]}) for sol in solutions if objective.subs({x: sol[0], y: sol[1]}) != sp.nan])
+
+print(max_value)
+```
+Code execution result: 1/2
+
+Thus, the maximum value of \(x - y\) subject to the constraint \(2(x^2 + y^2) = x + y\) is \(\boxed{\frac{1}{2}}\). This is the final answer.
+

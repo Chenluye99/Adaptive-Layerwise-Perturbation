@@ -1,0 +1,110 @@
+Score: 1.0
+
+To solve this problem, we need to use the fact that if a polynomial \(f(x)\) is divisible by another polynomial \(g(x)\), then all the roots of \(g(x)\) are also roots of \(f(x)\).
+
+1. **Find the roots of \(x^2 + x + 1\):**
+   The polynomial \(x^2 + x + 1\) has roots that are the complex cube roots of unity (excluding 1). These roots are \(\omega\) and \(\omega^2\), where \(\omega = e^{2\pi i / 3} = -\frac{1}{2} + \frac{\sqrt{3}}{2}i\) and \(\omega^2 = e^{-2\pi i / 3} = -\frac{1}{2} - \frac{\sqrt{3}}{2}i\). These roots satisfy the equation \(\omega^3 = 1\) and \(\omega^2 + \omega + 1 = 0\).
+
+2. **Substitute the roots into the polynomial \(x^{101} + Ax + B\):**
+   Since \(x^{101} + Ax + B\) is divisible by \(x^2 + x + 1\), it must be true that:
+   \[
+   \omega^{101} + A\omega + B = 0
+   \]
+   \[
+   (\omega^2)^{101} + A\omega^2 + B = 0
+   \]
+   We can simplify \(\omega^{101}\) and \((\omega^2)^{101}\) using the fact that \(\omega^3 = 1\):
+   \[
+   \omega^{101} = \omega^{3 \cdot 33 + 2} = (\omega^3)^{33} \cdot \omega^2 = 1^{33} \cdot \omega^2 = \omega^2
+   \]
+   \[
+   (\omega^2)^{101} = (\omega^2)^{3 \cdot 33 + 2} = ((\omega^2)^3)^{33} \cdot (\omega^2)^2 = 1^{33} \cdot \omega = \omega
+   \]
+   So, we get the following system of equations:
+   \[
+   \omega^2 + A\omega + B = 0
+   \]
+   \[
+   \omega + A\omega^2 + B = 0
+   \]
+
+3. **Set up and solve the system of equations:**
+   We now have a system of two equations with two unknowns, \(A\) and \(B\):
+   \[
+   \begin{cases}
+   \omega^2 + A\omega + B = 0 \\
+   \omega + A\omega^2 + B = 0
+   \end{cases}
+   \]
+   We can solve this system step-by-step. First, let's isolate \(B\) from the first equation:
+   \[
+   B = -\omega^2 - A\omega
+   \]
+   Substitute this expression for \(B\) into the second equation:
+   \[
+   \omega + A\omega^2 + (-\omega^2 - A\omega) = 0
+   \]
+   Simplify the equation:
+   \[
+   \omega + A\omega^2 - \omega^2 - A\omega = 0
+   \]
+   \[
+   \omega - A\omega + A\omega^2 - \omega^2 = 0
+   \]
+   \[
+   \omega (1 - A) + \omega^2 (A - 1) = 0
+   \]
+   \[
+   \omega (1 - A) = - \omega^2 (A - 1)
+   \]
+   Since \(\omega \neq 0\) and \(\omega^2 \neq 0\), we can divide both sides by \(\omega (1 - A)\) or \(- \omega^2 (A - 1)\) (assuming \(1 - A \neq 0\) and \(A - 1 \neq 0\)), but a more straightforward approach is to notice that the coefficients of \(\omega\) and \(\omega^2\) must independently be equal to zero if the equation is to hold for all values of \(\omega\) and \(\omega^2\). This implies:
+   \[
+   1 - A = 0 \quad \text{and} \quad - (A - 1) = 0
+   \]
+   Both conditions lead to:
+   \[
+   A = 1
+   \]
+   Substitute \(A = 1\) back into the equation for \(B\):
+   \[
+   B = -\omega^2 - \omega
+   \]
+   We know that \(\omega^2 + \omega + 1 = 0\), so:
+   \[
+   \omega^2 + \omega = -1 \implies - (\omega^2 + \omega) = 1 \implies - (-1) = 1 \implies B = 1
+   \]
+   Therefore, we have \(A = 1\) and \(B = 1\), so:
+   \[
+   A + B = 1 + 1 = 2
+   \]
+
+Let's verify this solution by implementing it in Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variables
+x = sp.symbols('x')
+A, B = sp.symbols('A B', real=True)
+
+# Define the polynomial and the divisor
+polynomial = x**101 + A*x + B
+divisor = x**2 + x + 1
+
+# Find the roots of the divisor
+roots = sp.solve(divisor, x)
+
+# Set up the equations by substituting the roots into the polynomial and setting them to 0
+eq1 = polynomial.subs(x, roots[0])
+eq2 = polynomial.subs(x, roots[1])
+
+# Solve the system of equations for A and B
+solution = sp.solve([eq1, eq2], (A, B))
+
+print(solution)
+```
+Code execution result: {A: 1, B: 1}
+
+This confirms that the solution we obtained analytically is correct. Therefore, the final answer is:
+
+\(\boxed{2}\)
+

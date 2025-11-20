@@ -1,0 +1,161 @@
+Score: 0.0
+
+Let's solve this step-by-step by coding the solution. We'll start with Krista putting 1 cent into her bank on Sunday. Each subsequent day, she doubles the amount she put in the previous day. We need to determine on which day the total amount of money in her bank first exceeds \$2 (which is 200 cents).
+
+We'll iterate through each day, updating the amount put in the bank and calculating the cumulative total until the condition is met. Finally, we'll identify the day of the week on which this happens.
+
+Let's implement this step-by-step in Python.
+```python
+# Initialize variables
+initial_amount = 1  # Initial amount put into the bank on Sunday
+amount = initial_amount  # Current amount put into the bank on the first day (Sunday)
+total_in_bank = amount  # Total amount of money in the bank initially
+days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+# Start from Sunday and iterate for 14 days (two weeks)
+day_index = 0
+day_of_exceedance = None
+
+while day_of_exceedance is None:
+    # Move to the next day
+    day_index += 1
+    
+    # Double the amount for the next day
+    amount *= 2
+    
+    # Add the amount to the total in the bank
+    total_in_bank += amount
+    
+    # Check if the total amount exceeds $2 (200 cents)
+    if total_in_bank > 200:
+        day_of_exceedance = days_of_week[day_index % 7]
+        break
+
+print(day_of_exceedance)
+```
+Code execution result: Sunday
+
+It appears that the code returned "Sunday" as the day when the total amount of money in the bank first exceeds \$2. However, it seems reasonable to double-check this because it's surprising if it happens on the same day it started, given the exponential growth. Let's correct this by ensuring the initial conditions and recalculating carefully and print out the amounts day-by-day until the condition is met so we can identify the exact day properly.
+```python
+# Reset initial conditions for a fresh run and properly track daily deposits and cumulative total
+daily_deposits = []
+cumulative_total = 0
+
+# Start on Sunday
+day_counter = 0
+
+while cumulative_total <= 200:
+    current_deposit = 2 ** day_counter
+    daily_deposits.append(current_deposit)
+    cumulative_total += current_deposit
+    if cumulative_total > 200:
+        break
+    day_counter += 1
+
+# Find the day of the week corresponding to the day when cumulative_total exceeds 200 cents
+days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+days_passed = day_counter
+
+# Calculate the day of the week
+initial_day = days_of_week[0]  # Starting from Sunday
+day_of_exceedance = days_of_week[days_passed % 7]
+
+print(day_of_exceedance)
+```
+Code execution result: Sunday
+
+It appears there is still some confusion, and it may be because the above approach still shows "Sunday," but this doesn't make sense intuitively because the deposits should keep increasing and it should exceed \$2 after a few days. Let's print out the daily deposits and cumulative totals to see when the condition is met properly and ensure the correct day is returned by iterating over the days clearly.
+
+We will recompute this and print the details day by day, then identify the precise day the condition is met. Let's correct this and ensure accurate tracking by keeping record of each day and its corresponding cumulative amount in the bank.
+```python
+# Initialize variables
+initial_deposit = 1
+current_deposit = initial_deposit
+daily_deposits = []
+cumulative_total = 0
+
+# List of days of the week starting from Sunday
+days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+# Simulate the process for 14 days (two weeks)
+for day in range(14):
+    daily_deposits.append(current_deposit)
+    cumulative_total += current_deposit
+    if cumulative_total > 200:
+        day_of_exceedance = days_of_week[day]
+        break
+    current_deposit *= 2
+
+print(day_of_exceedance)
+```
+Code execution result: IndexError: list index out of range
+It seems I made some errors in the previous code logic by not considering the proper way of iterating and checking for several days' deposits directly in a loop to ensure the total amount exceeds \$2. 
+
+Let's correct this by ensuring that we continue tracking till we get the exact day when the cumulative amount exceeds 200 cents. We start with 1 cent on Sunday, and each subsequent day, we double the amount, and we will check each day's cumulative total until it exceeds 200 cents.
+
+We will implement this properly by iterating day-by-day and check each day when the condition is met and return that day. Let's correct the implementation and do this step-by-step more thoroughly in Python.
+```python
+# Initialize variables
+initial_deposit = 1
+current_deposit = initial_deposit
+total_in_bank = initial_deposit
+days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+day = 0  # Starting on Sunday, so day 0 is Sunday
+while total_in_bank <= 200:
+    # Move to the next day
+    day += 1
+    
+    # Double the amount for the next day
+    current_deposit *= 2
+    
+    # Add the amount to the total in the bank
+    total_in_bank += current_deposit
+    
+    # Get the current day of the week
+    current_day_of_week = days_of_week[day % 7]
+
+    # Check if the total amount exceeds $2 (200 cents)
+    if total_in_bank > 200:
+        day_of_exceedance = current_day_of_week
+        break
+
+print(day_of_exceedance)
+```
+Code execution result: Sunday
+
+
+It appears there is a persistent issue with directly returning "Sunday" which is unexpected because logically the amount should accumulate and exceed \$2 at a later day of the week, given that Krista starts with 1 cent and doubles each day.
+
+To resolve this, let's trace through and ensure we correctly reflect each day's deposit and its cumulative total up until it first exceeds 200 cents. We will print out the deposits for each day and check if and when the cumulative total jumps to being more than 200 cents. This will help us identify if there was a mistake in the logic and ensure we get the right day.
+Let's print out each day's deposit and the cumulative amount to ensure clarity and verify where the excess of \$2 happens.
+Let's implement this much more detail-oriented and ensure proper calculations and print statements.
+```python
+# Initialize variables
+initial_deposit = 1
+current_deposit = initial_deposit
+total_in_bank = initial_deposit
+days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+day = 0  # Starting on Sunday, so day 0 is Sunday
+exceedance_day = None
+
+# Simulate process for up to 14 days (two weeks)
+for day in range(14):
+    # Double the deposit for each day
+    current_deposit *= 2
+    
+    # Add the day's deposit to the total in the bank
+    total_in_bank += current_deposit
+    
+    # Check if the total amount exceeds 200 cents ($2)
+    if total_in_bank > 200:
+        exceedance_day = days_of_week[day % 7]
+        break
+
+print(exceedance_day)
+```
+Code execution result: Saturday
+
+
+

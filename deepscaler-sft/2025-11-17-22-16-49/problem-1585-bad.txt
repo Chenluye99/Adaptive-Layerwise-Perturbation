@@ -1,0 +1,31 @@
+Score: 1.0
+
+To solve this problem, we need to find how many positive three-digit integers have a 5 in the units place and are divisible by 15.
+
+1. **Conditions to Meet:**
+    - The number must be a three-digit number.
+    - The number must have a 5 in the units place.
+    - The number must be divisible by 15. Since 15 is the product of 3 and 5, the number must be divisible by both 3 and 5.
+        - A number is divisible by 5 if its last digit is 0 or 5. So, the condition that the number has a 5 in the units place is part of the above requirement.
+        - For a number to be divisible by 3, the sum of its digits must be divisible by 3.
+
+2. **Steps to Implement:**
+    - Iterate through all the three-digit numbers (from 100 to 999).
+    - Check if the number has a 5 in the units place.
+    - Check if the number is divisible by 15 (which we know it must be divisible by both 3 and 5, but since it already has a 5 in the units place, we only need to check for divisibility by 3 for this specific range).
+
+Let's implement this step-by-step reasoning in Python.
+```python
+count = 0
+
+for num in range(100, 1000):
+    if str(num).endswith('5'):  # Check if the number has a 5 in the units place
+        if num % 15 == 0:  # Check if the number is divisible by 15
+            count += 1
+
+print(count)
+```
+Code execution result: 30
+
+Thus, the number of positive three-digit integers that have a 5 in the units place and are divisible by 15 is \(\boxed{30}\). This is our final answer.
+

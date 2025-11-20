@@ -1,0 +1,46 @@
+Score: 1.0
+
+Let's solve this step-by-step.
+
+1. **Problem Understanding:**
+    - When Eleanor divides the cookies equally among 11 friends, she has 4 cookies left over. This can be written as:
+      \[
+      N \equiv 4 \pmod{11}
+      \]
+    - When she divides the cookies equally among 7 friends, she has 1 cookie left over. This can be written as:
+      \[
+      N \equiv 1 \pmod{7}
+      \]
+    - We need to find all possible values of \( N \) that satisfy both congruences and are less than 100, and then find the sum of these possible values.
+
+2. **Formulating the Problem with Code:**
+    - We will iterate through all numbers \( N \) from 0 to 99 and check which of these numbers satisfy both congruences.
+    - For each number \( N \), we check if:
+      \[
+      N \equiv 4 \pmod{11}
+      \]
+      and
+      \[
+      N \equiv 1 \pmod{7}
+      \]
+
+3. **Implementing this in Python:**
+    - We will use a loop to check each number and then sum up all numbers that meet the criteria.
+
+Let's implement this step-by-step in Python.
+```python
+possible_numbers = []
+
+for N in range(100):
+    if N % 11 == 4 and N % 7 == 1:
+        possible_numbers.append(N)
+
+sum_of_possible_numbers = sum(possible_numbers)
+print((sum_of_possible_numbers, possible_numbers))
+```
+Code execution result: (107, [15, 92])
+
+So, the possible numbers of cookies that Eleanor could have made, based on the constraints, are 15 and 92. The sum of these possible numbers is:
+
+\(\boxed{107}\)
+

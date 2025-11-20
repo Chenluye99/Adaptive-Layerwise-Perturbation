@@ -1,0 +1,32 @@
+Score: 1.0
+
+To solve this problem, we need to consider all possible permutations of the digits of the number 2004 and then determine how many of them are unique four-digit numbers. Here, the digits available for permutation are 2, 0, 0, and 4.
+
+First, let's generate all permutations of the digits 2, 0, 0, and 4 and then form the numbers from these permutations. We then need to ensure that these numbers are four-digit numbers, i.e., they should not start with 0, because if a number starts with 0, it is not considered a four-digit number (it would be a three-digit or smaller number).
+
+Let's implement this step-by-step in Python.
+```python
+import itertools
+
+# Digits of the number 2004
+digits = [2, 0, 0, 4]
+
+# Get all unique permutations of the list of digits
+permutations = set(tuple(p) for p in set(itertools.permutations(digits)))
+
+# Now, form four-digit numbers from these permutations and ensure they are valid (i.e., do not start with 0)
+unique_numbers = set()
+
+for perm in permutations:
+    num = int(''.join(map(str, perm)))
+    if 1000 <= num <= 9999:  # Ensure that the number is a four-digit number
+        unique_numbers.add(num)
+
+# The final answer is the number of unique four-digit numbers obtained
+num_unique_four_digit_numbers = len(unique_numbers)
+print(num_unique_four_digit_numbers)
+```
+Code execution result: 6
+
+Thus, the number of different four-digit numbers that can be formed by arranging the digits in 2004 is \(\boxed{6}\). This is our final answer.
+

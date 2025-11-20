@@ -1,0 +1,63 @@
+Score: 1.0
+
+Let's solve the problem step-by-step with reasoning and Python code.
+
+1. **Problem Understanding:**
+    - Let's assume that the Tasty Candy Company puts \( x \) pieces of candy into each one-pound bag.
+    - Mike bought 4 one-pound bags, so he had \( 4x \) pieces of candy initially. He gave 15 pieces of candy to each person in his class and had 23 pieces left over. So, the equation for Mike is:
+      \[
+      4x = 15 \cdot \text{(number of people in Mike's class)} + 23
+      \]
+    - Betsy bought 5 one-pound bags, so she had \( 5x \) pieces of candy initially. She gave 23 pieces of candy to each teacher in her school and had 15 pieces left over. So, the equation for Betsy is:
+      \[
+      5x = 23 \cdot \text{(number of teachers in Betsy's school)} + 15
+      \]
+
+2. **Formulating Equations:**
+    - Let's denote the number of people in Mike's class as \( m \) and the number of teachers in Betsy's school as \( t \). Then, the equations become:
+      \[
+      4x = 15m + 23
+      \]
+      \[
+      5x = 23t + 15
+      \]
+    - We need to find the smallest positive integer value of \( x \) that satisfies both equations for some integers \( m \) and \( t \).
+
+3. **Iterative Solution:**
+    - We will iterate over possible values of \( x \) starting from 1 and check for each value if there exist integers \( m \) and \( t \) that make both equations hold true.
+
+Let's implement this in Python.
+```python
+# We will iterate over possible values of x and check for each value if there exist integers m and t that satisfy both equations.
+
+def find_min_candies_per_bag():
+    x = 1
+    
+    while True:
+        found_m = False
+        found_t = False
+        
+        # Check for Mike's equation: 4x = 15m + 23
+        for m in range(1, 1000):
+            if 4 * x == 15 * m + 23:
+                found_m = True
+                break
+        
+        # Check for Betsy's equation: 5x = 23t + 15
+        for t in range(1, 1000):
+            if 5 * x == 23 * t + 15:
+                found_t = True
+                break
+        
+        if found_m and found_t:
+            return x
+        
+        x += 1
+
+min_candies_per_bag = find_min_candies_per_bag()
+print(min_candies_per_bag)
+```
+Code execution result: 302
+
+Thus, the least number of pieces of candy the Tasty Candy Company could have placed in each one-pound bag is \(\boxed{302}\). This is the final answer.
+

@@ -1,0 +1,93 @@
+Score: 0.0
+
+Let's solve this step-by-step using Python for accuracy.
+
+### Part (1): Find the value of the positive integer \( a \)
+
+First, let's calculate the expected value of the score \( X \) from drawing a ball randomly from the bag.
+
+There are \( a + 1 + a + 1 = 2a + 2 \) balls in total in the bag. The probability of drawing a red ball is \(\frac{a + 1}{2a + 2}\), the probability of drawing a yellow ball is \(\frac{a}{2a + 2}\), and the probability of drawing a blue ball is \(\frac{1}{2a + 2}\).
+
+The expected value \( E(X) \) is given by:
+\[ E(X) = 1 \cdot \frac{a + 1}{2a + 2} + 2 \cdot \frac{a}{2a + 2} + 3 \cdot \frac{1}{2a + 2} \]
+We are given that this expected value is \(\frac{5}{3}\):
+\[ 1 \cdot \frac{a + 1}{2a + 2} + 2 \cdot \frac{a}{2a + 2} + 3 \cdot \frac{1}{2a + 2} = \frac{5}{3} \]
+Combine the fractions on the left-hand side:
+\[ \frac{(a + 1) + 2a + 3}{2a + 2} = \frac{5}{3} \]
+\[ \frac{3a + 4}{2a + 2} = \frac{5}{3} \]
+
+Cross-multiply to get:
+\[ 3(3a + 4) = 5(2a + 2) \]
+\[ 9a + 12 = 10a + 10 \]
+Rearrange the equation to isolate \( a \):
+\[ 9a + 12 = 10a + 10 \]
+\[ 12 - 10 = 10a - 9a \]
+\[ 2 = a \]
+Therefore, \( a = 2 \).
+
+### Part (2): Find the probability that the sum of the scores obtained from drawing 3 balls is 5
+
+With \( a = 2 \), the bag contains:
+- \( a + 1 = 3 \) red balls,
+- \( a = 2 \) yellow balls,
+- 1 blue ball.
+
+So, there are \( 3 + 2 + 1 = 6 \) balls in total. Now, we need to determine the probability that the sum of the scores of 3 randomly drawn balls is 5.
+
+To achieve a sum of 5 points when drawing 3 balls:
+1. Drawing 3 red balls (each red ball gives 1 point): \(1 + 1 + 1 = 3\), this is too low.
+2. Drawing 2 red balls and 1 yellow ball (each red ball gives 1 point, each yellow ball gives 2 points): \(1 + 1 + 2 = 4\), this is too low.
+3. Drawing 1 red ball and 2 yellow balls: \(1 + 2 + 2 = 5\), this is a match.
+4. Drawing the blue ball and 2 yellow balls (each blue ball gives 3 points, each yellow ball gives 2 points): \(3 + 2 + 2 = 7\), this is too high.
+5. Drawing 1 red ball, 1 yellow ball, and 1 blue ball: \(1 + 2 + 3 = 6\), this is too high.
+
+From the above, we see that the only way to get a sum of 5 is by drawing 1 red ball and 2 yellow balls. Now, let's calculate the possible ways to get this outcome and the total ways to draw 3 balls out of 6.
+
+We will use Python to calculate this accurately.
+
+First, let's list all possible ways to draw 3 balls out of the 6, and then count how many of these ways result in a sum of 5. We will use combinations for this task.
+```python
+import itertools
+
+# List of balls in the bag for a = 2
+balls = ['R'] * 3 + ['Y'] * 2 + ['B']
+
+# Find all ways to draw 3 balls from the 6 balls
+draws = list(itertools.combinations(balls, 3))
+
+# Calculate the score for each draw and count how many of them give a sum of 5
+sum_5_count = 0
+
+for draw in draws:
+    score = draw.count('R') * 1 + draw.count('Y') * 2 + draw.count('B') * 3
+    if score == 5:
+        sum_5_count += 1
+
+# Total ways to draw 3 balls from 6 is given by the combination formula C(6, 3)
+total_ways = len(draws)
+
+# Probability that the sum of the scores obtained is 5
+probability_sum_5 = sum_5_count / total_ways
+
+print(((sum_5_count, total_ways, probability_sum_5)))
+```
+Code execution result: (6, 20, 0.3)
+
+So, the total ways to draw 3 balls from 6 is \( \binom{6}{3} = 20 \). We found that there are 6 ways to get a sum of 5 when drawing 3 balls, so the probability is:
+
+\[
+\text{Probability} = \frac{6}{20} = \frac{3}{10}
+\]
+
+Hence, the probability that the sum of the scores obtained from drawing 3 balls is 5 is:
+
+\[
+\boxed{\frac{3}{10}}
+\]
+
+And to summarize, the value of the positive integer \( a \) found in the first part is:
+
+\[
+\boxed{2}
+\]
+

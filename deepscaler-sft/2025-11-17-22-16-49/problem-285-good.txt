@@ -1,0 +1,132 @@
+Score: 1.0
+
+To solve this problem, we will use both geometric properties and symbolic computation with Python and Sympy.
+
+### Step-by-Step Solution:
+
+1. **Geometric Properties:**
+    - **Centroid (G):** The centroid \( G \) of a triangle \( ABC \) is the point where the three medians of the triangle intersect. It divides each median into a ratio of 2:1.
+    - **Condition \( BG \perp CG \):** Given that \( BG \) is perpendicular to \( CG \), we can assume \( B, C, G \) are related in a special way that might help us place the triangle in a coordinate system.
+    - **Using Coordinates:**
+        - Place \( B \) at \((0, 0)\) and \( C \) at \((\sqrt{2}, 0)\).
+        - Place \( A \) at \((x, y)\).
+
+2. **Find the Centroid (G):**
+    - The coordinates of the centroid \( G \) are the average of the coordinates of the vertices \( A, B, \) and \( C \):
+      \[
+      G = \left( \frac{0 + \sqrt{2} + x}{3}, \frac{0 + 0 + y}{3} \right) = \left( \frac{\sqrt{2} + x}{3}, \frac{y}{3} \right)
+      \]
+
+3. **Condition \( BG \perp CG \):**
+    - The condition \( BG \perp CG \) implies that the dot product of the vectors \( \overrightarrow{BG} \) and \( \overrightarrow{CG} \) is zero.
+    - \(\overrightarrow{BG} = \left( \frac{\sqrt{2} + x}{3} - 0, \frac{y}{3} - 0 \right) = \left( \frac{\sqrt{2} + x}{3}, \frac{y}{3} \right)\)
+    - \(\overrightarrow{CG} = \left( \frac{\sqrt{2} + x}{3} - \sqrt{2}, \frac{y}{3} - 0 \right) = \left( \frac{\sqrt{2} + x - 3 \sqrt{2}}{3}, \frac{y}{3} \right) = \left( \frac{x - 2 \sqrt{2}}{3}, \frac{y}{3} \right)\)
+    - The dot product of \(\overrightarrow{BG}\) and \(\overrightarrow{CG}\) is:
+      \[
+      \left( \frac{\sqrt{2} + x}{3} \right) \left( \frac{x - 2 \sqrt{2}}{3} \right) + \left( \frac{y}{3} \right) \left( \frac{y}{3} \right) = 0
+      \]
+      \[
+      \frac{(\sqrt{2} + x)(x - 2 \sqrt{2}) + y^2}{9} = 0 \implies (\sqrt{2} + x)(x - 2 \sqrt{2}) + y^2 = 0
+      \]
+      So, we have:
+      \[
+      (\sqrt{2} + x)(x - 2 \sqrt{2}) + y^2 = 0 \implies \sqrt{2} x - 2 \cdot 2 + x^2 - 2 \sqrt{2} x + y^2 = 0 \implies x^2 - \sqrt{2} x + y^2 - 4 = 0 \quad \text{(Equation 1)}
+      \]
+
+4. **Express \( AB \) and \( AC \):**
+    - The lengths of \( AB \) and \( AC \) can be written as:
+      \[
+      AB = \sqrt{(x - 0)^2 + (y - 0)^2} = \sqrt{x^2 + y^2}
+      \]
+      \[
+      AC = \sqrt{(x - \sqrt{2})^2 + (y - 0)^2} = \sqrt{(x - \sqrt{2})^2 + y^2}
+      \]
+    - We want to maximize \( AB + AC \), i.e., maximize:
+      \[
+      f(x, y) = \sqrt{x^2 + y^2} + \sqrt{(x - \sqrt{2})^2 + y^2}
+      \]
+    - We will use the constraint from Equation 1 to substitute and maximize this function.
+
+Let's implement this step-by-step in Python with Sympy:
+
+```python
+import sympy as sp
+
+# Define the variables
+x, y = sp.symbols('x y')
+
+# Define the constraint equation
+constraint = x**2 - sp.sqrt(2) * x + y**2 - 4
+
+# Define the function to maximize: AB + AC
+f = sp.sqrt(x**2 + y**2) + sp.sqrt((x - sp.sqrt(2))**2 + y**2)
+
+# Use Lagrange multipliers to solve for the maximum value
+lambda_ = sp.symbols('lambda')
+L = f - lambda_ * constraint
+
+# Take partial derivatives of L with respect to x, y, and lambda, set them to 0
+partial_x = sp.diff(L, x)
+partial_y = sp.diff(L, y)
+partial_lambda = sp.diff(L, lambda_)
+
+# Solve the system of equations
+solutions = sp.solve([partial_x, partial_y, partial_lambda], (x, y, lambda_))
+
+# Evaluate f at the solutions to find the maximum value
+max_value = 0
+for sol in solutions:
+    x_val, y_val, _ = sol
+    if x_val.is_real and y_val.is_real:
+        value = f.subs({x: x_val, y: y_val})
+        if value > max_value:
+            max_value = value
+
+print(max_value)
+```
+Code execution result: Timeout
+It looks like solving this problem symbolically with Lagrange multipliers directly can be computationally intensive and may take too long to solve in one go. Instead, let's consider a more efficient approach by numerically solving the constraint and then evaluating \( AB + AC \).
+
+### Numerical Approach
+1. **Formulate the Problem:**
+   We have the constraint \((\sqrt{2} + x)(x - 2 \sqrt{2}) + y^2 = 0\) and we need to maximize \( f(x, y) = \sqrt{x^2 + y^2} + \sqrt{(x - \sqrt{2})^2 + y^2} \).
+
+2. **Use Numerical Optimization:**
+   We can use numerical solvers to solve this problem efficiently. Specifically, we can use the `scipy.optimize` library in Python, which has functions that can solve constrained optimization problems.
+
+Let's implement this approach:
+
+```python
+import numpy as np
+from scipy.optimize import minimize
+
+# Define the objective function to maximize: -(AB + AC) (we minimize the negative to get the maximum)
+def objective(vars):
+    x, y = vars
+    return -(np.sqrt(x**2 + y**2) + np.sqrt((x - np.sqrt(2))**2 + y**2))
+
+# Define the constraint function
+def constraint(vars):
+    x, y = vars
+    return (np.sqrt(2) + x) * (x - 2 * np.sqrt(2)) + y**2
+
+# Initial guess for the variables
+initial_guess = [0, 0]
+
+# Define the bounds for x and y (they are theoretically unbounded, but we can assume reasonable bounds for practical purposes, e.g., -10 to 10)
+bounds = [(-10, 10), (-10, 10)]
+
+# Define the constraint dictionary expected by `minimize`
+cons = ({'type': 'eq', 'fun': constraint})
+
+# Perform the optimization
+solution = minimize(objective, initial_guess, bounds=bounds, constraints=cons)
+
+# Get the maximum value of AB + AC
+max_value = -solution.fun
+print(max_value)
+```
+Code execution result: 4.472135956865786
+
+Thus, the maximum value of \( AB + AC \) is \(\boxed{4.472135956865786}\). This value is very close to \( 2 \sqrt{5} \), as \( 4.472135956865786 \approx 2 \sqrt{5} \).
+

@@ -1,0 +1,64 @@
+Score: 0.0
+
+Let's solve this problem step-by-step using Python.
+
+1. **Define Possible Fnargs:**
+    - Each Fnarg can have 2, 3, or 4 heads.
+    - Each Fnarg is either red or blue.
+
+    Therefore, we have the following possible Fnargs:
+    - 2 heads: Red or Blue
+    - 3 heads: Red or Blue
+    - 4 heads: Red or Blue
+
+    This gives us a total of 6 different types of Fnargs: Red-2, Blue-2, Red-3, Blue-3, Red-4, Blue-4.
+
+2. **Generate All Possible Arrangements:**
+    - We need to generate all possible permutations of a list with 6 elements, where each element is one of the 6 different types of Fnargs.
+    - We need to check for two constraints for each arrangement:
+        1. No two adjacent Fnargs should be of the same color.
+        2. No two adjacent Fnargs should have the same number of heads.
+
+3. **Check and Count Valid Arrangements:**
+    - We will iterate through each permutation and check if it satisfies both constraints.
+    - If it does, we will count it as a valid arrangement.
+
+Let's implement this step-by-step plan in Python.
+```python
+import itertools
+
+# Define the list of all possible Fnargs
+fnargs = ['Red-2', 'Blue-2', 'Red-3', 'Blue-3', 'Red-4', 'Blue-4']
+
+# Generate all permutations of the list of 6 different Fnargs (one of each form)
+permutations = list(itertools.permutations(fnargs))
+
+valid_count = 0
+
+# Function to check constraints for a given permutation
+def is_valid(arrangement):
+    n = len(arrangement)
+    
+    # Check first constraint: No two adjacent Fnargs should be of the same color
+    for i in range(n - 1):
+        if arrangement[i][:3] == arrangement[i + 1][:3]:
+            return False
+    
+    # Check second constraint: No two adjacent Fnargs should have the same number of heads
+    for i in range(n - 1):
+        if int(arrangement[i][4:]) == int(arrangement[i + 1][4:]):
+            return False
+    
+    return True
+
+# Check each permutation and count valid ones
+for perm in permutations:
+    if is_valid(perm):
+        valid_count += 1
+
+print(valid_count)
+```
+Code execution result: 72
+
+Thus, the number of ways to line up the six Fnargs such that no immediate neighbors are the same color nor have the same number of heads is \(\boxed{72}\). This is our final answer.
+

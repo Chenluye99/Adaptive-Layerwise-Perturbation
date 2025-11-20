@@ -1,0 +1,234 @@
+Score: 0.0
+
+To solve this problem, we need to work with the given trigonometric equations and solve for \(\cos^2 C + \cos^2 A + 2 \sin C \sin A \cos B\).
+
+We start by defining the expressions and solving step-by-step using Python. Let's denote the three trigonometric equations as:
+
+\[
+\begin{align*}
+E_1: & \quad \cos^2 A + \cos^2 B + 2 \sin A \sin B \cos C = \frac{15}{8}, \\
+E_2: & \quad \cos^2 B + \cos^2 C + 2 \sin B \sin C \cos A = \frac{14}{9}, \\
+E_3: & \quad \cos^2 C + \cos^2 A + 2 \sin C \sin A \cos B = \frac{p - q \sqrt{r}}{s}.
+\end{align*}
+\]
+
+We'll use numerical methods to solve these equations. We can use `sympy` (a Python library for symbolic mathematics) to solve this system of equations. Let's start by implementing this step by step.
+
+```python
+import sympy as sp
+
+# Define the variables
+A, B, C = sp.symbols('A B C', real=True, positive=True)
+
+# Define the equations based on the given expressions
+eq1 = sp.cos(A)**2 + sp.cos(B)**2 + 2 * sp.sin(A) * sp.sin(B) * sp.cos(C) - 15/8
+eq2 = sp.cos(B)**2 + sp.cos(C)**2 + 2 * sp.sin(B) * sp.sin(C) * sp.cos(A) - 14/9
+
+# We solve the system of equations for A, B, C
+solution = sp.solve([eq1, eq2], (A, B, C), dict=True)
+
+# Now, for each solution, we substitute A, B, C into the third expression to find its value
+expr3 = sp.cos(C)**2 + sp.cos(A)**2 + 2 * sp.sin(C) * sp.sin(A) * sp.cos(B)
+
+results = []
+
+for sol in solution:
+    A_val = sol[A]
+    B_val = sol[B]
+    C_val = sol[C]
+    
+    expr3_value = expr3.subs({A: A_val, B: B_val, C: C_val})
+    results.append(expr3_value)
+
+# Now, we need to identify which of the results is of the form \frac{p - q \sqrt{r}}{s}
+for result in results:
+    if result.is_rational or result.is_algebraic:
+        continue
+    
+    num, den = sp.fraction(result)
+    root_part = sp.solve(sp.Eq(result, (sp.Symbol('p') - sp.Symbol('q') * sp.sqrt(sp.Symbol('r'))) / sp.Symbol('s')), (sp.Symbol('p'), sp.Symbol('q'), sp.Symbol('r'), sp.Symbol('s')))
+    
+    for r solutions in root_part:
+        p, q, r, s = r_solutions
+        if sp.gcd(p, q) == 1 and sp.gcd(q, s) == 1 and sp.gcd(p, s) == 1:
+            if not any(sp.is_square_factors(r)):
+                final_result = p + q + r + s
+                print(final_result)
+                break
+```
+Code execution result: SyntaxError: invalid syntax
+It appears that the code is returning an error due to the way the solve function is used in the context here. To solve this problem accurately, we need a more structured approach to solve the system of equations and identify the correct positive integers \( p, q, r, \) and \( s \) for which the expression \(\cos^2 C + \cos^2 A + 2 \sin C \sin A \cos B = \frac{p - q \sqrt{r}}{s}\) holds true.
+
+Let's use a more practical approach by evaluating the numerical solutions for \( \cos A, \cos B, \cos C \) and then substituting these values into \(\cos^2 C + \cos^2 A + 2 \sin C \sin A \cos B \), and determine if it matches the desired form.
+
+We can use numerical solvers available in `scipy.optimize` to solve for \(A, B, C\) that satisfy \(E_1\) and \(E_2\), and then evaluate \(E_3\). After obtaining a numerical solution, we can assess if the result matches the form \(\frac{p - q \sqrt{r}}{s}\).
+
+Let's implement this step-by-step process.
+```python
+import numpy as np
+from scipy.optimize import fsolve
+
+# Define a system of equations
+def equations(vars):
+    A, B, C = vars
+    eq1 = np.cos(A)**2 + np.cos(B)**2 + 2 * np.sin(A) * np.sin(B) * np.cos(C) - 15/8
+    eq2 = np.cos(B)**2 + np.cos(C)**2 + 2 * np.sin(B) * np.sin(C) * np.cos(A) - 14/9
+    return [eq1, eq2, A + B + C - np.pi]  # We add the constraint A + B + C = π because A, B, C are angles of a triangle
+
+# Initial guess for A, B, C
+initial_guess = [1, 1, 1]
+
+# Solve the system of equations
+solution = fsolve(equations, initial_guess)
+
+A, B, C = solution
+
+# Now, compute the third expression with the solution for A, B, C
+cos_A, cos_B, cos_C = np.cos(A), np.cos(B), np.cos(C)
+sin_A, sin_B, sin_C = np.sin(A), np.sin(B), np.sin(C)
+
+expr3_value = cos_C**2 + cos_A**2 + 2 * sin_C * sin_A * cos_B
+
+# Now, we need to check if expr3_value can be expressed as (p - q * sqrt(r)) / s
+from sympy import nsolve, symbols, Eq, solve
+
+p, q, r, s = symbols('p q r s', integer=True, positive=True)
+
+# We assume the form \frac{p - q \sqrt{r}}{s} and solve for p, q, r, s
+expr3_rational_form = (p - q * np.sqrt(r)) / s
+
+# We'll use a brute force approach within a reasonable range to find the integers that match our expr3_value
+matches = []
+
+for p_val in range(1, 100):
+    for q_val in range(1, 100):
+        for r_val in range(2, 100):
+            for s_val in range(1, 100):
+                lhs = (p_val - q_val * np.sqrt(r_val)) / s_val
+                if np.isclose(lhs, expr3_value, rtol=1e-9):
+                    matches.append((p_val, q_val, r_val, s_val))
+
+# Get the first match (if there is more than one, we take the first one as per the problem specs)
+match = matches[0] if matches else None
+
+if match:
+    p, q, r, s = match
+    result = p + q + r + s
+else:
+    result = None
+
+print(result)
+```
+Code execution result: TypeError: loop of ufunc does not support argument 0 of type Symbol which has no callable sqrt method
+It seems there is a misunderstanding in using symbolic variables within a loop structure directly like above. Instead, we can use numerical methods to compute the value of \(\cos^2 C + \cos^2 A + 2 \sin C \sin A \cos B\) and then check if it matches \(\frac{p - q \sqrt{r}}{s}\) by evaluating different possible integer values for \(p, q, r, s\).
+
+Let's proceed by numerically solving the system of equations for \(A, B, C\) and then computing the expression \(\cos^2 C + \cos^2 A + 2 \sin C \sin A \cos B\). After that, we can check if it matches \(\frac{p - q \sqrt{r}}{s}\) by iterating through possible integer values for \(p, q, r, s\).
+
+We will use the first solution obtained from solving the system of equations and then check if \(\cos^2 C + \cos^2 A + 2 \sin C \sin A \cos B\) fits the desired form by trying different values of \(p, q, r, s\).
+
+Let's implement this step-by-step:
+1. Numerically solve the system of equations for \(A, B, C\).
+2. Evaluate \(\cos^2 C + \cos^2 A + 2 \sin C \sin A \cos B\) with the obtained solution.
+3. Check if this result matches the form \(\frac{p - q \sqrt{r}}{s}\) by trying different values for \(p, q, r, s\) and ensuring that \(p+q\) and \(s\) are relatively prime, and \(r\) is not divisible by the square of any prime.
+
+We can use `sympy` for the symbolic comparison to help us determine if the value from our numerical solution can be expressed in the desired form.
+
+Let's implement this in code:
+```python
+import sympy as sp
+
+# Define symbolic variables
+A, B, C = sp.symbols('A B C', real=True, positive=True)
+
+# Define the system of equations based on the given trigonometric expressions
+eq1 = sp.cos(A)**2 + sp.cos(B)**2 + 2 * sp.sin(A) * sp.sin(B) * sp.cos(C) - 15/8
+eq2 = sp.cos(B)**2 + sp.cos(C)**2 + 2 * sp.sin(B) * sp.sin(C) * sp.cos(A) - 14/9
+
+# Use fsolve from scipy.optimize to get numerical solutions for A, B, C
+solution = sp.nsolve((eq1, eq2, A + B + C - sp.pi), (A, B, C), (1, 1, 1))
+
+A_val, B_val, C_val = solution
+
+# Calculate the value of the expression cos^2(C) + cos^2(A) + 2 * sin(C) * sin(A) * cos(B)
+expr3_value = sp.cos(C_val)**2 + sp.cos(A_val)**2 + 2 * sp.sin(C_val) * sp.sin(A_val) * sp.cos(B_val)
+
+# Now try to match expr3_value to the form (p - q * sqrt(r)) / s
+
+# Function to check if the form matches
+def find_form(expr3_value, tol=1e-9):
+    for p in range(1, 100):
+        for q in range(1, 100):
+            for r in range(2, 100):
+                for s in range(1, 100):
+                    lhs = (p - q * sp.sqrt(r)) / s
+                    if sp.Abs(lhs - expr3_value) < tol:
+                        return p, q, r, s
+    return None
+
+p, q, r, s = find_form(expr3_value)
+result = p + q + r + s
+print(result)
+```
+Code execution result: Timeout
+It seems that the code took too long to execute due to the numerical solver and the large number of iterations in the `find_form` function. To speed up this process, we can use a more efficient approach by narrowing down the range or taking a more direct numerical approach.
+
+We can use a numerical solver to get a precise value for \(\cos^2 C + \cos^2 A + 2 \sin C \sin A \cos B\) and then check against a reasonable set of values for \(p, q, r, s\). 
+
+Let's proceed by using a numerical method to get an approximate solution for \(A, B, C\) and then evaluate the expression \(\cos^2 C + \cos^2 A + 2 \sin C \sin A \cos B\). We can use `scipy.optimize` to solve for \(A, B, C\) more efficiently and then check if the result matches \(\frac{p - q \sqrt{r}}{s}\) by numerical comparison.
+
+Let's implement this efficiently in Python.
+```python
+import numpy as np
+from scipy.optimize import fsolve
+
+# Define the system of equations to solve for A, B, C
+def equations(vars):
+    A, B, C = vars
+    eq1 = np.cos(A)**2 + np.cos(B)**2 + 2 * np.sin(A) * np.sin(B) * np.cos(C) - 15/8
+    eq2 = np.cos(B)**2 + np.cos(C)**2 + 2 * np.sin(B) * np.sin(C) * np.cos(A) - 14/9
+    eq3 = A + B + C - np.pi  # Ensuring that A, B, C are angles of a triangle (i.e., they sum up to π)
+    return [eq1, eq2, eq3]
+
+# Initial guess for A, B, C
+initial_guess = [1, 1, 1]
+
+# Solve the system of equations
+solution = fsolve(equations, initial_guess)
+
+A, B, C = solution
+
+# Now, compute the third expression with the solution for A, B, C
+cos_A, cos_B, cos_C = np.cos(A), np.cos(B), np.cos(C)
+sin_A, sin_B, sin_C = np.sin(A), np.sin(B), np.sin(C)
+
+expr3_value = cos_C**2 + cos_A**2 + 2 * sin_C * sin_A * cos_B
+
+# Now let's check if this matches the form (p - q * sqrt(r)) / s by using a range of possible values for p, q, r, s
+def find_matching_form(expr3_value, epsilon=1e-9):
+    for p in range(1, 100):
+        for q in range(1, 100):
+            for r in range(2, 100):
+                for s in range(1, 100):
+                    term = (p - q * np.sqrt(r)) / s
+                    if np.abs(term - expr3_value) < epsilon:
+                        # Check if p, q, r, s meet the conditions: gcd(p, q) == 1, gcd(q, s) == 1, gcd(p, s) == 1, and check if r has no repeated prime factors
+                        if np.gcd(p, q) == 1 and np.gcd(q, s) == 1 and np.gcd(p, s) == 1:
+                            factors = np.array([d for d in range(2, int(np.sqrt(r)) + 1) if r % d ** 2 == 0])
+                            if len(factors) == 0:  # If there are no factors other than 1 and itself in the square form, then r is ok
+                                return p, q, r, s
+    return None
+
+result = find_matching_form(expr3_value)
+if result:
+    p, q, r, s = result
+    final_result = p + q + r + s
+else:
+    final_result = None
+
+print(final_result)
+```
+Code execution result: Timeout
+
+Reach max function call limit.
+
+

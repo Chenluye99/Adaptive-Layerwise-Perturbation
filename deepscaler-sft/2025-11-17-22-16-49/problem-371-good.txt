@@ -1,0 +1,63 @@
+Score: 1.0
+
+To solve this problem, let's start by setting up the constraints given:
+
+1. We have \(x_1 + x_2 + x_3 + \dots + x_n = 1000\).
+2. We have \(x_1^4 + x_2^4 + x_3^4 + \dots + x_n^4 = 512000\).
+
+We aim to find the smallest positive integer \(n\) for which there exist real numbers \(x_1, x_2, \ldots, x_n\) satisfying these conditions. 
+
+To solve this problem, we can consider the case where all the \(x_i\) are equal. Let's assume \(x_1 = x_2 = \cdots = x_n = x\). Then, we have:
+
+\[nx = 1000 \implies x = \frac{1000}{n}.\]
+
+Substituting this into the second equation, we get:
+
+\[x_1^4 + x_2^4 + \cdots + x_n^4 = n \left(\frac{1000}{n}\right)^4 = 512000.\]
+
+This simplifies to:
+
+\[n \cdot \frac{1000^4}{n^4} = 512000 \implies \frac{1000^4}{n^3} = 512000.\]
+
+Rewriting, we get:
+
+\[n^3 = \frac{1000^4}{512000}.\]
+
+Now, let's compute the right-hand side of the equation:
+
+\[1000^4 = (10^3)^4 = 10^{12},\]
+\[512000 = 512 \cdot 1000 = 512 \cdot 10^3 = 2^9 \cdot 10^3.\]
+
+Thus, we have:
+
+\[\frac{1000^4}{512000} = \frac{10^{12}}{2^9 \cdot 10^3} = \frac{10^9}{2^9} = \frac{10^9}{512}.\]
+
+We can now compute this value using code to find the smallest integer \(n\) such that \(n^3 \geq \frac{10^9}{512}\).
+```python
+import math
+
+# Calculate the right-hand side of the equation
+rhs = 10**9 / 512
+
+# Find the smallest integer n such that n^3 is at least rhs
+n = math.ceil(rhs ** (1/3))
+
+# Verify that this n works by checking if n^3 is close enough to rhs and then checking if there exist x_1, x_2, ..., x_n that satisfy both conditions
+while True:
+    if n**3 >= rhs:
+        break
+    n += 1
+
+print(n)
+```
+Code execution result: 125
+
+Thus, the smallest positive integer \( n \) that satisfies the conditions is \( \boxed{125} \). We can verify this by checking if there exist real numbers \( x_1, x_2, \ldots, x_{125} \) that satisfy both equations when \( n = 125 \):
+
+1. Calculate \( x = \frac{1000}{125} = 8 \).
+2. Then, check if \( 125 \cdot 8^4 = 512000 \):
+   \[
+   8^4 = 4096 \implies 125 \cdot 4096 = 512000.
+   \]
+   This is true, so our solution is correct. Therefore, the smallest positive integer \( n \) is indeed \( \boxed{125} \).
+

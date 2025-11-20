@@ -1,0 +1,50 @@
+Score: 1.0
+
+To solve the problem of finding the constant term in the expansion of \(\left(\sqrt{x} + \frac{5}{x}\right)^9\), we will use the binomial theorem.
+
+The binomial theorem states that:
+\[
+(a + b)^n = \sum_{k=0}^{n} \binom{n}{k} a^{n-k} b^k
+\]
+For \(\left(\sqrt{x} + \frac{5}{x}\right)^9\), we have \(a = \sqrt{x}\), \(b = \frac{5}{x}\), and \(n = 9\). So, the general term in the expansion is given by:
+\[
+T_k = \binom{9}{k} (\sqrt{x})^{9-k} \left(\frac{5}{x}\right)^k = \binom{9}{k} (\sqrt{x})^{9-k} \frac{5^k}{x^k} = \binom{9}{k} 5^k x^{\frac{9-k}{2} - k}
+\]
+We need to find the term where the exponent of \(x\) is zero (i.e., the constant term). Therefore, we set the exponent of \(x\) to zero:
+\[
+\frac{9 - k}{2} - k = 0
+\]
+Let's solve this equation for \(k\):
+\[
+\frac{9 - k}{2} = k \implies 9 - k = 2k \implies 9 = 3k \implies k = 3
+\]
+So, the constant term corresponds to \(k = 3\). Substituting \(k = 3\) into the general term, we get:
+\[
+T_3 = \binom{9}{3} 5^3 x^{\frac{9 - 3}{2} - 3} = \binom{9}{3} 5^3 x^{\frac{6}{2} - 3} = \binom{9}{3} 5^3 x^{3 - 3} = \binom{9}{3} 5^3 x^0 = \binom{9}{3} 5^3
+\]
+Now, we need to compute \(\binom{9}{3}\) and \(5^3\):
+\[
+\binom{9}{3} = \frac{9!}{3!(9-3)!} = \frac{9!}{3!6!} = \frac{9 \cdot 8 \cdot 7}{3 \cdot 2 \cdot 1} = 84
+\]
+\[
+5^3 = 125
+\]
+Thus, the constant term is:
+\[
+T_3 = 84 \cdot 125
+\]
+We will compute this product using Python to ensure accuracy.
+```python
+import math
+
+# Calculate binomial coefficient and the constant term as described
+n = 9
+k = 3
+binomial_coefficient = math.comb(n, k)
+constant_term = binomial_coefficient * (5 ** k)
+print(constant_term)
+```
+Code execution result: 10500
+
+Thus, the constant term in the expansion of \(\left(\sqrt{x} + \frac{5}{x}\right)^9\) is \(\boxed{10500}\). This is our final answer.
+

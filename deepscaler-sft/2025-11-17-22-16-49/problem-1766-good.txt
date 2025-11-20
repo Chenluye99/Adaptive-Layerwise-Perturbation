@@ -1,0 +1,46 @@
+Score: 1.0
+
+To solve this problem, let's break it down step-by-step:
+
+1. **Condition (i):** \( n^2 \) is the difference of two consecutive cubes.
+   - The difference of two consecutive cubes \( (k+1)^3 - k^3 \) can be expanded as:
+     \[
+     (k+1)^3 - k^3 = (k^3 + 3k^2 + 3k + 1) - k^3 = 3k^2 + 3k + 1
+     \]
+   - Therefore, we need \( n^2 = 3k^2 + 3k + 1 \) for some integer \( k \).
+   
+2. **Condition (ii):** \( 2n + 79 \) is a perfect square.
+   - Let's denote the perfect square by \( m^2 \), so we have:
+     \[
+     2n + 79 = m^2 \implies 2n = m^2 - 79 \implies n = \frac{m^2 - 79}{2}
+     \]
+   - For \( n \) to be an integer, \( m^2 - 79 \) must be even, which means \( m^2 \) must be odd, and hence \( m \) must be odd.
+
+3. **Combining the Conditions:**
+   - We need to find the largest integer \( n \) that satisfies both conditions. We can iterate over possible values of \( k \) and check if \( n^2 = 3k^2 + 3k + 1 \) results in an integer \( n \), and then check if that \( n \) satisfies the second condition.
+
+Let's implement this step-by-step in Python to find the correct answer.
+```python
+import math
+
+# Initialize a variable to store the largest suitable n found
+largest_n = -1
+
+# We will iterate over a reasonable range for k to find all n that satisfy the first condition
+# and then check if those n also satisfy the second condition
+
+for k in range(1, 10000):
+    n_squared = 3 * k * k + 3 * k + 1
+    n = int(math.isqrt(n_squared))
+    
+    if n * n == n_squared:
+        # Check if this n also satisfies the second condition
+        if (2 * n + 79) > 0 and int(math.isqrt(2 * n + 79)) ** 2 == 2 * n + 79:
+            largest_n = max(largest_n, n)
+
+print(largest_n)
+```
+Code execution result: 181
+
+Thus, the largest integer \( n \) satisfying both conditions is \(\boxed{181}\). This was obtained by iterating over possible values and checking the conditions as described.
+

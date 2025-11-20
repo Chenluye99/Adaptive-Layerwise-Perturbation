@@ -1,0 +1,59 @@
+Score: 1.0
+
+To solve this problem, let's start with some mathematical reasoning, and then we will verify it with Python code.
+
+Given that we have two integers \(x\) and \(y\) such that their sum is 246, i.e.,
+
+\[ x + y = 246 \]
+
+we want to maximize their product, denoted as \(P\):
+
+\[ P = x \cdot y \]
+
+We can express \(y\) in terms of \(x\) using the constraint:
+
+\[ y = 246 - x \]
+
+Substituting this into the expression for the product, we get:
+
+\[ P = x \cdot (246 - x) = 246x - x^2 \]
+
+To find the maximum value of the product \(P\), we need to find the critical points of the function \(P(x) = 246x - x^2\). We can do this by taking the derivative of \(P\) with respect to \(x\) and setting it to zero:
+
+\[ \frac{dP}{dx} = 246 - 2x \]
+
+Setting the derivative equal to zero to find the critical points:
+
+\[ 246 - 2x = 0 \]
+\[ 2x = 246 \]
+\[ x = 123 \]
+
+Using the constraint \( x + y = 246 \), if \( x = 123 \), then
+
+\[ y = 246 - 123 = 123 \]
+
+So, the two integers are 123 and 123. To ensure this gives the maximum product, we could check the second derivative or simply verify that this is a maximum by noting that the function \( P = 246x - x^2 \) is a downward-opening parabola (the coefficient of \( x^2 \) is negative), meaning the critical point found is a maximum.
+
+Hence, the maximum product should occur when \(x = 123\) and \(y = 123\):
+
+\[ P_{\text{max}} = 123 \cdot 123 = 123^2 \]
+
+Let's confirm this by evaluating it with Python. We'll also iterate over possible pairs of integers that sum to 246 and compute their products to ensure that our solution is accurate.
+```python
+# We will iterate through all possible pairs of integers that sum up to 246 and compute their product
+max_product = 0
+best_pair = (0, 0)
+
+for x in range(247):
+    y = 246 - x
+    product = x * y
+    if product > max_product:
+        max_product = product
+        best_pair = (x, y)
+
+print(((max_product, best_pair)))
+```
+Code execution result: (15129, (123, 123))
+
+Thus, the greatest product obtainable from two integers whose sum is 246 is \(\boxed{15129}\), which is achieved when both integers are 123. This confirms our earlier mathematical reasoning.
+

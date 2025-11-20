@@ -1,0 +1,30 @@
+Score: 0.0
+
+To solve this problem, we need to follow these steps:
+
+1. **Choose 11 Players out of 15**: First, we need to choose which 11 players will be in the starting lineup. The number of ways to choose 11 players from 15 is given by the combination formula \( \binom{15}{11} \), which is the same as \( \binom{15}{4} \) (since \( \binom{n}{k} = \binom{n}{n-k} \)).
+
+2. **Choose 2 Captains from the 11 Players**: After choosing the 11 players, we need to choose 2 captains from those 11 players. The number of ways to choose 2 captains from 11 players is given by the combination formula \( \binom{11}{2} \).
+
+3. **Consider the Order of Choosing Captains**: For each selection of 11 players, there are \( \binom{11}{2} \) ways to select 2 captains, and for each selection of 2 captains, there are 2! (which is 2) ways to assign the two chosen players to be the two captains (as the assignment of which of the two chosen players is Captain A and which is Captain B matters).
+
+So, the total number of ways to choose the 11-player lineup and then choose and assign the two captains is the product of the number of ways to choose the 11 players and the number of ways to choose and assign the two captains from those 11 players.
+
+Let's implement this step-by-step calculation in Python to ensure accuracy.
+```python
+import math
+
+# Step 1: Calculate the number of ways to choose 11 players from 15
+ways_to_choose_11_players = math.comb(15, 11)
+
+# Step 2: Calculate the number of ways to choose 2 captains from the 11 players and then consider the assignment of the roles Captain A and Captain B
+ways_to_choose_2_captains_from_11 = math.comb(11, 2) * 2  # * 2 because we can assign 2 captains in 2! (2) ways
+
+# Total ways
+total_ways = ways_to_choose_11_players * ways_to_choose_2_captains_from_11
+print(total_ways)
+```
+Code execution result: 150150
+
+Thus, the total number of ways to choose the starting lineup of 11 players from 15 members and then designate 2 captains is \(\boxed{150150}\). This is the final answer.
+

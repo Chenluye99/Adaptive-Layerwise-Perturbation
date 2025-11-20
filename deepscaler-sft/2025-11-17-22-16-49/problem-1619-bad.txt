@@ -1,0 +1,57 @@
+Score: 1.0
+
+To solve this problem, Brenda needs to travel from \((-4, 5)\) to \((0, 0)\) and then from \((0, 0)\) to \((5, -4)\). The distance between two points \((x_1, y_1)\) and \((x_2, y_2)\) is given by the Euclidean distance formula:
+
+\[
+\text{Distance} = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}
+\]
+
+We can use this formula to find the distances for each segment of Brenda's trip and then sum them up.
+
+1. Calculate the distance from \((-4, 5)\) to \((0, 0)\):
+
+\[
+\text{Distance}_1 = \sqrt{(0 - (-4))^2 + (0 - 5)^2} = \sqrt{(4)^2 + (-5)^2} = \sqrt{16 + 25} = \sqrt{41}
+\]
+
+2. Calculate the distance from \((0, 0)\) to \((5, -4)\):
+
+\[
+\text{Distance}_2 = \sqrt{(5 - 0)^2 + (-4 - 0)^2} = \sqrt{(5)^2 + (-4)^2} = \sqrt{25 + 16} = \sqrt{41}
+\]
+
+3. Sum up the distances:
+
+\[
+\text{Total Distance} = \text{Distance}_1 + \text{Distance}_2 = \sqrt{41} + \sqrt{41} = 2 \sqrt{41}
+\]
+
+Let's confirm this by implementing it in Python.
+```python
+import math
+
+# Coordinates of the points
+point1 = (-4, 5)
+origin = (0, 0)
+point2 = (5, -4)
+
+# Calculate the distance from (-4, 5) to (0, 0)
+distance1 = math.sqrt((origin[0] - point1[0])**2 + (origin[1] - point1[1])**2)
+
+# Calculate the distance from (0, 0) to (5, -4)
+distance2 = math.sqrt((point2[0] - origin[0])**2 + (point2[1] - origin[1])**2)
+
+# Calculate the total distance Brenda needs to travel
+total_distance = distance1 + distance2
+print(total_distance)
+```
+Code execution result: 12.806248474865697
+
+We know that \( \sqrt{41} \approx 6.4031242374328485 \), so:
+
+\[ 2 \cdot \sqrt{41} \approx 2 \cdot 6.4031242374328485 = 12.806248474865697 \]
+
+This confirms our reasoning. Therefore, the total distance Brenda has to travel is:
+
+\(\boxed{2 \sqrt{41}}\)
+

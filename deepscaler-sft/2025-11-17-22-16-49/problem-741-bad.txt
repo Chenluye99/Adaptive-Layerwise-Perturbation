@@ -1,0 +1,69 @@
+Score: 0.0
+
+To solve this problem, we need to identify the vertical asymptotes of the function
+
+\[ y = \frac{(x + 8) (x + 5)^2 (x + 1)^3 x^5 (x - 3)^2}{(x + 7) (x + 5)^2 (x + 1) x (x - 3)^3 (x - 4)}. \]
+
+Vertical asymptotes occur at the values of \(x\) that make the denominator zero, provided that these values do not also make the numerator zero (i.e., they are not removable discontinuities).
+
+First, let's identify the factors that make the denominator zero:
+
+\[
+(x + 7)(x + 5)^2 (x + 1) x (x - 3)^3 (x - 4) = 0.
+\]
+
+This gives us the potential values for \(x\):
+
+\[
+x = -7, \; x = -5, \; x = -1, \; x = 0, \; x = 3, \; x = 4.
+\]
+
+Next, we need to check if any of these values make the numerator zero:
+
+\[
+(x + 8)(x + 5)^2 (x + 1)^3 x^5 (x - 3)^2 = 0.
+\]
+
+This gives us the potential values for \(x\) that make the numerator zero:
+
+\[
+x = -8, \; x = -5, \; x = -1, \; x = 0, \; x = 3.
+\]
+
+Now, we see that the values of \(x\) that make the denominator zero but not the numerator are the candidates for vertical asymptotes. So, we exclude the values that make both the numerator and the denominator zero from our list of potential vertical asymptotes.
+
+Let's list out the values and exclude those that also make the numerator zero:
+
+- \(x = -7\) is a factor in the denominator but not in the numerator, so it is a vertical asymptote.
+- \(x = -5\) is a factor in both the numerator and the denominator, but its multiplicity in the denominator is 2 and in the numerator it is 1, so it is not a vertical asymptote because it gets canceled partially but doesn't make it a removable discontinuity or a hole. Therefore, it is not a vertical asymptote.
+- \(x = -1\) is a factor in both the numerator and the denominator, but its multiplicity in the denominator is 1 and in the numerator it is 3, so it is not a vertical asymptote.
+- \(x = 0\) is a factor in both the numerator and the denominator, but its multiplicity in the denominator is 1 and in the numerator it is 5, so it is not a vertical asymptote.
+- \(x = 3\) is a factor in both the numerator and the denominator, but its multiplicity in the denominator is 3 and in the numerator it is 2, so it is not a vertical asymptote.
+- \(x = 4\) is a factor in the denominator but not in the numerator, so it is a vertical asymptote.
+
+Hence, the vertical asymptotes are at \(x = -7\) and \(x = 4\). So, there are 2 vertical asymptotes.
+
+Let's confirm this with Python to ensure we didn't miss any details.
+```python
+import sympy as sp
+
+# Define the variables and function
+x = sp.symbols('x')
+numerator = (x + 8) * (x + 5)**2 * (x + 1)**3 * x**5 * (x - 3)**2
+denominator = (x + 7) * (x + 5)**2 * (x + 1) * x * (x - 3)**3 * (x - 4)
+function = numerator / denominator
+
+# Find the vertical asymptotes by getting the points where the denominator is zero but the numerator is not
+potential_asymptotes = sp.solve(denominator, x)
+vertical_asymptotes = []
+
+for point in potential_asymptotes:
+    if numerator.subs(x, point) != 0:
+        vertical_asymptotes.append(point)
+
+print(len(vertical_asymptotes))
+```
+Code execution result: 2
+
+Thus, the number of vertical asymptotes in the graph of the given function is \(\boxed{2}\). This confirms that our analysis and reasoning were accurate.
+

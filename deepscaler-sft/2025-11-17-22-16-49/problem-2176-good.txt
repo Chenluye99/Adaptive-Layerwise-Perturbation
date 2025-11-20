@@ -1,0 +1,39 @@
+Score: 1.0
+
+To solve this problem, we need to follow these steps:
+
+1. **Define the Problem Mathematically:**
+    - The number \(121_n\) in base \(n\) can be converted to base 10 as follows: \(1 \cdot n^2 + 2 \cdot n + 1 = n^2 + 2n + 1\).
+    - Notice that \(n^2 + 2n + 1 = (n + 1)^2\), so \(121_n\) is always a perfect square, specifically \((n + 1)^2\), for any base \(n\).
+
+2. **Set Up the Constraints:**
+    - We are asked to find the integers \(n\) such that \(3 \leq n \leq 10\).
+    - For each \(n\) in this range, we need to check if \(121_n\) (which is \((n + 1)^2\)) is a perfect square. Since \((n + 1)^2\) is always a perfect square, the only thing we need to check is that \(3 \leq n \leq 10\) holds, which we already know it does by the constraints of the problem.
+
+3. **Implement in Python:**
+    - We will iterate through the values of \(n\) from 3 to 10 and check if \((n + 1)^2\) is a perfect square (which it always will be, but we'll confirm it just to be thorough).
+
+Let's implement this in Python to ensure our answer is accurate.
+```python
+# Initialize a list to store the values of n that meet the conditions
+valid_n = []
+
+# Iterate through the range 3 to 10 (both inclusive)
+for n in range(3, 11):
+    # Calculate (n + 1)^2
+    num_base_10 = (n + 1) ** 2
+    
+    # Check if (n + 1)^2 is a perfect square (though it's always a perfect square by default, we check for completeness)
+    sqrt_check = int(num_base_10 ** 0.5)
+    if sqrt_check ** 2 == num_base_10:
+        valid_n.append(n)
+
+# Return the count of such integers n
+print((len(valid_n), valid_n))
+```
+Code execution result: (8, [3, 4, 5, 6, 7, 8, 9, 10])
+
+Thus, there are 8 integers \( n \) that satisfy the conditions \( 3 \leq n \leq 10 \) and make \( 121_n \) a perfect square.
+
+So, the final answer is \(\boxed{8}\). This is our conclusion based on both mathematical reasoning and confirmed by the Python code.
+

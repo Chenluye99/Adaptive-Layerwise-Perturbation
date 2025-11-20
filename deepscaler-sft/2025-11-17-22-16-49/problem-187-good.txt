@@ -1,0 +1,48 @@
+Score: 1.0
+
+Let's solve the problem step-by-step.
+
+1. **Understand the Problem:**
+    - We are given two non-zero vectors \(\overrightarrow{a}\) and \(\overrightarrow{b}\) such that \(|\overrightarrow{a}| = 2|\overrightarrow{b}|\).
+    - We also know that \((\overrightarrow{a} - \overrightarrow{b}) \bot \overrightarrow{b}\), which means the dot product of \((\overrightarrow{a} - \overrightarrow{b})\) and \(\overrightarrow{b}\) is zero: \((\overrightarrow{a} - \overrightarrow{b}) \cdot \overrightarrow{b} = 0\).
+
+2. **Formulate the Equation:**
+    - Use the dot product properties: \((\overrightarrow{a} - \overrightarrow{b}) \cdot \overrightarrow{b} = \overrightarrow{a} \cdot \overrightarrow{b} - \overrightarrow{b} \cdot \overrightarrow{b} = 0\).
+    - This simplifies to: \(\overrightarrow{a} \cdot \overrightarrow{b} = \overrightarrow{b} \cdot \overrightarrow{b} = |\overrightarrow{b}|^2\).
+
+3. **Express \(\overrightarrow{a} \cdot \overrightarrow{b}\) in Terms of Magnitudes and Angle:**
+    - The dot product \(\overrightarrow{a} \cdot \overrightarrow{b} = |\overrightarrow{a}| |\overrightarrow{b}| \cos \theta\), where \(\theta\) is the angle between \(\overrightarrow{a}\) and \(\overrightarrow{b}\).
+    - We also know that \(|\overrightarrow{a}| = 2 |\overrightarrow{b}|\), so substitute this into the dot product equation:
+      \[
+      |\overrightarrow{a}| |\overrightarrow{b}| \cos \theta = |\overrightarrow{b}|^2 \implies (2 |\overrightarrow{b}|) |\overrightarrow{b}| \cos \theta = |\overrightarrow{b}|^2 \implies 2 |\overrightarrow{b}|^2 \cos \theta = |\overrightarrow{b}|^2.
+      \]
+    - Dividing both sides by \(|\overrightarrow{b}|^2\) (since \(|\overrightarrow{b}| \neq 0\)):
+      \[
+      2 \cos \theta = 1 \implies \cos \theta = \frac{1}{2}.
+      \]
+    - The angle \(\theta\) that satisfies \(\cos \theta = \frac{1}{2}\) is \(\theta = \frac{\pi}{3}\).
+
+Let's confirm this by coding it in Python using sympy.
+
+```python
+import sympy as sp
+
+# Define variables
+theta = sp.symbols('theta')
+
+# Equation based on the above derivation
+eq = sp.Eq(2 * sp.cos(theta), 1)
+
+# Solve for theta
+solution = sp.solve(eq, theta)
+
+# Filter the solution to get the angle between 0 and pi
+angle = [sol.evalf() for sol in solution if 0 <= sol <= sp.pi][0]
+print(angle)
+```
+Code execution result: 1.04719755119660
+
+This corresponds to \(\frac{\pi}{3}\) because \(\frac{\pi}{3} \approx 1.04719755119660\).
+
+Thus, the angle between \(\overrightarrow{a}\) and \(\overrightarrow{b}\) is \(\boxed{\frac{\pi}{3}}\). This is our final answer.
+

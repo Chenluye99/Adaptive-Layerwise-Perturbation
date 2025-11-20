@@ -1,0 +1,89 @@
+Score: 1.0
+
+To solve this problem, we need to use the properties of quadratic functions and the given information.
+
+1. **Properties and Formulas:**
+    - For a quadratic function \( y = ax^2 + bx + c \), the x-coordinate of the vertex is given by \( x_{\text{vertex}} = -\frac{b}{2a} \).
+    - We are given that the vertex of the parabola is \((3, 7)\), so we have:
+      \[
+      -\frac{b}{2a} = 3 \implies b = -6a.
+      \]
+    - We are also given that one of the x-intercepts is \((-2, 0)\), so the quadratic equation must be satisfied when \( x = -2 \) and \( y = 0 \):
+      \[
+      0 = a(-2)^2 + b(-2) + c = 4a - 2b + c \implies 4a - 2b + c = 0.
+      \]
+    - The quadratic also passes through the vertex \((3, 7)\), so:
+      \[
+      7 = a(3)^2 + b(3) + c = 9a + 3b + c \implies 9a + 3b + c = 7.
+      \]
+2. **System of Equations:**
+    - We now have three equations:
+      \[
+      \begin{cases}
+      b = -6a, \\
+      4a - 2b + c = 0, \\
+      9a + 3b + c = 7.
+      \end{cases}
+      \]
+    - Substituting \( b = -6a \) into the other two equations, we get:
+      \[
+      \begin{cases}
+      4a - 2(-6a) + c = 0 \implies 4a + 12a + c = 0 \implies 16a + c = 0 \implies c = -16a, \\
+      9a + 3(-6a) + c = 7 \implies 9a - 18a + c = 7 \implies -9a + c = 7.
+      \end{cases}
+      \]
+    - Substituting \( c = -16a \) into the equation \(-9a + c = 7\):
+      \[
+      -9a + (-16a) = 7 \implies -25a = 7 \implies a = -\frac{7}{25}.
+      \]
+    - Now, we substitute \( a = -\frac{7}{25} \) back into \( b = -6a \):
+      \[
+      b = -6 \left( -\frac{7}{25} \right) = \frac{42}{25}.
+      \]
+    - And substituting \( a = -\frac{7}{25} \) back into \( c = -16a \):
+      \[
+      c = -16 \left( -\frac{7}{25} \right) = \frac{112}{25}.
+      \]
+3. **Finding the Other x-intercept:**
+    - A quadratic equation \( ax^2 + bx + c = 0 \) with roots \( r_1 \) and \( r_2 \) has the property that the sum of the roots \( r_1 + r_2 = -\frac{b}{a} \).
+    - We know one of the roots is \(-2\), so let the other root be \( r \). Then:
+      \[
+      -2 + r = -\frac{b}{a} = -\frac{\frac{42}{25}}{-\frac{7}{25}} = \frac{42}{7} = 6.
+      \]
+    - Therefore:
+      \[
+      -2 + r = 6 \implies r = 8.
+      \]
+
+So, the x-coordinate of the other x-intercept is \( 8 \). Let's confirm this with Python to ensure the accuracy of our solution.
+```python
+from sympy import symbols, Eq, solve
+
+# Define symbols
+a, b, c = symbols('a b c', real=True)
+
+# Set up equations based on problem conditions
+eq1 = Eq(b, -6 * a)
+eq2 = Eq(4 * a - 2 * b + c, 0)
+eq3 = Eq(9 * a + 3 * b + c, 7)
+
+# Solve the system of equations
+solution = solve((eq1, eq2, eq3), (a, b, c))
+
+# Get the values of a, b, c
+a_val = solution[a]
+b_val = solution[b]
+c_val = solution[c]
+
+# Now form the quadratic equation using these values and solve for the roots
+quadratic_eq = a_val * symbols('x')**2 + b_val * symbols('x') + c_val
+
+# Find the roots of the quadratic equation
+roots = solve(quadratic_eq, symbols('x'))
+
+print(roots)
+```
+Code execution result: [-2, 8]
+
+Thus, the roots of the quadratic equation are \(-2\) and \(8\). This confirms that the x-coordinate of the other x-intercept is \(\boxed{8}\). The solution is accurate and correct.
+

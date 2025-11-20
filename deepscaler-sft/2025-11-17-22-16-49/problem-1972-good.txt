@@ -1,0 +1,45 @@
+Score: 1.0
+
+To solve this problem, we need to find the length of the handrail of a spiral staircase.
+
+1. **Understanding the Problem:**
+    - The staircase turns \(270^\circ\) (or \(\frac{3}{4} \times 360^\circ = 270^\circ\)).
+    - The staircase rises 10 feet vertically.
+    - The radius of the staircase is 3 feet.
+
+2. **Visualizing the Problem:**
+    - When we "unroll" the spiral staircase, we get a right-angled triangle where:
+      - One side of the triangle is the vertical rise of the staircase, which is 10 feet.
+      - The other side of the triangle is the distance traveled along the circumference of a circle if unwound for \(270^\circ\).
+
+3. **Calculating the Length Traveled Along the Circumference:**
+    - The full circumference of a circle with radius 3 feet is \(2 \pi \times 3 = 6 \pi\).
+    - For \(270^\circ\), which is \(\frac{3}{4}\) of a full circle, the length traveled along the circumference is \(\frac{3}{4} \times 6 \pi = \frac{3}{4} \times 6 \pi = \frac{18 \pi}{4} = \frac{9 \pi}{2}\).
+
+4. **Using the Pythagorean Theorem:**
+    - The length of the handrail is the hypotenuse of a right-angled triangle with legs of lengths 10 feet and \(\frac{9 \pi}{2}\) feet.
+    - We use the Pythagorean theorem: \( L = \sqrt{\left(10\right)^2 + \left(\frac{9 \pi}{2}\right)^2} \).
+
+Let's compute this step-by-step using Python to ensure accuracy.
+```python
+import math
+
+# Given values
+vertical_rise = 10
+radius = 3
+angle_degrees = 270
+
+# Calculate the length traveled along the circumference for 270 degrees
+angle_radians = math.radians(angle_degrees)
+circumference = 2 * math.pi * radius
+length_traveled_along_circumference = (angle_degrees / 360) * circumference
+
+# Use Pythagorean theorem to get the length of the handrail
+handrail_length = math.sqrt(vertical_rise**2 + length_traveled_along_circumference**2)
+
+print(handrail_length)
+```
+Code execution result: 17.316451400967217
+
+Rounded to the nearest tenth, the length of the handrail is \(\boxed{17.3}\). This is our final answer.
+

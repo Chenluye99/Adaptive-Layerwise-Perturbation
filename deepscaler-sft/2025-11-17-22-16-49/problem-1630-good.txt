@@ -1,0 +1,101 @@
+Score: 1.0
+
+To solve this problem, we need to determine the rotation matrix that transforms the vector \(\begin{pmatrix} 13 \\ 0 \end{pmatrix}\) to \(\begin{pmatrix} 5 \\ -12 \end{pmatrix}\). A rotation matrix centered at the origin is given by:
+
+\[
+R = \begin{pmatrix} \cos \theta & -\sin \theta \\ \sin \theta & \cos \theta \end{pmatrix}
+\]
+
+Applying this rotation matrix to \(\begin{pmatrix} 13 \\ 0 \end{pmatrix}\), we get:
+
+\[
+R \begin{pmatrix} 13 \\ 0 \end{pmatrix} = \begin{pmatrix} \cos \theta & -\sin \theta \\ \sin \theta & \cos \theta \end{pmatrix} \begin{pmatrix} 13 \\ 0 \end{pmatrix} = \begin{pmatrix} 13 \cos \theta \\ 13 \sin \theta \end{pmatrix}
+\]
+
+We know this is equal to \(\begin{pmatrix} 5 \\ -12 \end{pmatrix}\). Therefore, we can set up the following equations:
+
+\[
+13 \cos \theta = 5
+\]
+\[
+13 \sin \theta = -12
+\]
+
+From these, we can solve for \(\cos \theta\) and \(\sin \theta\):
+
+\[
+\cos \theta = \frac{5}{13}
+\]
+\[
+\sin \theta = -\frac{12}{13}
+\]
+
+Now, we need to determine the effect of this rotation matrix on the vector \(\begin{pmatrix} 0 \\ 1 \end{pmatrix}\):
+
+\[
+R \begin{pmatrix} 0 \\ 1 \end{pmatrix} = \begin{pmatrix} \cos \theta & -\sin \theta \\ \sin \theta & \cos \theta \end{pmatrix} \begin{pmatrix} 0 \\ 1 \end{pmatrix} = \begin{pmatrix} -\sin \theta \\ \cos \theta \end{pmatrix} = \begin{pmatrix} -\left( -\frac{12}{13} \right) \\ \frac{5}{13} \end{pmatrix} = \begin{pmatrix} \frac{12}{13} \\ \frac{5}{13} \end{pmatrix}
+\]
+
+Let's verify this step-by-step solution with Python to ensure its accuracy.
+```python
+import sympy as sp
+
+# Define the variables
+theta = sp.symbols('theta')
+
+# Set up the equations based on the rotation matrix transformation
+eq1 = sp.Eq(13 * sp.cos(theta), 5)
+eq2 = sp.Eq(13 * sp.sin(theta), -12)
+
+# Solve for theta
+solution = sp.solve((eq1, eq2), (theta))[0]
+
+# Get the rotation matrix using the solved value of theta
+cos_theta = sp.cos(solution)
+sin_theta = sp.sin(solution)
+
+# Form the rotation matrix
+R = sp.Matrix([[cos_theta, -sin_theta], [sin_theta, cos_theta]])
+
+# Apply the rotation matrix to the vector [0, 1]
+vector = sp.Matrix([0, 1])
+result = R * vector
+
+print(result)
+```
+Code execution result: AttributeError: 'Tuple' object has no attribute 'as_coefficient'
+It looks like there is an issue with directly solving and interpreting the solution to get the rotation matrix in the code. Let's correct that by solving for \(\theta\) and then forming the rotation matrix properly, and then apply it to \(\begin{pmatrix} 0 \\ 1 \end{pmatrix}\).
+
+We'll follow these steps:
+1. Solve for \(\theta\) from the equations: \(\cos \theta = \frac{5}{13}\) and \(\sin \theta = -\frac{12}{13}\).
+2. Construct the rotation matrix using \(\cos \theta\) and \(\sin \theta\).
+3. Apply this matrix to \(\begin{pmatrix} 0 \\ 1 \end{pmatrix}\) to get the result.
+
+Let's implement this step by step in Python.
+```python
+import sympy as sp
+
+# Define theta
+theta = sp.atan2(-12, 5)
+
+# Get the values for cos(theta) and sin(theta)
+cos_theta = sp.cos(theta)
+sin_theta = sp.sin(theta)
+
+# Construct the rotation matrix
+R = sp.Matrix([[cos_theta, -sin_theta], [sin_theta, cos_theta]])
+
+# Apply the rotation matrix to the vector [0, 1]
+vector = sp.Matrix([0, 1])
+result = R * vector
+
+print(result)
+```
+Code execution result: Matrix([[12/13], [5/13]])
+
+So, the rotation takes \(\begin{pmatrix} 0 \\ 1 \end{pmatrix}\) to \(\begin{pmatrix} \frac{12}{13} \\ \frac{5}{13} \end{pmatrix}\).
+
+Thus, the final answer is:
+
+\(\boxed{\begin{pmatrix} \frac{12}{13} \\ \frac{5}{13} \end{pmatrix}}\)
+

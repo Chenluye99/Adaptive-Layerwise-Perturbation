@@ -1,0 +1,47 @@
+Score: 1.0
+
+We start with the given system of equations:
+\[
+\begin{align*}
+4x - 3y &= 2a, \tag{1} \\
+2x + y &= 3a. \tag{2}
+\end{align*}
+\]
+We are also given that the solution to this system is \( x = 3 \). We substitute \( x = 3 \) into both equations to find \( y \) and \( a \).
+
+First, substitute \( x = 3 \) into equation (2):
+\[
+2(3) + y = 3a \implies 6 + y = 3a \implies y = 3a - 6. \tag{3}
+\]
+
+Next, substitute both \( x = 3 \) and the expression for \( y \) from equation (3) into equation (1):
+\[
+4(3) - 3(3a - 6) = 2a \implies 12 - 9a + 18 = 2a \implies 30 - 9a = 2a \implies 30 = 11a \implies a = \frac{30}{11}.
+\]
+
+So, the value of \( a \) is \(\frac{30}{11}\). We will confirm this by coding the solution in Python to ensure accuracy.
+```python
+from sympy import symbols, Eq, solve
+
+# Define the variables
+x, y, a = symbols('x y a')
+
+# Define the equations
+eq1 = Eq(4 * x - 3 * y, 2 * a)
+eq2 = Eq(2 * x + y, 3 * a)
+
+# Substitute x = 3 into the equations
+eq1_sub = eq1.subs(x, 3)
+eq2_sub = eq2.subs(x, 3)
+
+# Solve the system of equations for y and a
+solution = solve((eq1_sub, eq2_sub), (y, a))
+
+print(solution)
+```
+Code execution result: {a: 30/11, y: 24/11}
+
+This confirms that the value of \( a \) is \(\frac{30}{11}\) when \( x = 3 \). Therefore, the final answer is:
+
+\(\boxed{\frac{30}{11}}\)
+

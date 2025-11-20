@@ -1,0 +1,57 @@
+Score: 1.0
+
+First, let's understand the problem. We need to find the smallest base-10 integer that can be represented as \(12_a\) in one base and \(21_b\) in another base.
+
+1. **Representation Explanation:**
+    - \(12_a\) means the number 1 \cdot a + 2 \cdot 1 = a + 2 in base-10.
+    - \(21_b\) means the number 2 \cdot b + 1 \cdot 1 = 2b + 1 in base-10.
+
+2. **Formulate the Equation:**
+    - We need to find a base-10 integer \( N \) such that:
+      \[
+      N = a + 2
+      \]
+      for some base \( a > 2 \), and also:
+      \[
+      N = 2b + 1
+      \]
+      for some base \( b > 2 \).
+
+3. **Set Up the Equation:**
+    - Equating the two expressions for \( N \), we get:
+      \[
+      a + 2 = 2b + 1 \implies a = 2b - 1
+      \]
+    - Both \( a \) and \( b \) must be greater than 2.
+
+4. **Iterate to Find the Solution:**
+    - We will iterate over possible values of \( b \) starting from 3, compute \( a = 2b - 1 \), and check if \( a \) is greater than 2. Then, we compute \( N = a + 2 \) and verify if \( N = 2b + 1 \).
+
+Let's implement this step-by-step in Python to ensure accuracy.
+```python
+# Initialize a variable to store the smallest base-10 integer that satisfies the conditions
+smallest_N = None
+
+# We will iterate over possible values of b starting from 3 (since bases must be greater than 2)
+for b in range(3, 100):
+    a = 2 * b - 1
+    if a > 2:
+        N_from_a = a + 2
+        N_from_b = 2 * b + 1
+        if N_from_a == N_from_b:
+            smallest_N = N_from_a
+            break
+
+print(smallest_N)
+```
+Code execution result: 7
+
+Thus, the smallest base-10 integer that can be represented as \(12_a\) in one base and \(21_b\) in another base is \(\boxed{7}\).
+
+Let's confirm this by verifying that 7 can indeed be represented as \(12_a\) and \(21_b\) for some bases \(a > 2\) and \(b > 2\), respectively:
+
+- For \(12_a\) to be 7 in base-10, we have \(1 \cdot a + 2 \cdot 1 = 7 \implies a + 2 = 7 \implies a = 5\). Since 5 is greater than 2, this is valid.
+- For \(21_b\) to be 7 in base-10, we have \(2 \cdot b + 1 \cdot 1 = 7 \implies 2b + 1 = 7 \implies 2b = 6 \implies b = 3\). Since 3 is greater than 2, this is also valid.
+
+Both conditions are satisfied with \(a = 5\) and \(b = 3\), confirming that our solution is correct. The final answer is \(\boxed{7}\).
+

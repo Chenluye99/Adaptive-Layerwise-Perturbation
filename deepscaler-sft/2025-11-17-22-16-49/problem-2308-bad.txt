@@ -1,0 +1,50 @@
+Score: 1.0
+
+First, let's consider an isosceles right triangle. For an isosceles right triangle, the two legs are of equal length, say \( a \). The hypotenuse \( h \) of this triangle is then given by the Pythagorean theorem as:
+
+\[ h = a \sqrt{2} \]
+
+The area \( A \) of the triangle is:
+
+\[ A = \frac{1}{2} a^2 \]
+
+The altitude to the hypotenuse of this triangle can be derived using properties of right triangles. The altitude to the hypotenuse in an isosceles right triangle divides the triangle into two smaller isosceles right triangles that are similar to the original triangle. The relationship of the altitude to the hypotenuse can be derived as follows:
+
+The altitude (let's call it \( d \)) to the hypotenuse of the isosceles right triangle is given by:
+
+\[ d = \frac{a^2}{h} = \frac{a^2}{a \sqrt{2}} = \frac{a}{\sqrt{2}} = \frac{a \sqrt{2}}{2} \]
+
+We are given that this altitude is 6:
+
+\[ \frac{a \sqrt{2}}{2} = 6 \]
+
+From this, we can solve for \( a \):
+
+\[ a \sqrt{2} = 12 \]
+\[ a = \frac{12}{\sqrt{2}} = \frac{12 \sqrt{2}}{2} = 6 \sqrt{2} \]
+
+Now we can substitute this value of \( a \) into the area formula:
+
+\[ A = \frac{1}{2} a^2 = \frac{1}{2} (6 \sqrt{2})^2 = \frac{1}{2} (36 \cdot 2) = \frac{1}{2} \cdot 72 = 36 \]
+
+Let's implement this step-by-step solution in Python to ensure the accuracy of the result.
+```python
+import sympy as sp
+
+# Define the variable
+a = sp.symbols('a', positive=True)
+
+# Equation based on the altitude condition
+altitude_eq = (a * sp.sqrt(2)) / 2 - 6
+
+# Solve for 'a'
+solution = sp.solve(altitude_eq, a)[0]
+
+# Calculate the area of the triangle
+area = (1/2) * solution**2
+print(area)
+```
+Code execution result: 36.0000000000000
+
+Thus, the area of the isosceles right triangle, given that the altitude to the hypotenuse has length 6, is \(\boxed{36}\). This confirms our analytical solution is accurate.
+

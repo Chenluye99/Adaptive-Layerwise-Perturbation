@@ -1,0 +1,130 @@
+Score: 1.0
+
+To solve the problem, we need to find the length of \( XY \) where \( X \) and \( Y \) are the midpoints of \( \overline{BC} \) and \( \overline{DA} \) respectively, and then compute \( XY^2 \).
+
+### Step-by-Step Solution:
+
+1. **Setup the Coordinates:**
+    - Place point \( D \) at the origin, so \( D = (0, 0) \).
+    - Place point \( A \) at \( (24, 0) \) because \( DA = 24 \) and it lies on the x-axis.
+    - Place point \( C \) such that \( CD = 24 \) and \(\angle D = 60^\circ\). Therefore, the coordinates of \( C \) will be:
+      \[
+      C = (24 \cdot \cos(60^\circ), 24 \cdot \sin(60^\circ)) = (24 \cdot \frac{1}{2}, 24 \cdot \frac{\sqrt{3}}{2}) = (12, 12 \sqrt{3}).
+      \]
+    - Now, place point \( B \) such that \( AB = 13 \) and \( BC = 13 \). To find the coordinates of \( B \), we need to solve for a point that is 13 units away from both \( A \) and \( C \).
+
+2. **Find Coordinates of \( B \):**
+    - Let the coordinates of \( B \) be \( (x, y) \).
+    - We have two distance equations from \( B \) to \( A \) and \( B \) to \( C \):
+      \[
+      \sqrt{(x - 24)^2 + y^2} = 13,
+      \]
+      \[
+      \sqrt{(x - 12)^2 + (y - 12 \sqrt{3})^2} = 13.
+      \]
+    - Square both sides of the equations to get:
+      \[
+      (x - 24)^2 + y^2 = 169,
+      \]
+      \[
+      (x - 12)^2 + (y - 12 \sqrt{3})^2 = 169.
+      \]
+
+3. **Solve the System of Equations:**
+    - We can solve these equations simultaneously to find the coordinates of \( B \). Let's use Python to solve this system of equations.
+
+4. **Find Midpoints \( X \) and \( Y \):**
+    - Once we have the coordinates of \( B \), we can find the midpoints \( X \) and \( Y \):
+      \[
+      X = \left( \frac{B_x + C_x}{2}, \frac{B_y + C_y}{2} \right),
+      \]
+      \[
+      Y = \left( \frac{D_x + A_x}{2}, \frac{D_y + A_y}{2} \right) = \left( \frac{0 + 24}{2}, \frac{0 + 0}{2} \right) = (12, 0).
+      \]
+
+5. **Find the Distance \( XY \) and Compute \( XY^2 \):**
+    - Once we have the coordinates of \( X \) and \( Y \), we can use the distance formula to find \( XY \):
+      \[
+      XY = \sqrt{ \left( X_x - Y_x \right)^2 + \left( X_y - Y_y \right)^2 },
+      \]
+      and then compute \( XY^2 \).
+
+Let's implement this step-by-step in Python.
+```python
+import sympy as sp
+
+# Define variables
+x, y = sp.symbols('x y')
+
+# Define the equations based on the distances from B to A and B to C
+eq1 = (x - 24)**2 + y**2 - 169
+eq2 = (x - 12)**2 + (y - 12 * sp.sqrt(3))**2 - 169
+
+# Solve the system of equations
+solution = sp.solve((eq1, eq2), (x, y))
+
+print(solution)
+```
+Code execution result: [(sqrt(3)*(-5/2 + 6*sqrt(3)), -5/2 + 6*sqrt(3)), (sqrt(3)*(5/2 + 6*sqrt(3)), 5/2 + 6*sqrt(3))]
+
+This gives us two solutions for the coordinates of \( B \). We need to choose the solution that is geometrically meaningful in the context of the problem. Both solutions should be valid, but we will choose one and proceed to find the midpoints and the distance \( XY \).
+
+Let's take the solution with positive coordinates, which is:
+\[
+B = \left( \sqrt{3} \left( \frac{5}{2} + 6 \sqrt{3} \right), \frac{5}{2} + 6 \sqrt{3} \right).
+\]
+
+### Step 2: Find Midpoints \( X \) and \( Y \)
+
+Using the chosen coordinates of \( B \), we can now find the midpoints \( X \) and \( Y \):
+
+\[
+X = \left( \frac{B_x + C_x}{2}, \frac{B_y + C_y}{2} \right),
+\]
+\[
+Y = (12, 0).
+\]
+
+Substituting the coordinates of \( B, C, D, \) and \( A \):
+
+\[
+B = \left( \sqrt{3} \left( \frac{5}{2} + 6 \sqrt{3} \right), \frac{5}{2} + 6 \sqrt{3} \right),
+\]
+\[
+C = (12, 12 \sqrt{3}),
+\]
+\[
+D = (0, 0),
+\]
+\[
+A = (24, 0).
+\]
+
+Let's compute these step-by-step using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Get the coordinates of B from the solution
+B_x = sp.sqrt(3) * (5 / 2 + 6 * sp.sqrt(3))
+B_y = 5 / 2 + 6 * sp.sqrt(3)
+
+# Get the coordinates of C, D, and A
+C_x, C_y = 12, 12 * sp.sqrt(3)
+D_x, D_y = 0, 0
+A_x, A_y = 24, 0
+
+# Find midpoints X and Y
+X_x = (B_x + C_x) / 2
+X_y = (B_y + C_y) / 2
+Y_x, Y_y = 12, 0
+
+# Calculate the distance XY
+XY = sp.sqrt((X_x - Y_x)**2 + (X_y - Y_y)**2)
+XY_squared = XY**2
+
+print(XY_squared.evalf())
+```
+Code execution result: 310.211524227066
+
+Thus, the value of \( XY^2 \) is \(\boxed{310.211524227066}\). This is the final answer.
+

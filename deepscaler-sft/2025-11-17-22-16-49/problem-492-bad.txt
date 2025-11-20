@@ -1,0 +1,50 @@
+Score: 0.0
+
+To solve this problem, we can use the principle of inclusion and exclusion. Here’s the step-by-step approach:
+
+1. Define the number of plants in each bed:
+   - \(|X| = 600\)
+   - \(|Y| = 480\)
+   - \(|Z| = 420\)
+
+2. Define the number of plants shared among the beds:
+   - Number of plants shared by Beds X and Y but not necessarily Z: \(|X \cap Y| - |X \cap Y \cap Z| = 60\)
+   - Number of plants shared by Beds Y and Z but not necessarily X: \(|Y \cap Z| - |X \cap Y \cap Z| = 70\)
+   - Number of plants shared by Beds X and Z but not necessarily Y: \(|X \cap Z| - |X \cap Y \cap Z| = 80\)
+   - Number of plants common to all three beds: \(|X \cap Y \cap Z| = 30\)
+
+3. Substitute the value of \(|X \cap Y \cap Z|\) into the shared plant equations:
+   - From \(|X \cap Y| - 30 = 60 \), we get \(|X \cap Y| = 90\)
+   - From \(|Y \cap Z| - 30 = 70 \), we get \(|Y \cap Z| = 100\)
+   - From \(|X \cap Z| - 30 = 80 \), we get \(|X \cap Z| = 110\)
+
+4. Use the principle of inclusion and exclusion to find the total number of unique plants:
+   \[
+   |X \cup Y \cup Z| = |X| + |Y| + |Z| - |X \cap Y| - |Y \cap Z| - |X \cap Z| + |X \cap Y \cap Z|
+   \]
+   Substituting the values we have:
+   \[
+   |X \cup Y \cup Z| = 600 + 480 + 420 - 90 - 100 - 110 + 30
+   \]
+
+Now, let's implement this step-by-step calculation in Python to get the accurate result.
+```python
+# Define the sizes of individual flower beds
+X = 600
+Y = 480
+Z = 420
+
+# Define the sizes of intersections of the flower beds
+intersection_X_Y = 90
+intersection_Y_Z = 100
+intersection_X_Z = 110
+intersection_X_Y_Z = 30
+
+# Use the principle of inclusion and exclusion to calculate the number of unique plants
+unique_plants = X + Y + Z - intersection_X_Y - intersection_Y_Z - intersection_X_Z + intersection_X_Y_Z
+print(unique_plants)
+```
+Code execution result: 1230
+
+Thus, the total number of unique plants is \(\boxed{1230}\). This is our final answer.
+

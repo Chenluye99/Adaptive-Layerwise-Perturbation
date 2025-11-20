@@ -1,0 +1,51 @@
+Score: 1.0
+
+To solve the problem, let's start by understanding the sequence properties:
+
+1. The first term \(a_1 = 2\).
+2. The second term \(a_2 = 5\).
+3. Each term after the first is inversely proportional to the term preceding it, with a constant of proportionality \(k\). This means that for any term \(a_n\), the next term \(a_{n+1}\) can be written as:
+   \[
+   a_{n+1} = \frac{k}{a_n}
+   \]
+   Given that \(a_2 = \frac{k}{a_1}\), we can find the constant of proportionality \(k\):
+   \[
+   5 = \frac{k}{2} \implies k = 5 \cdot 2 = 10
+   \]
+4. Using the above relationship, we can express the next terms in the sequence as follows:
+   \[
+   a_3 = \frac{10}{a_2} = \frac{10}{5} = 2
+   \]
+   \[
+   a_4 = \frac{10}{a_3} = \frac{10}{2} = 5
+   \]
+   By observing, it seems that the sequence is repeating every 2 terms: \(2, 5, 2, 5, \ldots\)
+
+5. To generalize, the sequence can be written as:
+   \[
+   a_1 = 2, \quad a_2 = 5, \quad a_3 = 2, \quad a_4 = 5, \quad \ldots
+   \]
+   This means that the odd-indexed terms are 2, and the even-indexed terms are 5. So, to find the 12th term, since 12 is an even number, \(a_{12} = 5\).
+
+To ensure accuracy, let's write a Python code to generate the 12th term of this sequence.
+```python
+# Initialize the first two terms of the sequence
+a1 = 2
+a2 = 5
+
+# Create a list to store the sequence up to the 12th term
+sequence = [a1, a2]
+
+# Generate the sequence up to the 12th term (i.e., 11 steps after the first two terms)
+for n in range(2, 12):
+    next_term = 10 / sequence[n-1]
+    sequence.append(next_term)
+
+# Get the 12th term (index 11 in the list)
+a_12 = sequence[11]
+print(a_12)
+```
+Code execution result: 5.0
+
+Thus, the 12th term of the sequence is \(\boxed{5}\). This confirms our reasoning that the sequence is periodic with a period of 2, and the 12th term is the same as the 2nd term, which is 5.
+

@@ -1,0 +1,66 @@
+Score: 1.0
+
+To solve this problem, let's define the variables and equations based on the given information:
+
+1. **Definitions and Variables:**
+    - Let \( r \) be the radius of the circle.
+    - Let \( \theta \) be the central angle of the sector in radians.
+    - The length of the arc of the sector is given by \( r \theta \).
+    - The perimeter of the sector is given by the sum of the lengths of the two radii and the arc length, i.e., \( 2r + r \theta = 28 \).
+    - The area of the sector is given by \( \frac{1}{2} r^2 \theta = 49 \).
+
+2. **Set Up the Equations:**
+    - From the perimeter equation: \( 2r + r \theta = 28 \) which can be simplified to \( r (2 + \theta) = 28 \). 
+    - From the area equation: \( \frac{1}{2} r^2 \theta = 49 \) which can be simplified to \( r^2 \theta = 98 \).
+
+3. **Solve the System of Equations:**
+    - We have two equations:
+      \[
+      \begin{cases}
+      r (2 + \theta) = 28, \\
+      r^2 \theta = 98.
+      \end{cases}
+      \]
+    - We can solve these equations step-by-step. First, express \(\theta\) from the first equation:
+      \[
+      \theta = \frac{28 - 2r}{r}.
+      \]
+    - Substitute this expression into the second equation:
+      \[
+      r^2 \cdot \frac{28 - 2r}{r} = 98 \implies r (28 - 2r) = 98 \implies 28r - 2r^2 = 98 \implies -2r^2 + 28r - 98 = 0 \implies r^2 - 14r + 49 = 0.
+      \]
+    - The equation \( r^2 - 14r + 49 = 0 \) can be factored as:
+      \[
+      (r - 7)^2 = 0 \implies r = 7.
+      \]
+    - Substitute \( r = 7 \) back into the equation \( r (2 + \theta) = 28 \):
+      \[
+      7 (2 + \theta) = 28 \implies 2 + \theta = 4 \implies \theta = 2.
+      \]
+    - Now, the length of the arc of the sector is given by \( r \theta = 7 \cdot 2 = 14 \).
+
+Let's implement this step-by-step solution in Python to ensure the result is accurate.
+```python
+import sympy as sp
+
+# Define the variables
+r, theta = sp.symbols('r theta', positive=True, real=True)
+
+# Set up the equations based on the problem statement
+eq1 = sp.Eq(2 * r + r * theta, 28)
+eq2 = sp.Eq(0.5 * r**2 * theta, 49)
+
+# Solve the system of equations
+solution = sp.solve((eq1, eq2), (r, theta))
+
+print(solution)
+```
+Code execution result: [(7.00000000000000, 2.00000000000000)]
+
+This confirms our solution: \( r = 7 \) and \( \theta = 2 \).
+
+4. **Find the Length of the Arc:**
+   The length of the arc of the sector is given by \( r \theta = 7 \cdot 2 = 14 \).
+
+Thus, the length of the arc of this sector is \(\boxed{14}\). This is our final answer.
+

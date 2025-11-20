@@ -1,0 +1,50 @@
+Score: 1.0
+
+To solve this problem, let's model the transitions of the ball between Alice and Bob over the two turns and then calculate the probability that Alice ends up with the ball again after two turns, starting with Alice having the ball.
+
+### Step-by-Step Solution
+
+1. **Define the Probabilities:**
+    - If Alice has the ball, she can either toss it to Bob (with probability 1/2) or keep it (with probability 1/2).
+    - If Bob has the ball, he can either toss it to Alice (with probability 2/5) or keep it (with probability 3/5).
+
+2. **Define the Different Scenarios Over Two Turns:**
+    - We start with Alice having the ball.
+    - We need to consider all possible sequences of events in two turns and track when Alice ends up having the ball again.
+
+The possible scenarios over two turns are:
+    1. Alice keeps the ball in the first turn and then keeps it again in the second turn.
+    2. Alice tosses the ball to Bob in the first turn and then Bob tosses it back to Alice in the second turn.
+
+Mathematically, we can express these scenarios as follows:
+
+### Scenario Analysis
+
+1. **Scenario 1: Alice keeps the ball both turns.**
+    - Probability of Alice keeping the ball in the first turn: \(\frac{1}{2}\)
+    - Probability of Alice keeping the ball in the second turn: \(\frac{1}{2}\)
+    - Combined probability for this scenario: \(\frac{1}{2} \times \frac{1}{2} = \frac{1}{4}\)
+
+2. **Scenario 2: Alice tosses the ball to Bob in the first turn, and Bob tosses it back to Alice in the second turn.**
+    - Probability of Alice tossing the ball to Bob in the first turn: \(\frac{1}{2}\)
+    - Probability of Bob tossing the ball back to Alice in the second turn: \(\frac{2}{5}\)
+    - Combined probability for this scenario: \(\frac{1}{2} \times \frac{2}{5} = \frac{1}{5}\)
+
+3. **Total Probability:**
+    - Sum of probabilities of the above scenarios gives us the probability that Alice has the ball again after two turns.
+    - Total probability: \(\frac{1}{4} + \frac{1}{5}\)
+
+Let's compute this exactly using Python to ensure the accuracy of the result.
+```python
+# Calculate the probability for each scenario and then sum them up
+prob_Alice_keeps_both_turns = (1/2) * (1/2)
+prob_Alice_to_Bob_then_Bob_to_Alice = (1/2) * (2/5)
+
+# Total probability that Alice has the ball again after two turns
+total_probability = prob_Alice_keeps_both_turns + prob_Alice_to_Bob_then_Bob_to_Alice
+print(total_probability)
+```
+Code execution result: 0.45
+
+Thus, the probability that Alice has the ball again after two turns is \(\boxed{0.45}\). This is our final answer.
+

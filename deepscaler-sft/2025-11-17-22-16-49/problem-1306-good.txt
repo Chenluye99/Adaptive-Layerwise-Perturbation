@@ -1,0 +1,46 @@
+Score: 1.0
+
+To solve the problem, we need to find the smallest positive integer \( n \) such that:
+
+1. \( 3n \) is a perfect square.
+2. \( 2n \) is a perfect cube.
+
+Let's start by considering the prime factorization of \( n \).
+
+Suppose \( n \) has the prime factorization:
+\[ n = 2^a \cdot 3^b \cdot k, \]
+where \( k \) is an integer that is not divisible by 2 or 3.
+
+### Step 1: Conditions for \( 3n \) to be a perfect square
+If \( 3n \) is a perfect square, then the prime factorization of \( 3n = 2^a \cdot 3^{b+1} \cdot k \) must have all even exponents. This means:
+- \( a \) must be even (so that the exponent of 2 in \( 3n \) is \( a \), which is even),
+- \( b+1 \) must be even (so that the exponent of 3 in \( 3n \) is \( b+1 \), which is even, implying that \( b \) must be odd),
+- All exponents in the prime factorization of \( k \) must be even.
+
+### Step 2: Conditions for \( 2n \) to be a perfect cube
+If \( 2n \) is a perfect cube, then the prime factorization of \( 2n = 2^{a+1} \cdot 3^b \cdot k \) must have all exponents that are multiples of 3. This means:
+- \( a+1 \) must be a multiple of 3 (so that the exponent of 2 in \( 2n \) is \( a+1 \), which is a multiple of 3),
+- \( b \) must be a multiple of 3 (so that the exponent of 3 in \( 2n \) is \( b \), which is a multiple of 3),
+- All exponents in the prime factorization of \( k \) must be multiples of 3.
+
+### Step 3: Finding the smallest \( n \)
+We need to find the smallest values of \( a \), \( b \) such that all these conditions are satisfied. We can iterate through possible values and check these conditions using Python.
+
+Let's implement this step-by-step in Python to get the answer.
+```python
+import math
+
+def find_smallest_n():
+    n = 1
+    while True:
+        if (math.isqrt(3 * n))**2 == 3 * n and (round((2 * n) ** (1/3))) ** 3 == 2 * n:
+            return n
+        n += 1
+
+smallest_n = find_smallest_n()
+print(smallest_n)
+```
+Code execution result: 108
+
+Thus, the smallest positive integer \( n \) such that \( 3n \) is a perfect square and \( 2n \) is a perfect cube is \(\boxed{108}\). This is our final answer.
+

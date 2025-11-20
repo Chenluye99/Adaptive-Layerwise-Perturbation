@@ -1,0 +1,133 @@
+Score: 1.0
+
+First, let's start by setting up the problem in a coordinate system. Place the square \(ABCD\) in the coordinate plane such that \(A = (0, 0)\), \(B = (2, 0)\), \(C = (2, 2)\), and \(D = (0, 2)\).
+
+A semicircle with diameter \(\overline{AB}\) will have its center at the midpoint of \(\overline{AB}\), which is \((1, 0)\), and its radius will be 1 (half the length of the diameter, which is 2).
+
+The equation of the semicircle is \((x - 1)^2 + y^2 = 1\) with \(y \geq 0\).
+
+We need to find the point \(E\) on \( \overline{AD} \) such that the tangent from point \(C\) to the semicircle touches the semicircle at some point, say \(T\), and then passes through \(E\).
+
+1. **Find the Tangent from \(C\) to the Semicircle:**
+
+    To find the tangent from a point to a circle, we can use the fact that the tangent is perpendicular to the radius at the point of tangency. The point of tangency will be such that the distance from \(C\) to \(T\) is minimized along the tangent line.
+
+2. **Equation of the Tangent Line from \(C\) to the Semicircle:**
+
+    Let's denote the point of tangency as \(T = (x_1, y_1)\). The slope of the radius from the center of the semicircle \((1, 0)\) to \(T = (x_1, y_1)\) is \(\frac{y_1 - 0}{x_1 - 1} = \frac{y_1}{x_1 - 1}\). The slope of the tangent line will be the negative reciprocal of this slope, i.e., \(- \frac{x_1 - 1}{y_1}\).
+
+    The equation of the tangent line can be derived using the fact that it is tangent to the semicircle, but a more straightforward approach is to use the formula for the tangent from an external point to a circle.
+
+    The length of the tangent from a point \((x_0, y_0)\) to a circle \((x - h)^2 + (y - k)^2 = r^2\) is given by \(\sqrt{(x_0 - h)^2 + (y_0 - k)^2 - r^2}\). For our semicircle, the point is \(C = (2, 2)\), and the circle's equation is \((x - 1)^2 + y^2 = 1\), so the length of the tangent from \(C\) is:
+
+    \[
+    \text{Length of tangent} = \sqrt{(2 - 1)^2 + (2 - 0)^2 - 1} = \sqrt{1 + 4 - 1} = \sqrt{4} = 2.
+    \]
+
+    The equation of the tangent line passing through \(C\) can be found by considering that this tangent line should touch the semicircle at exactly one point, so its equation will be in the form \(y - 2 = m (x - 2)\), and this line should touch the circle at exactly one point. To get the specific slope, we substitute \(y = mx - 2m + 2\) into the circle's equation and solve for conditions where there is exactly one solution (i.e., the discriminant of the resulting quadratic equation is zero).
+
+3. **Find Intersection of Tangent Line with \(\overline{AD}\):**
+
+    The line \(\overline{AD}\) is the vertical line \(x = 0\). Substituting \(x = 0\) into the equation of the tangent line will give us the coordinates of point \(E\).
+
+Let's use Python to solve this step-by-step accurately.
+```python
+import sympy as sp
+
+# Define variables
+x, y = sp.symbols('x y')
+
+# Equation of the semicircle with center (1, 0) and radius 1
+eq_semicircle = (x - 1)**2 + y**2 - 1
+
+# Point C
+C = (2, 2)
+
+# Equation of the tangent from C to the semicircle
+# We will use the fact that the tangent line will be such that when we substitute y = m * (x - 2) + 2 into the circle's equation, it should result in a quadratic with a discriminant of 0.
+
+m = sp.symbols('m')
+tangent_line = m * (x - 2) + 2
+
+# Substitute the tangent line equation into the semicircle equation
+substituted_eq = eq_semicircle.subs(y, tangent_line)
+
+# Find the discriminant of the resulting quadratic equation
+coefficients = sp.Poly(substituted_eq, x).all_coeffs()
+a, b, c = coefficients[0], coefficients[1], coefficients[2]
+discriminant = b**2 - 4 * a * c
+
+# Solve the equation where the discriminant is 0 to get the correct slope m
+slope_m = sp.solve(discriminant, m)[1]  # We choose the correct solution that gives us a real tangent line.
+
+# Get the equation of the tangent line using the correct slope
+tangent_line_eq = sp.Eq(y, slope_m * (x - 2) + 2)
+
+# Find the intersection of the tangent line with line AD (i.e., the line x = 0)
+E = sp.solve(tangent_line_eq.subs(x, 0), y)[0]
+E_point = (0, E)
+
+# Calculate the length of CE
+CE_length = sp.sqrt((C[0] - E_point[0])**2 + (C[1] - E_point[1])**2)
+print(CE_length)
+```
+Code execution result: IndexError: list index out of range
+It seems that there is an error in the code. This error likely arises because we did not correctly form or solve for the equation representing the tangent line's slope that ensures it is tangent to the semicircle. We'll take a more direct approach by solving for the tangent line using geometric properties and then finding its intersection with \(\overline{AD}\).
+
+To solve this problem more directly, let's use another method that involves constructing the tangent and finding its intersection with \(\overline{AD}\) by numerical methods if necessary. However, a known property of tangents to a circle is that the length of the tangent from an external point to the circle can be used to determine the correct placement of the tangent point and subsequently get the intersection point with \(\overline{AD}\).
+
+We know that if a tangent is drawn from a point to a circle, it is perpendicular to the radius at the point of tangency. So, we can use the properties of tangents and the geometric constraints of our problem to solve it accurately.
+
+### Geometric Approach:
+
+1. The point \(C = (2, 2)\) and the semicircle \((x - 1)^2 + y^2 = 1\) will have a tangent line such that when we reflect \(C\) over the line perpendicular to the radius at the point of tangency, the reflected point will lie on the line \(x = 0\) (i.e., on \(\overline{AD}\)).
+
+2. Using properties of tangents from outside points, we know that if \(C = (2, 2)\), then the correct tangent line will touch the semicircle at some point and pass such that the intersection point on \(\overline{AD}\) can be derived using geometric properties rather than solving directly for the tangent line equation symbolically here.
+
+However, a more practical numerical approach can be taken by checking possible tangent line equations and ensuring that they intersect \(\overline{AD}\) at a valid point \(E\) and then calculating the length of \(CE\).
+
+We can use known results about tangents and properties of circles, or use iterative methods to get the precise length of \(CE\). Let's consider the geometric nature and write some code to check potential solutions.
+```python
+import sympy as sp
+
+# Define variables
+x, y = sp.symbols('x y')
+C = (2, 2)
+
+# Equation of the semicircle with center (1, 0) and radius 1
+circle_eq = (x - 1)**2 + y**2 - 1
+
+# Find the point E on line AD (x = 0) such that CE is tangent to the semicircle
+# We start by guessing and checking possible slopes for the tangent line through C
+m = sp.symbols('m')
+tangent_line = m * (x - 2) + 2
+
+# We substitute this tangent line equation into the circle equation and solve for x and y
+substituted_eq = circle_eq.subs(y, tangent_line)
+
+# Get the discriminant of this resulting quadratic equation in x
+coefficients = sp.Poly(substituted_eq, x).all_coeffs()
+a, b, c = coefficients[0], coefficients[1], coefficients[2]
+discriminant = b**2 - 4 * a * c
+
+# Solve the equation where the discriminant is 0 to get the correct slope m
+slope_m_solution = sp.solve(discriminant, m)
+
+# We get the correct solution for the slope by choosing the appropriate m value (there should be two solutions, we select the correct one which makes geometric sense)
+slope_m = [sol.evalf() for sol in slope_m_solution if sol >= 0][0]
+
+# Now get the equation of the tangent line using this correct slope
+tangent_line_eq = sp.Eq(y, slope_m * (x - 2) + 2)
+
+# Find the intersection of the tangent line with line AD (i.e., the line x = 0)
+E = sp.solve(tangent_line_eq.subs(x, 0), y)[0]
+E_point = (0, E)
+
+# Calculate the length of CE
+CE_length = sp.sqrt((C[0] - E_point[0])**2 + (C[1] - E_point[1])**2)
+print(CE_length)
+```
+Code execution result: 2.50000000000000
+
+Thus, the length of \(\overline{CE}\) is \(\boxed{2.5}\). This is our final answer. The result confirms that the geometric constraints and the computation are consistent and correct.
+

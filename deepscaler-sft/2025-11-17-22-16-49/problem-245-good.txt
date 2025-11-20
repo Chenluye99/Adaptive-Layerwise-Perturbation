@@ -1,0 +1,42 @@
+Score: 1.0
+
+To solve the problem, we need to express the polynomial \(x^2 + x^{10}\) in terms of the powers of \((x+1)\). This can be achieved by using polynomial expansion and comparing the coefficients of the resulting polynomial in terms of \((x+1)\).
+
+1. **Substitute \( x = y - 1 \) in the Polynomial:**
+   We make the substitution \( x = y - 1 \) to express everything in terms of \( y = (x + 1) \). Therefore, we substitute \( x = y - 1 \) into the polynomial \( x^2 + x^{10} \):
+
+   \[
+   (y - 1)^2 + (y - 1)^{10}
+   \]
+
+2. **Expand the Polynomial:**
+   We need to expand \((y - 1)^2\) and \((y - 1)^{10}\) and then combine them. The goal is to get the expression in the form of a polynomial in \( y \), and then identify the coefficient of \( y^9 \), because \((x + 1)^9\) will correspond to the coefficient \( a_9 \).
+
+3. **Get the Coefficient of \( y^9 \):**
+   After expanding, we identify the coefficient of \( y^9 \) in the resulting expression because the coefficient of \((x + 1)^9\) in the expression \( a_0 + a_1 (x + 1) + \cdots + a_9 (x + 1)^9 + a_{10} (x + 1)^{10} \) is \( a_9 \).
+
+Let's perform this step-by-step using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variable
+x = sp.symbols('x')
+
+# Define the polynomial
+polynomial = x**2 + x**10
+
+# Substitute x = y - 1 to get the polynomial in terms of (x + 1)
+y = sp.symbols('y')
+polynomial_substituted = polynomial.subs(x, y - 1)
+
+# Expand the polynomial
+expanded_polynomial = sp.expand(polynomial_substituted)
+
+# Get the coefficient of y^9
+coeff_a_9 = sp.Poly(expanded_polynomial, y).coeff_monomial(y**9)
+print(coeff_a_9)
+```
+Code execution result: -10
+
+Thus, the value of \( a_9 \) is \(\boxed{-10}\). This is the coefficient of \((x + 1)^9\) when we express the polynomial \( x^2 + x^{10} \) in terms of \((x + 1)\).
+

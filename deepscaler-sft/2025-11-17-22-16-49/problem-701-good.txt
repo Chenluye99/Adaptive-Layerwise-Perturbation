@@ -1,0 +1,41 @@
+Score: 1.0
+
+To solve this problem, let's start by understanding the problem thoroughly:
+
+1. There are 10 players, and each day, the 10 players split into two groups of 5 players each.
+2. Each combination of 5 players occurs exactly once over the course of the semester.
+3. We need to determine how many times Justin and Tim are on the same team together.
+
+First, let's work out the total number of ways to choose 5 players out of 10. This is given by the combination formula \( \binom{10}{5} \), which is equal to 252. Each of these 252 unique groups of 5 players will appear exactly once in the course of the semester.
+
+For each group of 5 players chosen, there is only one other group of 5 players that will be formed from the remaining 5 players. So, for each way to choose the first group of 5 players, there is exactly one way to choose the second group of 5 players such that all 10 players are split into two groups of 5.
+
+Next, we need to determine how many of these 252 different groups of 5 players include both Justin and Tim. If Justin and Tim are both in the same group of 5, we need to choose 3 more players from the remaining 8 players to complete that group of 5. The number of ways to choose 3 players from 8 is given by \( \binom{8}{3} \), which is equal to 56.
+
+So, there are 56 different groups of 5 players that include both Justin and Tim. Each of these groups will form a team with the other 5 players, and since each match-up of 5 players occurs exactly once, each of these 56 groups will occur exactly once in the course of the semester.
+
+Thus, Justin and Tim will be on the same team exactly 56 times over the course of the semester.
+
+Let's confirm this by coding a solution in Python to ensure the accuracy of our answer.
+```python
+import itertools
+
+# Get all combinations of 5 players out of 10
+players = list(range(10))
+combinations_of_5 = list(itertools.combinations(players, 5))
+
+# Find the count where both Justin (0) and Tim (1) are in the same combination of 5 players
+justin = 0
+tim = 1
+count_justin_tim_same_group = 0
+
+for combo in combinations_of_5:
+    if justin in combo and tim in combo:
+        count_justin_tim_same_group += 1
+
+print(count_justin_tim_same_group)
+```
+Code execution result: 56
+
+Thus, the number of times Justin played in the same game as Tim is \(\boxed{56}\). This confirms our reasoning and calculations.
+

@@ -1,0 +1,51 @@
+Score: 1.0
+
+To solve the equation \( x \sqrt{x} - 5x - 9 \sqrt{x} = 35 \), let's introduce a substitution to simplify it. We can set \( y = \sqrt{x} \). Consequently, this means that \( x = y^2 \).
+
+Substituting these into the equation, we get:
+\[ y^2 \cdot y - 5 \cdot y^2 - 9 \cdot y = 35 \]
+which simplifies to:
+\[ y^3 - 5y^2 - 9y = 35. \]
+
+We need to find integer solutions for \( y \). Once we obtain an integer value for \( y \), we can then find \( x \) using the relation \( x = y^2 \).
+
+We will check various integer values for \( y \) and see which, if any, make the equation true. We can implement this check using Python. Let's iterate through a reasonable range of values for \( y \) and check which value satisfies the equation. We'll then compute the corresponding \( x = y^2 \).
+```python
+import sympy as sp
+
+# Define the variable
+y = sp.symbols('y', integer=True)
+
+# Define the equation
+equation = y**3 - 5*y**2 - 9*y - 35
+
+# Find the integer solutions for the equation
+solutions = sp.solve(equation, y)
+
+print(solutions)
+```
+Code execution result: [7]
+
+So, the only integer solution for the equation \( y^3 - 5y^2 - 9y - 35 = 0 \) is \( y = 7 \).
+
+Since \( y = \sqrt{x} \), we can now substitute \( y = 7 \) back to get:
+\[ \sqrt{x} = 7 \implies x = 7^2 = 49. \]
+
+We can verify this solution by substituting \( x = 49 \) back into the original equation to ensure it holds true.
+
+Let's perform the verification:
+\[ x \sqrt{x} - 5x - 9 \sqrt{x} = 35 \]
+Substituting \( x = 49 \):
+\[ 49 \sqrt{49} - 5 \cdot 49 - 9 \sqrt{49} = 35. \]
+Since \( \sqrt{49} = 7 \), this becomes:
+\[ 49 \cdot 7 - 5 \cdot 49 - 9 \cdot 7 = 35, \]
+which simplifies to:
+\[ 343 - 245 - 63 = 35, \]
+and further simplifies to:
+\[ 343 - 308 = 35, \]
+giving:
+\[ 35 = 35. \]
+This confirms that our solution is correct.
+
+Thus, the value of \( x \) that satisfies the equation is \(\boxed{49}\).
+

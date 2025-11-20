@@ -1,0 +1,43 @@
+Score: 1.0
+
+First, let's outline the problem and solve it step-by-step:
+
+To solve this problem, we need to calculate the probability that four out of the six cards drawn from a standard 52-card deck have the same value.
+
+### Step-by-Step Solution:
+
+1. **Count the Total Number of Ways to Draw 6 Cards from a 52-Card Deck:**
+   The total number of ways to choose 6 cards from a 52-card deck is given by the combination formula \( \binom{52}{6} \).
+
+2. **Count the Number of Favorable Outcomes:**
+   To have four cards of the same value, we need to choose a rank out of the 13 available ranks, and then choose 4 out of the 4 suits for that rank (which can be done in exactly 1 way because there are exactly 4 suits for each rank). Then, we need to choose 2 more cards from the remaining 48 cards (since we excluded the cards with the chosen rank), ensuring that these 2 cards do not form another group of four of the same value. 
+
+   - **Choose 1 Rank out of 13:** There are \( \binom{13}{1} = 13 \) ways to choose the rank.
+   - **Choose 4 Cards from the 4 Cards of That Rank:** There is only 1 way to choose 4 cards from the 4 available cards of that rank (since there are exactly 4 cards of each rank, i.e., 4 suits).
+   - **Choose 2 Cards from Remaining 48 Cards:** We need to choose 2 cards from the remaining 48 cards (since we have already chosen 4 cards from one rank, there are 52 - 4 = 48 remaining cards). The number of ways to choose 2 cards from 48 cards is given by \( \binom{48}{2} \).
+   - **Ensure No Other Rank Forms a Group of 4:** We need to ensure that the 2 remaining cards do not form another group of 4 cards of the same rank. For this, we need to subtract scenarios where these 2 cards form another group of 4 (but since we only choose 2 cards, there is no way to form another group of 4 with only 2 cards, this condition is inherently satisfied if both cards come from different ranks or different sets of 4 cards from different ranks that don't make another group of 4).
+
+Thus, the number of favorable outcomes is \( 13 \times \binom{48}{2} \).
+
+3. **Calculate the Probability:**
+   The probability is given by the ratio of the number of favorable outcomes to the total number of outcomes:
+   \[
+   P(\text{four of the same value}) = \frac{13 \times \binom{48}{2}}{\binom{52}{6}}
+   \]
+
+Let's implement this in Python to get the accurate result.
+```python
+import math
+
+# Calculate the combinations
+total_ways = math.comb(52, 6)
+favorable_ways = 13 * math.comb(48, 2)
+
+# Calculate the probability
+probability = favorable_ways / total_ways
+print(probability)
+```
+Code execution result: 0.0007202881152460984
+
+Thus, the probability that four of the cards that Eddy draws have the same value is \(\boxed{0.0007202881152460984}\). This is the final answer.
+

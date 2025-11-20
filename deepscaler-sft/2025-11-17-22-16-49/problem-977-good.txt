@@ -1,0 +1,55 @@
+Score: 1.0
+
+To solve the problem, we need to find a three-digit number \( abc \) such that both \( N \) and \( N^2 \) end in the same four digits, i.e., both \( N \) and \( N^2 \) end in \( abcd \).
+
+Let's denote the four-digit number by \( 1000a + 100b + 10c + d \). This means that:
+
+\[ N \mod 10000 = abcd \]
+\[ N^2 \mod 10000 = abcd \]
+
+In other words, if \( N \mod 10000 = k \), then we need:
+
+\[ k^2 \equiv k \pmod{10000} \]
+
+This simplifies to:
+
+\[ k(k - 1) \equiv 0 \pmod{10000} \]
+
+So, \( k(k - 1) \) must be divisible by 10000. Since 10000 factors as \( 2^4 \cdot 5^4 \), both \( k \) and \( k - 1 \) must together include at least four factors of 2 and four factors of 5 (as consecutive numbers don't share factors, one of them must provide the factors of 2, and the other must provide the factors of 5).
+
+We will iterate through all numbers \( N \) and check if both \( N \mod 10000 \) and \( N^2 \mod 10000 \) give the same result, and also ensure that the first digit \( a \) of this common four-digit number is not zero.
+
+Let's implement this step-by-step process in Python.
+```python
+# Initialize a list to store possible solutions
+possible_solutions = []
+
+# We will test numbers N from 10000 to 99999 because N and N^2 should share the last four digits
+for N in range(10000, 100000):
+    str_N = str(N)
+    str_N2 = str(N * N)
+    
+    # Get the last four digits of N and N^2
+    last_4_digits_N = int(str_N.zfill(5)[-4:])
+    last_4_digits_N2 = int(str_N2.zfill(9)[-4:])
+    
+    # Check if the last four digits of N and N^2 are the same
+    if last_4_digits_N == last_4_digits_N2:
+        possible_solutions.append(last_4_digits_N)
+
+# Find the distinct four-digit numbers that meet the condition and get the corresponding abc ( three-digit number )
+distinct_four_digit_numbers = set(possible_solutions)
+
+# Now, let's retrieve the correct value that makes sure the first digit of the four-digit number is not zero
+for num in distinct_four_digit_numbers:
+    str_num = str(num).zfill(4)
+    a = int(str_num[0])
+    if a != 0:
+        abc = int(str_num[:3])
+        print(abc)
+        break
+```
+Code execution result: 937
+
+Thus, the three-digit number \( abc \) is \(\boxed{937}\). This is our final answer after checking all conditions and getting the appropriate solution.
+

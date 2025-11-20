@@ -1,0 +1,94 @@
+Score: 0.0
+
+To solve the given problem, let's start by finding the vectors \(\overrightarrow{AB}\) and \(\overrightarrow{OC}\).
+
+1. **Given Vectors:**
+    - \(\overrightarrow{OA} = (1, -2)\)
+    - \(\overrightarrow{OB} = (4, -1)\)
+    - \(\overrightarrow{OC} = (m, m+1)\)
+
+2. **Find \(\overrightarrow{AB}\):**
+    \[
+    \overrightarrow{AB} = \overrightarrow{OB} - \overrightarrow{OA} = (4 - 1, -1 - (-2)) = (3, 1)
+    \]
+
+3. **Condition for \(\overrightarrow{AB} \parallel \overrightarrow{OC}\):**
+    - Two vectors \(\overrightarrow{AB} = (3, 1)\) and \(\overrightarrow{OC} = (m, m+1)\) are parallel if and only if their components are proportional, i.e., \(\frac{3}{m} = \frac{1}{m+1}\).
+    - This gives us the equation: \(3(m + 1) = 1 \cdot m \) which simplifies to \(3m + 3 = m\).
+    - Rearrange to get: \(3m - m = -3 \implies 2m = -3 \implies m = -\frac{3}{2}\).
+
+4. **Condition for \(\triangle ABC\) to be a Right-Angled Triangle:**
+    - For \(\triangle ABC\) to be a right-angled triangle, one of the following dot products must be zero:
+      - \(\overrightarrow{AB} \cdot \overrightarrow{BC} = 0\)
+      - \(\overrightarrow{BC} \cdot \overrightarrow{CA} = 0\)
+      - \(\overrightarrow{CA} \cdot \overrightarrow{AB} = 0\)
+    - First, let's find \(\overrightarrow{BC}\) and \(\overrightarrow{CA}\):
+      - \(\overrightarrow{BC} = \overrightarrow{OC} - \overrightarrow{OB} = (m - 4, m + 1 - (-1)) = (m - 4, m + 2)\)
+      - \(\overrightarrow{CA} = \overrightarrow{OA} - \overrightarrow{OC} = (1 - m, -2 - (m + 1)) = (1 - m, -3 - m)\)
+    - We now need to check the dot products of these vectors.
+
+Let's implement this step-by-step in Python to get the accurate results.
+```python
+import sympy as sp
+
+# Define the variables
+m = sp.symbols('m')
+
+# Define the vectors
+OA = sp.Matrix([1, -2])
+OB = sp.Matrix([4, -1])
+OC = sp.Matrix([m, m + 1])
+
+# Compute vector AB
+AB = OB - OA
+
+# (1) Find m such that AB is parallel to OC
+# Condition for parallel vectors: 3 / m = 1 / (m + 1) => 3 * (m + 1) = m
+parallel_condition = 3 * (m + 1) - m
+m_parallel = sp.solve(parallel_condition, m)[0]
+
+# (2) Find m such that triangle ABC is a right-angled triangle
+BC = OC - OB
+CA = OA - OC
+
+# Check for right-angled conditions:
+# 1. AB . BC = 0
+dot_product_AB_BC = AB.dot(BC)
+m_right_angled_1 = sp.solve(dot_product_AB_BC, m)
+
+# 2. BC . CA = 0
+dot_product_BC_CA = BC.dot(CA)
+m_right_angled_2 = sp.solve(dot_product_BC_CA, m)
+
+# 3. CA . AB = 0
+dot_product_CA_AB = CA.dot(AB)
+m_right_angled_3 = sp.solve(dot_product_CA_AB, m)
+
+print(f"m for AB parallel to OC: {m_parallel}")
+print(f"m for triangle ABC to be right-angled (from AB . BC = 0): {m_right_angled_1}")
+print(f"m for triangle ABC to be right-angled (from BC . CA = 0): {m_right_angled_2}")
+print(f"m for triangle ABC to be right-angled (from CA . AB = 0): {m_right_angled_3}")
+```
+Code execution result: m for AB parallel to OC: -3/2
+m for triangle ABC to be right-angled (from AB . BC = 0): [5/2]
+m for triangle ABC to be right-angled (from BC . CA = 0): [-sqrt(5)*I, sqrt(5)*I]
+m for triangle ABC to be right-angled (from CA . AB = 0): [0]
+
+From the code, we obtained the following results:
+
+1. **Value of \( m \) such that \(\overrightarrow{AB} \parallel \overrightarrow{OC}\):**
+   \[
+   m = -\frac{3}{2}
+   \]
+
+2. **Value of \( m \) such that \(\triangle ABC\) is a right-angled triangle:**
+   - From \(\overrightarrow{AB} \cdot \overrightarrow{BC} = 0\), we get \( m = \frac{5}{2} \).
+   - From \(\overrightarrow{BC} \cdot \overrightarrow{CA} = 0\), the solutions are complex numbers (\(- \sqrt{5}i, \sqrt{5}i\)), which are not real numbers and therefore not valid for this context.
+   - From \(\overrightarrow{CA} \cdot \overrightarrow{AB} = 0\), we get \( m = 0 \).
+
+So, the valid real number solutions for \(\triangle ABC\) to be a right-angled triangle are \( m = \frac{5}{2} \) and \( m = 0 \).
+
+Therefore, the final answers are:
+1. The value of the real number \( m \) such that \(\overrightarrow{AB} \parallel \overrightarrow{OC}\) is \(\boxed{-\frac{3}{2}}\).
+2. The value(s) of the real number \( m \) such that \(\triangle ABC\) is a right-angled triangle are \(\boxed{\frac{5}{2}}\) and \(\boxed{0}\).
+

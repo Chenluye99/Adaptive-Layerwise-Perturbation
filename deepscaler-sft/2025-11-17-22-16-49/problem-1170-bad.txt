@@ -1,0 +1,108 @@
+Score: 0.0
+
+To solve the problem, we need to first convert the repeating decimals \(0.\overline{789}\), \(0.\overline{456}\), and \(0.\overline{123}\) into their fractional forms, and then perform the arithmetic operations.
+
+### Step-by-Step Solution:
+
+1. **Convert Repeating Decimals to Fractions:**
+
+    - **Convert \(0.\overline{789}\) to a Fraction:**
+      Let \(x = 0.\overline{789}\). Then,
+      \[
+      1000x = 789.\overline{789}
+      \]
+      Subtracting these two equations, we get:
+      \[
+      1000x - x = 789.\overline{789} - 0.\overline{789} \implies 999x = 789 \implies x = \frac{789}{999}
+      \]
+      We need to simplify \(\frac{789}{999}\).
+
+    - **Convert \(0.\overline{456}\) to a Fraction:**
+      Let \(y = 0.\overline{456}\). Then,
+      \[
+      1000y = 456.\overline{456}
+      \]
+      Subtracting these two equations, we get:
+      \[
+      1000y - y = 456.\overline{456} - 0.\overline{456} \implies 999y = 456 \implies y = \frac{456}{999}
+      \]
+      We need to simplify \(\frac{456}{999}\).
+
+    - **Convert \(0.\overline{123}\) to a Fraction:**
+      Let \(z = 0.\overline{123}\). Then,
+      \[
+      1000z = 123.\overline{123}
+      \]
+      Subtracting these two equations, we get:
+      \[
+      1000z - z = 123.\overline{123} - 0.\overline{123} \implies 999z = 123 \implies z = \frac{123}{999}
+      \]
+      We need to simplify \(\frac{123}{999}\).
+
+2. **Simplify the Fractions:**
+
+    - **Simplify \(\frac{789}{999}\):**
+      Find the greatest common divisor (GCD) of 789 and 999, and then simplify the fraction.
+    - **Simplify \(\frac{456}{999}\):**
+      Find the GCD of 456 and 999, and then simplify the fraction.
+    - **Simplify \(\frac{123}{999}\):**
+      Find the GCD of 123 and 999, and then simplify the fraction.
+
+3. **Perform the Arithmetic Operations:**
+
+    - Subtract \(\frac{456}{999}\) from \(\frac{789}{999}\):
+      \[
+      \frac{789}{999} - \frac{456}{999} = \frac{789 - 456}{999} = \frac{333}{999}
+      \]
+    - Subtract \(\frac{123}{999}\) from the result above:
+      \[
+      \frac{333}{999} - \frac{123}{999} = \frac{333 - 123}{999} = \frac{210}{999}
+      \]
+    - Finally, simplify \(\frac{210}{999}\) by finding the GCD of 210 and 999.
+
+4. **Implement in Python:**
+
+Let's implement this step-by-step process in Python to get the accurate final answer.
+```python
+import math
+
+# Function to simplify fractions
+def simplify_fraction(numerator, denominator):
+    gcd = math.gcd(numerator, denominator)
+    return numerator // gcd, denominator // gcd
+
+# Convert repeating decimals to fractions and simplify
+frac_789 = simplify_fraction(789, 999)
+frac_456 = simplify_fraction(456, 999)
+frac_123 = simplify_fraction(123, 999)
+
+# Perform the arithmetic operations
+num_1 = frac_789[0]
+den_1 = frac_789[1]
+
+num_2 = frac_456[0]
+den_2 = frac_456[1]
+
+num_3 = frac_123[0]
+den_3 = frac_123[1]
+
+# Ensure all fractions have the same denominator (999)
+num_1_on_999 = (num_1 * (den_2 // den_1)) * (den_3 // den_1)
+num_2_on_999 = (num_2 * (den_1 // den_2)) * (den_3 // den_2)
+num_3_on_999 = (num_3 * (den_1 // den_3))
+
+# Perform the calculation 0.\overline{789} - 0.\overline{456} - 0.\overline{123}
+result_num = (num_1_on_999) - (num_2_on_999) - (num_3_on_999)
+result_den = 999
+
+# Simplify the final fraction
+result_fraction = simplify_fraction(result_num, result_den)
+print(result_fraction)
+```
+Code execution result: (70, 999)
+
+Thus, the value of \(0.\overline{789} - 0.\overline{456} - 0.\overline{123}\) as a fraction in its lowest terms is \(\frac{70}{999}\).
+
+The final answer is:
+\(\boxed{\frac{70}{999}}\)
+

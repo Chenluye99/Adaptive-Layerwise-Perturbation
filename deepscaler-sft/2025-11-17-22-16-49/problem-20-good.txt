@@ -1,0 +1,49 @@
+Score: 1.0
+
+Let's solve this problem step-by-step using Python.
+
+1. First, we define a function that takes a number \( A \), rearranges its digits to get the largest and smallest possible numbers, and then check the conditions stated in the problem.
+2. We will check if the largest number formed by rearranging the digits of \( A \) is 7668 greater than \( A \), and if the smallest number formed by rearranging the digits of \( A \) is 594 less than \( A \).
+3. We will iterate through all four-digit numbers and check these conditions for each number until we find the correct value of \( A \).
+
+Let's implement this in Python.
+```python
+def find_special_number():
+    for A in range(1000, 10000):
+        str_A = str(A)
+        all_permutations = [''.join(p) for p in permutations(str_A)]
+        max_num = max(map(int, all_permutations))
+        min_num = min(map(int, all_permutations))
+        
+        if max_num - A == 7668 and A - min_num == 594:
+            return A
+
+import itertools
+
+# Find the special number
+special_number = find_special_number()
+print(special_number)
+```
+Code execution result: NameError: name 'permutations' is not defined. Did you mean: 'all_permutations'?
+It appears there was an issue because `permutations` was not defined properly in that context. We should use Python's `itertools.permutations` to get all permutations of the digits of a number and then convert them back to integers to compare. Let's correct this and implement it properly.
+```python
+import itertools
+
+def find_special_number():
+    for A in range(1000, 10000):
+        str_A = str(A)
+        all_permutations = [''.join(p) for p in itertools.permutations(str_A)]
+        max_num = max(map(int, all_permutations))
+        min_num = min(map(int, all_permutations))
+        
+        if max_num - A == 7668 and A - min_num == 594:
+            return A
+
+# Find and print the special number
+special_number = find_special_number()
+print(special_number)
+```
+Code execution result: 1963
+
+Thus, the four-digit number \( A \) that satisfies the conditions of the problem is \(\boxed{1963}\). This is our final answer.
+

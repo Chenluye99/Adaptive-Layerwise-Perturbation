@@ -1,0 +1,44 @@
+Score: 1.0
+
+First, we need to generate all four-digit numbers using the digits {1, 2, 3, 4} exactly once. Then, we will check which of these numbers are multiples of 4. After finding these multiples, we will determine the least and the greatest of them, and finally, compute the sum of these two numbers.
+
+Let's go through this step-by-step using Python to ensure accuracy.
+1. Generate all permutations of the digits {1, 2, 3, 4}.
+2. Convert each permutation to a number and check if it is a four-digit number.
+3. Check if the number is a multiple of 4.
+4. Find the minimum and maximum of the valid multiples of 4.
+5. Compute the sum of the minimum and maximum values.
+
+Let's start by implementing this in Python.
+```python
+import itertools
+
+# Get all permutations of the digits [1, 2, 3, 4]
+permutations = list(itertools.permutations([1, 2, 3, 4]))
+
+# Find all four-digit numbers formed by these permutations that are multiples of 4
+multiples_of_4 = []
+
+for perm in permutations:
+    num_str = ''.join(map(str, perm))
+    num = int(num_str)
+    
+    if 1000 <= num <= 9999:
+        if num % 4 == 0:
+            multiples_of_4.append(num)
+
+# Find the smallest and largest numbers in the list of multiples of 4
+min_multiple = min(multiples_of_4)
+max_multiple = max(multiples_of_4)
+
+# Calculate the sum of the smallest and largest multiples of 4
+result = min_multiple + max_multiple
+
+print(((min_multiple, max_multiple, result)))
+```
+Code execution result: (1324, 4312, 5636)
+
+Thus, the least positive four-digit multiple of 4 that can be written using the digits 1, 2, 3, and 4 exactly once is 1324, and the greatest such multiple is 4312. The sum of these two numbers is:
+
+\(\boxed{5636}\)
+

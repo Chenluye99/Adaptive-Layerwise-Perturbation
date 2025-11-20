@@ -1,0 +1,110 @@
+Score: 1.0
+
+First, let's set up our coordinate system. We can place the vertices of the parallelepiped such that:
+
+- \(A = (0, 0, 0)\)
+- \(B = \overrightarrow{AB} = (a, 0, 0)\)
+- \(D = \overrightarrow{AD} = (0, b, 0)\)
+- \(E = \overrightarrow{AE} = (0, 0, c)\)
+
+From the above, we can calculate the coordinates of the other vertices using vector addition:
+
+- \(C = B + D = (a, b, 0)\)
+- \(F = B + E = (a, 0, c)\)
+- \(H = D + E = (0, b, c)\)
+- \(G = B + D + E = (a, b, c)\)
+
+We need to find the lengths of the vectors \(\overrightarrow{AG}\), \(\overrightarrow{BH}\), \(\overrightarrow{CE}\), and \(\overrightarrow{DF}\), and then compute \(AG^2 + BH^2 + CE^2 + DF^2\).
+
+1. **Calculate \( \overrightarrow{AG} \):**
+   \[
+   \overrightarrow{AG} = G - A = (a, b, c)
+   \]
+   So,
+   \[
+   AG^2 = a^2 + b^2 + c^2
+   \]
+
+2. **Calculate \( \overrightarrow{BH} \):**
+   \[
+   \overrightarrow{BH} = H - B = (0, b, c) - (a, 0, 0) = (-a, b, c)
+   \]
+   So,
+   \[
+   BH^2 = (-a)^2 + b^2 + c^2 = a^2 + b^2 + c^2
+   \]
+
+3. **Calculate \( \overrightarrow{CE} \):**
+   \[
+   \overrightarrow{CE} = E - C = (0, 0, c) - (a, b, 0) = (-a, -b, c)
+   \]
+   So,
+   \[
+   CE^2 = (-a)^2 + (-b)^2 + c^2 = a^2 + b^2 + c^2
+   \]
+
+4. **Calculate \( \overrightarrow{DF} \):**
+   \[
+   \overrightarrow{DF} = F - D = (a, 0, c) - (0, b, 0) = (a, -b, c)
+   \]
+   So,
+   \[
+   DF^2 = a^2 + (-b)^2 + c^2 = a^2 + b^2 + c^2
+   \]
+
+Now, summing up these squared lengths, we get:
+\[
+AG^2 + BH^2 + CE^2 + DF^2 = (a^2 + b^2 + c^2) + (a^2 + b^2 + c^2) + (a^2 + b^2 + c^2) + (a^2 + b^2 + c^2) = 4(a^2 + b^2 + c^2)
+\]
+
+We also need to find \(AB^2 + AD^2 + AE^2\):
+
+\[
+AB^2 = a^2, \quad AD^2 = b^2, \quad AE^2 = c^2
+\]
+So,
+\[
+AB^2 + AD^2 + AE^2 = a^2 + b^2 + c^2
+\]
+
+Finally, we compute the desired ratio:
+\[
+\frac{AG^2 + BH^2 + CE^2 + DF^2}{AB^2 + AD^2 + AE^2} = \frac{4(a^2 + b^2 + c^2)}{a^2 + b^2 + c^2} = 4
+\]
+
+We will confirm this with Python to ensure the result is accurate.
+```python
+# Assign symbolic variables for the lengths a, b, c
+from sympy import symbols
+
+a, b, c = symbols('a b c')
+
+# Compute the squared lengths of the vectors
+AG2 = a**2 + b**2 + c**2
+BH2 = a**2 + b**2 + c**2
+CE2 = a**2 + b**2 + c**2
+DF2 = a**2 + b**2 + c**2
+
+# Sum of the squared lengths
+numerator = AG2 + BH2 + CE2 + DF2
+
+# Compute the squared lengths of AB, AD, AE
+AB2 = a**2
+AD2 = b**2
+AE2 = c**2
+
+# Sum of the squared lengths of AB, AD, AE
+denominator = AB2 + AD2 + AE2
+
+# Compute the ratio
+result = numerator / denominator
+print(result)
+```
+Code execution result: (4*a**2 + 4*b**2 + 4*c**2)/(a**2 + b**2 + c**2)
+
+This confirms our analytical solution, as \(\frac{4(a^2 + b^2 + c^2)}{a^2 + b^2 + c^2} = 4\).
+
+So, the final answer is:
+
+\(\boxed{4}\)
+

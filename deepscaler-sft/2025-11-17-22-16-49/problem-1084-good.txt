@@ -1,0 +1,41 @@
+Score: 1.0
+
+First, let's understand the problem.
+
+The statement "The value of \( y \) varies inversely as \(\sqrt{x}\)" means that:
+\[ y = \frac{k}{\sqrt{x}} \]
+for some constant \( k \).
+
+We are given that when \( x = 2 \), \( y = 4 \). We can use this information to find the constant \( k \).
+
+Substitute \( x = 2 \) and \( y = 4 \) into the equation:
+\[ 4 = \frac{k}{\sqrt{2}} \]
+This can be solved for \( k \):
+\[ k = 4 \cdot \sqrt{2} \]
+
+Now that we have the constant \( k \), we can use it to find \( x \) when \( y = 1 \). We substitute \( y = 1 \) and the value of \( k \) into the equation:
+\[ 1 = \frac{4 \cdot \sqrt{2}}{\sqrt{x}} \]
+This equation can be rearranged to solve for \( \sqrt{x} \):
+\[ \sqrt{x} = 4 \cdot \sqrt{2} \]
+Then, square both sides to solve for \( x \):
+\[ x = (4 \cdot \sqrt{2})^2 = 4^2 \cdot (\sqrt{2})^2 = 16 \cdot 2 = 32 \]
+
+Let's confirm this step-by-step process by implementing it in Python.
+```python
+import sympy as sp
+
+# Define the variables
+x, y = sp.symbols('x y')
+
+# Create the equation based on y = k / sqrt(x) and given values x = 2, y = 4 to find k
+k = 4 * sp.sqrt(2)
+
+# Now, substitute y = 1 and solve for x
+equation = 1 - k / sp.sqrt(x)
+solution = sp.solve(equation, x)[0]
+print(solution)
+```
+Code execution result: 32
+
+Thus, the value of \( x \) when \( y = 1 \) is \(\boxed{32}\). This confirms that our reasoning and calculations are accurate.
+

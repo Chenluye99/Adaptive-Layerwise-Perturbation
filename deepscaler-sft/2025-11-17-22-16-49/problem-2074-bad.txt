@@ -1,0 +1,61 @@
+Score: 0.0
+
+Let's start solving this step-by-step.
+
+1. **Understand the Problem:**
+    - We have a frustum of a cone with an altitude of 24 cm.
+    - The area of the lower base is \(225 \pi \) square centimeters. Therefore, the radius of the lower base (\(R\)) is given by:
+      \[
+      \pi R^2 = 225 \pi \implies R^2 = 225 \implies R = 15
+      \]
+    - The area of the upper base is \(25 \pi \) square centimeters. Therefore, the radius of the upper base (\(r\)) is given by:
+      \[
+      \pi r^2 = 25 \pi \implies r^2 = 25 \implies r = 5
+      \]
+    - When a smaller cone is cut off from the top to form the frustum, the smaller cone and the original larger cone are similar.
+
+2. **Properties of Similar Cones:**
+    - Let the altitude of the original larger cone be \(H\) and the altitude of the smaller cone that was cut off be \(x\).
+    - Since the cones are similar, the ratios of the corresponding dimensions (height and radii) are the same. This means:
+      \[
+      \frac{r}{R} = \frac{x}{H - x}
+      \]
+    - Substituting the values of \(r\) and \(R\):
+      \[
+      \frac{5}{15} = \frac{x}{H - x} \implies \frac{1}{3} = \frac{x}{H - x}
+      \]
+    - Cross-multiply to get:
+      \[
+      1 \cdot (H - x) = 3 \cdot x \implies H - x = 3x \implies H = 4x
+      \]
+    - The altitude of the frustum is the difference in altitude between the larger cone and the smaller cone:
+      \[
+      H - x = 24
+      \]
+    - Substitute \( H = 4x \) into the above equation:
+      \[
+      4x - x = 24 \implies 3x = 24 \implies x = 8
+      \]
+
+3. **Conclusion:**
+    - The altitude of the small cone that was cut off is \( x = 8 \).
+
+Let's confirm this by coding it to ensure our result is accurate.
+```python
+from sympy import symbols, Eq, solve
+
+# Define the variables
+x, H = symbols('x H')
+
+# Equations based on the problem
+eq1 = Eq(H - x, 24)
+eq2 = Eq(1/3, x / (H - x))
+
+# Solve the system of equations
+solution = solve((eq1, eq2), (H, x))
+print(solution)
+```
+Code execution result: {H: 32.0000000000000, x: 8.00000000000000}
+
+This confirms our solution. The altitude of the small cone that was cut off is \(\boxed{8}\). This matches our earlier calculation, ensuring the accuracy of our solution.
+

@@ -1,0 +1,47 @@
+Score: 0.0
+
+To solve the problem, we will write Python code that implements the sequence according to the given recursion formula and finds the answers step-by-step.
+
+First, let's implement the sequence generation for both parts of the problem and check when $a_n$ becomes a perfect square.
+
+1. **For \(a = 8\)**:
+   - Initialize \(a_1 = 8\).
+   - Use the recursion formula \(a_{n+1} = a_n + 2 \left\lfloor \sqrt{a_n} \right\rfloor\).
+   - We will iterate this process until we find the smallest \(n\) such that \(a_n\) is a perfect square.
+   
+2. **For \(a = 2017\)**:
+   - Initialize \(a_1 = 2017\).
+   - Use the same recursion formula \(a_{n+1} = a_n + 2 \left\lfloor \sqrt{a_n} \right\rfloor\).
+   - We will iterate this process until we find the smallest \(n\) such that \(a_n\) is a perfect square.
+
+Let's write the code to solve both parts step-by-step.
+```python
+import math
+
+def find_smallest_n_for_perfect_square(a_start):
+    a_n = a_start
+    n = 1
+
+    while True:
+        sqrt_a_n = math.isqrt(a_n)  # Get the greatest integer less than or equal to sqrt(a_n)
+        a_n_plus_1 = a_n + 2 * sqrt_a_n
+        if math.isqrt(a_n_plus_1) ** 2 == a_n_plus_1:
+            return n
+        a_n = a_n_plus_1
+        n += 1
+
+# Part 1: a = 8
+result_a_8 = find_smallest_n_for_perfect_square(8)
+
+# Part 2: a = 2017
+result_a_2017 = find_smallest_n_for_perfect_square(2017)
+
+print(result_a_8, result_a_2017)
+```
+Code execution result: 4 81
+
+Thus, we have obtained the following results:
+
+1. For \(a = 8\), the smallest positive integer \(n\) such that \(a_n\) is a perfect square is \(\boxed{4}\).
+2. For \(a = 2017\), the smallest positive integer \(n\) such that \(a_n\) is a perfect square is \(\boxed{81}\).
+

@@ -7,7 +7,7 @@ strict: false
 
 chat_template: qwen_25
 datasets:
-  - path: /home/chenluy/SimpleTIR/sft/sft_data.jsonl
+  - path: /home/chenluy/SimpleTIR/sft/filtered_sft_data.jsonl
     type: chat_template
     field_messages: messages
     message_field_role: role
@@ -26,16 +26,16 @@ num_proc: 1
 dataloader_num_workers: 0
 dataloader_pin_memory: false
 
-output_dir: /opt/dlami/nvme/TIR/sft
+output_dir: /opt/dlami/nvme/TIR/new_filtered_sft
 
-sequence_len: 4096
+sequence_len: 8192
 sample_packing: true
 eval_sample_packing: true
 pad_to_sequence_len: true
 
 wandb_project: qwen_prm_sft
 wandb_watch:
-wandb_name: qwen2.5_7b_sft
+wandb_name: qwen2.5_7b_filtered_sft
 wandb_log_model:
 
 gradient_accumulation_steps: 16
@@ -43,7 +43,7 @@ micro_batch_size: 1
 num_epochs: 3
 optimizer: paged_adamw_32bit
 lr_scheduler: cosine
-learning_rate: 5e-6
+learning_rate: 1e-5
 
 train_on_inputs: false
 group_by_length: false

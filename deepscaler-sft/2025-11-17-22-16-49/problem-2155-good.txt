@@ -1,0 +1,43 @@
+Score: 1.0
+
+To solve this problem, we need to find the probability that at least two out of six 6-sided dice show the same number. This is a problem where it is easier to use the complementary probability method, i.e., finding the probability that all six dice show different numbers and then subtracting this from 1.
+
+1. **Calculate the probability that all six dice show different numbers:**
+    - The first die can show any of 6 faces.
+    - The second die can show any of the remaining 5 faces (so that it is different from the first die).
+    - The third die can show any of the remaining 4 faces (so that it is different from the first two dice).
+    - The fourth die can show any of the remaining 3 faces (so that it is different from the first three dice).
+    - The fifth die can show any of the remaining 2 faces (so that it is different from the first five dice).
+    - The sixth die can only show the remaining 1 face (so that it is different from the first five dice).
+
+    The total number of ways for all six dice to show different numbers is \(6 \times 5 \times 4 \times 3 \times 2 \times 1 = 720\).
+
+    Since each die has 6 faces, the total number of outcomes when rolling six dice is \(6^6\).
+
+    Therefore, the probability that all six dice show different numbers is:
+    \[
+    P(\text{all different}) = \frac{720}{6^6} = \frac{720}{46656}
+    \]
+
+2. **Calculate the probability that at least two dice show the same number:**
+    - The probability that at least two dice show the same number is the complement of the probability that all six dice show different numbers.
+    - So, we have:
+    \[
+    P(\text{at least two the same}) = 1 - P(\text{all different})
+    \]
+
+Let's calculate this using Python to ensure accuracy.
+```python
+# Calculate the probability that all six dice show different numbers
+numerator = 6 * 5 * 4 * 3 * 2 * 1
+denominator = 6 ** 6
+prob_all_different = numerator / denominator
+
+# Calculate the probability that at least two dice show the same number
+prob_at_least_two_same = 1 - prob_all_different
+print(prob_at_least_two_same)
+```
+Code execution result: 0.9845679012345679
+
+Thus, the probability that at least two of the six 6-sided dice show the same number is \(\boxed{0.9845679012345679}\). This is the final answer.
+

@@ -1,0 +1,78 @@
+Score: 1.0
+
+To solve this problem, we can start by leveraging properties of quadratic equations and trigonometric identities.
+
+1. **Properties of the Quadratic Equation:**
+   The roots of the quadratic equation \(x^2 + Cx + D = 0\) are \(\tan A\) and \(\tan B\). Using Vieta's formulas, we have:
+   \[
+   \tan A + \tan B = -C \quad \text{(1)}
+   \]
+   \[
+   \tan A \cdot \tan B = D \quad \text{(2)}
+   \]
+
+2. **Trigonometric Identity for \(\tan (A + B)\):**
+   We know that:
+   \[
+   \tan (A + B) = \frac{\tan A + \tan B}{1 - \tan A \tan B}
+   \]
+   Substituting Vieta's formulas (1) and (2) into this identity, we get:
+   \[
+   \tan (A + B) = \frac{-C}{1 - D} = \frac{C}{D - 1}
+   \]
+
+3. **Expressing \(\sin^2 (A + B) + C \sin (A + B) \cos (A + B) + D \cos^2 (A + B)\):**
+   Let's denote \( \theta = A + B \). We need to express \(\sin^2 \theta + C \sin \theta \cos \theta + D \cos^2 \theta\) in a simplified form.
+
+   We use the identities:
+   \[
+   \sin^2 \theta = \frac{\tan^2 \theta}{1 + \tan^2 \theta}
+   \]
+   \[
+   \sin \theta \cos \theta = \frac{\tan \theta}{1 + \tan^2 \theta}
+   \]
+   \[
+   \cos^2 \theta = \frac{1}{1 + \tan^2 \theta}
+   \]
+   Substituting \(\tan \theta = \frac{C}{D - 1}\), we get:
+   \[
+   \sin^2 \theta = \frac{\left( \frac{C}{D - 1} \right)^2}{1 + \left( \frac{C}{D - 1} \right)^2} = \frac{\frac{C^2}{(D - 1)^2}}{\frac{(D - 1)^2 + C^2}{(D - 1)^2}} = \frac{C^2}{(D - 1)^2 + C^2}
+   \]
+   \[
+   \sin \theta \cos \theta = \frac{\frac{C}{D - 1}}{1 + \left( \frac{C}{D - 1} \right)^2} = \frac{\frac{C}{D - 1}}{\frac{(D - 1)^2 + C^2}{(D - 1)^2}} = \frac{C}{(D - 1)((D - 1)^2 + C^2)}
+   \]
+   \[
+   \cos^2 \theta = \frac{1}{1 + \left( \frac{C}{D - 1} \right)^2} = \frac{1}{\frac{(D - 1)^2 + C^2}{(D - 1)^2}} = \frac{(D - 1)^2}{(D - 1)^2 + C^2}
+   \]
+
+4. **Substitute and Simplify:**
+   Substitute these expressions into \(\sin^2 \theta + C \sin \theta \cos \theta + D \cos^2 \theta\):
+   \[
+   \sin^2 \theta + C \sin \theta \cos \theta + D \cos^2 \theta = \frac{C^2}{(D - 1)^2 + C^2} + C \cdot \frac{C}{(D - 1)((D - 1)^2 + C^2)} + D \cdot \frac{(D - 1)^2}{(D - 1)^2 + C^2}
+   \]
+   Let's define and compute this expression step by step using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define variables
+C, D = sp.symbols('C D')
+
+# Define tan(A + B)
+tan_A_plus_B = C / (D - 1)
+
+# Compute sin^2(A + B), sin(A + B) * cos(A + B), and cos^2(A + B)
+sin2_A_plus_B = tan_A_plus_B**2 / (1 + tan_A_plus_B**2)
+sin_A_plus_B_cos_A_plus_B = tan_A_plus_B / (1 + tan_A_plus_B**2)
+cos2_A_plus_B = 1 / (1 + tan_A_plus_B**2)
+
+# Substitute into the expression sin^2(A + B) + C * sin(A + B) * cos(A + B) + D * cos^2(A + B)
+expression = sin2_A_plus_B + C * sin_A_plus_B_cos_A_plus_B + D * cos2_A_plus_B
+
+# Simplify the expression
+simplified_expression = sp.simplify(expression)
+print(simplified_expression)
+```
+Code execution result: D
+
+Thus, the simplified expression for \(\sin^2 (A + B) + C \sin (A + B) \cos (A + B) + D \cos^2 (A + B)\) is \(\boxed{D}\). This means that our expression only contains the constant \(D\).
+

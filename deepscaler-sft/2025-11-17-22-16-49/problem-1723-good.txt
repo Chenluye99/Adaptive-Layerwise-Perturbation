@@ -1,0 +1,27 @@
+Score: 1.0
+
+To solve the problem, we need to find all pairs of positive integers \((x, y)\) such that the product \(xy = 144\). To achieve this, we will iterate through all positive integers for both \(x\) and \(y\) and check if their product is 144. If it is, we will count this as a valid pair.
+
+We can write a Python program to perform this task accurately. Let's implement this step-by-step.
+
+1. Initialize a counter to zero. This counter will keep track of all the valid pairs \((x, y)\).
+2. Iterate through all possible values of \(x\) and \(y\) such that \(x \cdot y = 144\).
+3. For each valid pair \((x, y)\) found, increment the counter by 1.
+4. Return the counter at the end, giving the total number of ordered pairs that satisfy the equation.
+
+Let's implement this in Python:
+```python
+count = 0
+
+# We need to consider all possible pairs (x, y) such that 1 <= x, y and x * y = 144
+for x in range(1, 144 + 1):
+    if 144 % x == 0:  # Check if x is a factor of 144
+        y = 144 // x
+        count += 1
+
+print(count)
+```
+Code execution result: 15
+
+Thus, the number of ordered pairs \((x, y)\) of positive integers that satisfy the equation \(xy = 144\) is \(\boxed{15}\). This is our final answer.
+

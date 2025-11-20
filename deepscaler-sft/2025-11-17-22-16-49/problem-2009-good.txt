@@ -1,0 +1,47 @@
+Score: 1.0
+
+From the problem, we have a mathematical addition represented by digits assigned to variables $a, b, c, d$ as shown:
+
+```
+  a b c
++ d c a
+-----
+ 1 0 0 0
+```
+Code execution result: SyntaxError: invalid syntax
+It seems that I have made an error in representing the problem as code. We'll need to set up this problem as a system of equations or constraints based on how the column-wise addition works, considering that each of the letters represents a unique digit that ranges from 0 to 9, and \(a, b, c, d\) must all be distinct.
+
+Let's iterate through all possible values for \(a, b, c, d\) and check if they form a valid solution for the given equation:
+
+\[ 100a + 10b + c + 100d + 10c + a = 1000 \]
+
+This can be simplified to:
+
+\[ 100(a + d) + 10(b + c) + (c + a) = 1000 \]
+
+We'll use Python to check all possible values for \(a, b, c, d\) (where each of them is a different digit between 0 and 9) to see if they meet the criteria, and then get the sum \(a + b + c + d\).
+```python
+import itertools
+
+# We will check all permutations of 4 different digits for a, b, c, d
+solution = None
+
+for a, b, c, d in itertools.permutations(range(10), 4):
+    if 100 * a + 10 * b + c + 100 * d + 10 * c + a == 1000:
+        solution = (a, b, c, d)
+        break
+
+print((solution, sum(solution) if solution else "No solution found"))
+```
+Code execution result: ((1, 0, 9, 8), 18)
+
+Thus, we have found a solution with \(a = 1\), \(b = 0\), \(c = 9\), and \(d = 8\) that satisfies the condition. The sum \(a + b + c + d\) is:
+
+\[
+a + b + c + d = 1 + 0 + 9 + 8 = 18
+\]
+
+So, the final answer is:
+
+\(\boxed{18}\)
+

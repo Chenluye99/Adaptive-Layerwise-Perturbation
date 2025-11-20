@@ -1,0 +1,69 @@
+Score: 1.0
+
+To solve this problem, we need to use polynomial remainder theorem and system of equations.
+
+1. **Understand the Problem:**
+    - When $p(x)$ is divided by $x - 1$, the remainder is $-1$. So, \( p(1) = -1 \).
+    - When $p(x)$ is divided by $x - 2$, the remainder is 3. So, \( p(2) = 3 \).
+    - When $p(x)$ is divided by $x + 3$, the remainder is 4. So, \( p(-3) = 4 \).
+
+2. **Formulate \( r(x) \):**
+    - When \( p(x) \) is divided by \((x - 1)(x - 2)(x + 3)\), the remainder \( r(x) \) will be a polynomial of degree less than 3. So, we can write:
+      \[
+      r(x) = ax^2 + bx + c
+      \]
+    - This means that when \( p(x) \) is divided by \((x - 1)(x - 2)(x + 3)\), the remainder is \( r(x) \). Therefore, we have:
+      \[
+      p(1) = r(1) = a(1)^2 + b(1) + c = a + b + c = -1
+      \]
+      \[
+      p(2) = r(2) = a(2)^2 + b(2) + c = 4a + 2b + c = 3
+      \]
+      \[
+      p(-3) = r(-3) = a(-3)^2 + b(-3) + c = 9a - 3b + c = 4
+      \]
+
+3. **Set Up and Solve the System of Equations:**
+    - We have the following system of equations:
+      \[
+      \begin{cases}
+      a + b + c = -1 \\
+      4a + 2b + c = 3 \\
+      9a - 3b + c = 4
+      \end{cases}
+      \]
+    - We can solve this system of equations to find the values of \(a\), \(b\), and \(c\).
+
+4. **Implement in Python:**
+    - We'll use Python to solve the system of linear equations.
+    - Then, we will substitute \(x = 6\) into \( r(x) = ax^2 + bx + c \) to get \( r(6) \).
+```python
+import sympy as sp
+
+# Define the variables
+a, b, c = sp.symbols('a b c')
+
+# Define the equations based on the conditions given
+eq1 = a + b + c + 1
+eq2 = 4 * a + 2 * b + c - 3
+eq3 = 9 * a - 3 * b + c - 4
+
+# Solve the system of equations
+solution = sp.solve((eq1, eq2, eq3), (a, b, c))
+
+# Get the values of a, b, c
+a_val = solution[a]
+b_val = solution[b]
+c_val = solution[c]
+
+# Define r(x) = ax^2 + bx + c using the solved values
+r = a_val * sp.symbols('x')**2 + b_val * sp.symbols('x') + c_val
+
+# Find r(6)
+r_6 = r.subs(sp.symbols('x'), 6)
+print(r_6)
+```
+Code execution result: 40
+
+Thus, the value of \( r(6) \) is \(\boxed{40}\). This is the final answer.
+

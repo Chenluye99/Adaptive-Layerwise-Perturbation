@@ -1,0 +1,60 @@
+Score: 1.0
+
+To solve this problem, we need to find the values of $a$ and $b$ such that the polynomial \((ax + b)(x^5 + 1) - (5x + 1)\) is divisible by \(x^2 + 1\).
+
+1. **Understand the Problem:**
+    - The polynomial \((ax + b)(x^5 + 1) - (5x + 1)\) should be divisible by \(x^2 + 1\). 
+    - That means when we substitute the roots of \(x^2 + 1 = 0\) into the polynomial, the result should be zero. The roots of \(x^2 + 1 = 0\) are \(x = i\) and \(x = -i\), where \(i\) is the imaginary unit (\(i^2 = -1\)).
+
+2. **Substitute the Roots:**
+    - Substitute \(x = i\) into the polynomial:
+      \[
+      (ai + b)(i^5 + 1) - (5i + 1) = 0.
+      \]
+      Since \(i^5 = i\), this becomes:
+      \[
+      (ai + b)(i + 1) - (5i + 1) = 0.
+      \]
+    - Substitute \(x = -i\) into the polynomial:
+      \[
+      (-ai + b)((-i)^5 + 1) - ( -5i + 1) = 0.
+      \]
+      Since \((-i)^5 = -i\), this becomes:
+      \[
+      (-ai + b)(-i + 1) - (-5i + 1) = 0.
+      \]
+
+3. **Formulate a System of Equations:**
+    - We get two equations by setting the above expressions to zero:
+      \[
+      (ai + b)(i + 1) - (5i + 1) = 0,
+      \]
+      \[
+      (-ai + b)(-i + 1) - (-5i + 1) = 0.
+      \]
+
+4. **Set Up and Solve the Equations:**
+    - Let's expand and solve these equations step-by-step using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define variables
+a, b = sp.symbols('a b', real=True)
+x = sp.symbols('x', complex=True)
+
+# Define the polynomial (ax + b)(x^5 + 1) - (5x + 1)
+poly = (a * x + b) * (x ** 5 + 1) - (5 * x + 1)
+
+# Set up the conditions for divisibility by x^2 + 1, i.e., substituting x = i and x = -i
+i = sp.I
+eq1 = poly.subs(x, i)
+eq2 = poly.subs(x, -i)
+
+# Solve the system of equations
+solution = sp.solve([eq1, eq2], (a, b))
+print(solution)
+```
+Code execution result: {a: 2, b: 3}
+
+Thus, the ordered pair \((a, b)\) of real numbers that satisfies the conditions is \(\boxed{(2, 3)}\). This is our final answer.
+

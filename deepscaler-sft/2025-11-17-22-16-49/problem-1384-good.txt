@@ -1,0 +1,29 @@
+Score: 1.0
+
+First, we need to implement the sequence definition in Python and compute the value of \( S_{12} \).
+
+The sequence is defined as:
+- \( S_1 = 1 \)
+- \( S_2 = 1 \)
+- For \( n > 2 \), \( S_n = \frac{S_{n-2} \cdot S_{n-1}}{S_{n-2} + S_{n-1}} \)
+
+We will use a loop to iteratively compute the values of \( S_3, S_4, \ldots, S_{12} \) based on the above recurrence relation.
+
+Let's implement this step-by-step in Python.
+```python
+# Initialize the first two terms of the sequence
+S = [1, 1]
+
+# Compute the terms up to S_12 using the given recurrence relation
+for n in range(3, 13):
+    S_n = (S[n-3] * S[n-2]) / (S[n-3] + S[n-2])
+    S.append(S_n)
+
+# Get the value of S_12
+S_12 = S[11]
+print(S_12)
+```
+Code execution result: 0.006944444444444445
+
+Thus, the value of \( S_{12} \) is \(\boxed{0.006944444444444445}\). This is the final answer.
+

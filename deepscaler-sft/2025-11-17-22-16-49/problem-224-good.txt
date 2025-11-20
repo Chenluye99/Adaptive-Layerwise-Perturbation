@@ -1,0 +1,47 @@
+Score: 1.0
+
+To solve this problem, we need to find the value of \(\theta\) that satisfies the equation \(\cos 60^{\circ} = \cos 45^{\circ} \cos \theta\) for \(0^{\circ} \leq \theta \leq 90^{\circ}\).
+
+First, we know the values of \(\cos 60^{\circ}\) and \(\cos 45^{\circ}\):
+- \(\cos 60^{\circ} = \frac{1}{2}\)
+- \(\cos 45^{\circ} = \frac{\sqrt{2}}{2}\)
+
+Substitute these values into the equation:
+\[
+\frac{1}{2} = \frac{\sqrt{2}}{2} \cdot \cos \theta
+\]
+
+We can simplify and isolate \(\cos \theta\) by multiplying both sides of the equation by 2:
+\[
+1 = \sqrt{2} \cdot \cos \theta
+\]
+
+Then, solve for \(\cos \theta\) by dividing both sides by \(\sqrt{2}\):
+\[
+\cos \theta = \frac{1}{\sqrt{2}} = \frac{\sqrt{2}}{2}
+\]
+
+Now, we need to determine the angle \(\theta\) such that \(\cos \theta = \frac{\sqrt{2}}{2}\). We know that \(\cos 45^{\circ} = \frac{\sqrt{2}}{2}\), so:
+\[
+\theta = 45^{\circ}
+\]
+
+To confirm this, we can implement the calculation in Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the equation cos(60 degrees) = cos(45 degrees) * cos(theta)
+theta = sp.symbols('theta')
+equation = sp.Eq(sp.cos(sp.rad(60)), sp.cos(sp.rad(45)) * sp.cos(sp.rad(theta)))
+
+# Solve the equation for theta in the range 0 to 90 degrees
+solution = sp.solve(equation, theta)
+
+# Filter solution to ensure it is in the range 0° to 90°
+solution_in_range = [sol for sol in solution if 0 <= sol <= 90]
+print(solution_in_range)
+```
+Code execution result: [45]
+
+Thus, the value of \(\theta\) that satisfies the equation \(\cos 60^{\circ} = \cos 45^{\circ} \cos \theta\) for \(0^{\circ} \leq \theta \leq 90^{\circ}\) is \(\boxed{45}\). This confirms our earlier solution.
+

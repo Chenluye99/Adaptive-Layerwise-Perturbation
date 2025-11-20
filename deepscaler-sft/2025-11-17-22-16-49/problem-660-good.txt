@@ -1,0 +1,68 @@
+Score: 1.0
+
+1. Let's denote the pure imaginary root as \( z = bi \), where \( b \) is a real number and \( i \) is the imaginary unit.
+2. Substitute \( z = bi \) into the equation \( z^2 + z + \omega = 0 \):
+
+\[ (bi)^2 + bi + \omega = 0 \]
+\[ -b^2 + bi + \omega = 0 \]
+
+3. Separate this equation into its real and imaginary parts:
+   - The real part: \(-b^2 + \Re(\omega) = 0 \)
+   - The imaginary part: \( b + \Im(\omega) = 0 \)
+
+4. From the imaginary part, we get:
+   \[ \Im(\omega) = -b \]
+
+5. From the real part, we get:
+   \[ \Re(\omega) = b^2 \]
+
+6. Since \( |\omega| = 1 \), we have:
+   \[ |\omega| = \sqrt{(\Re(\omega))^2 + (\Im(\omega))^2} = 1 \]
+   Substituting \(\Re(\omega) = b^2\) and \(\Im(\omega) = -b\):
+   \[ \sqrt{(b^2)^2 + (-b)^2} = 1 \]
+   \[ \sqrt{b^4 + b^2} = 1 \]
+   \[ b^4 + b^2 = 1 \]
+
+7. Let \( u = b^2 \). Then the equation becomes:
+   \[ u^2 + u - 1 = 0 \]
+   
+8. Solve this quadratic equation using the quadratic formula \( u = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} \):
+   \[ u = \frac{-1 \pm \sqrt{1^2 - 4 \cdot 1 \cdot (-1)}}{2 \cdot 1} = \frac{-1 \pm \sqrt{1 + 4}}{2} = \frac{-1 \pm \sqrt{5}}{2} \]
+
+9. Since \( u = b^2 \) and \( b^2 \) must be non-negative, we take the positive root:
+   \[ u = \frac{-1 + \sqrt{5}}{2} \]
+   So,
+   \[ b^2 = \frac{-1 + \sqrt{5}}{2} \]
+
+10. Now, we have \(\Re(\omega) = b^2 = \frac{-1 + \sqrt{5}}{2}\) and \(\Im(\omega) = -b \). To find \( b \), we use the fact that \( b^2 = \frac{-1 + \sqrt{5}}{2} \), but we don't actually need the value of \( b \) to find \(\omega + \overline{\omega}\).
+
+11. Note that \(\overline{\omega}\) (the complex conjugate of \(\omega\)) has \(\Re(\overline{\omega}) = \Re(\omega) = b^2\) and \(\Im(\overline{\omega}) = -\Im(\omega) = b\). So,
+    \[ \omega + \overline{\omega} = (b^2 - bi) + (b^2 + bi) = 2b^2. \]
+
+12. Substituting the value of \( b^2 \),
+    \[ \omega + \overline{\omega} = 2 \cdot \frac{-1 + \sqrt{5}}{2} = -1 + \sqrt{5}. \]
+
+Let's verify this solution with Python to ensure the accuracy.
+```python
+import sympy as sp
+
+# Define the variables
+b = sp.symbols('b', real=True, positive=True)
+
+# Define the equation b^4 + b^2 - 1 = 0
+eq = b**4 + b**2 - 1
+
+# Solve for b^2
+solutions = sp.solve(eq, b**2)
+
+# Select the valid solution (the positive one)
+b_squared = [sol for sol in solutions if sol > 0][0]
+
+# Calculate ω + conjugate(ω)
+result = 2 * b_squared
+print(result)
+```
+Code execution result: -1 + sqrt(5)
+
+Thus, the final answer is \(\boxed{-1 + \sqrt{5}}\). This matches our analytical solution, so we can be confident that it is correct.
+

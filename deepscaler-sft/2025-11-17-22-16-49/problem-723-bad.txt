@@ -1,0 +1,50 @@
+Score: 1.0
+
+To solve the problem, let's start with understanding the relationship between the interior angle of a polygon and its number of sides.
+
+1. **Interior Angle Formula:**
+   The measure of each interior angle of a polygon with \( n \) sides is given by:
+   \[
+   \text{Interior Angle} = \frac{(n-2) \cdot 180^\circ}{n}
+   \]
+   We know from the problem that each interior angle of this polygon is 170 degrees. So we can set up the equation:
+   \[
+   \frac{(n-2) \cdot 180}{n} = 170
+   \]
+
+2. **Solve for \( n \):**
+   To solve this equation for \( n \), we can do the following:
+   \[
+   (n-2) \cdot 180 = 170 \cdot n
+   \]
+   \[
+   180n - 360 = 170n
+   \]
+   \[
+   180n - 170n = 360
+   \]
+   \[
+   10n = 360
+   \]
+   \[
+   n = \frac{360}{10} = 36
+   \]
+
+So, the polygon has 36 sides. Let's confirm this by implementing it in Python to ensure our solution is accurate.
+```python
+from sympy import symbols, Eq, solve
+
+# Define the variable
+n = symbols('n', positive=True, integer=True)
+
+# Set up the equation based on the given interior angle
+eq = Eq((n - 2) * 180 / n, 170)
+
+# Solve for n
+num_sides = solve(eq, n)[0]
+print(num_sides)
+```
+Code execution result: 36
+
+Thus, the solution obtained from both reasoning and code implementation is that the polygon has \(\boxed{36}\) sides. This confirms that our solution is accurate.
+

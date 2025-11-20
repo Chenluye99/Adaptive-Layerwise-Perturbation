@@ -1,0 +1,72 @@
+Score: 1.0
+
+First, let's start by solving the equation algebraically before we confirm it with Python code.
+
+The given equation is:
+
+\[
+-\frac{2}{3}(x - 5) = \frac{3}{2}(x + 1)
+\]
+
+1. **Eliminate the fractions by cross-multiplying or finding a common denominator:**
+   To get rid of the fractions, we can multiply both sides of the equation by the least common multiple (LCM) of 3 and 2, which is 6:
+   \[
+   6 \cdot \left(-\frac{2}{3}(x - 5)\right) = 6 \cdot \left(\frac{3}{2}(x + 1)\right)
+   \]
+
+   Simplifying both sides gives:
+   \[
+   -4(x - 5) = 9(x + 1)
+   \]
+
+2. **Distribute the constants on both sides:**
+   Distribute the -4 on the left side and the 9 on the right side:
+   \[
+   -4x + 20 = 9x + 9
+   \]
+
+3. **Combine like terms:**
+   To isolate \(x\), we first get all the \(x\) terms on one side and the constants on the other side. Let's move \(-4x\) to the right side and 20 to the left side:
+   \[
+   20 - 9 = 9x + 4x \implies 11 = 13x
+   \]
+
+4. **Solve for \(x\):**
+   Divide both sides by 13:
+   \[
+   x = \frac{11}{13}
+   \]
+
+Let's confirm this result by coding it in Python to ensure accuracy.
+```python
+from sympy import symbols, Eq, solve
+
+# Define the variable
+x = symbols('x')
+
+# Define the equation
+equation = Eq(- (2 / 3) * (x - 5), (3 / 2) * (x + 1))
+
+# Solve the equation
+solution = solve(equation, x)[0]
+print(solution)
+```
+Code execution result: 0.846153846153846
+
+This result, 0.846153846153846, can be represented as a fraction. We know from our algebraic solution that it should be \(\frac{11}{13}\). To confirm this, let's convert 0.846153846153846 to a fraction and check if it is equivalent to \(\frac{11}{13}\).
+
+Let's perform this check in Python.
+```python
+import fractions
+
+# Get the fraction representation of the solution
+fraction_solution = fractions.Fraction(0.846153846153846).limit_denominator()
+
+print(fraction_solution)
+```
+Code execution result: 11/13
+
+This confirms that our solution \(\frac{11}{13}\) is correct. Therefore, the value of \( x \) is
+
+\(\boxed{\frac{11}{13}}\)
+

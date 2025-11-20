@@ -1,0 +1,49 @@
+Score: 1.0
+
+To solve the problem, we start with the given equation:
+
+\[ x^2 + y^2 = 14x + 48y. \]
+
+First, we'll rearrange this equation to a more manageable form. We can do this by completing the square.
+
+1. Rearrange the equation:
+\[ x^2 - 14x + y^2 - 48y = 0. \]
+
+2. Complete the square for both \(x\) and \(y\):
+   - For \(x\), take the coefficient of \(x\), which is \(-14\), divide it by 2 to get \(-7\), and then square it to get \(49\).
+   - For \(y\), take the coefficient of \(y\), which is \(-48\), divide it by 2 to get \(-24\), and then square it to get \(576\).
+
+So, we rewrite the equation as:
+\[ (x^2 - 14x + 49) + (y^2 - 48y + 576) = 49 + 576, \]
+which simplifies to:
+\[ (x - 7)^2 + (y - 24)^2 = 625. \]
+
+This is the equation of a circle with center \((7, 24)\) and radius \(25\).
+
+To find the minimum value of \(y\), we need to find the lowest point of this circle. The lowest point on the circle will be directly below the center, at a distance of the radius (25 units) below the y-coordinate of the center (24).
+
+So, the minimum value of \(y\) is:
+\[ 24 - 25 = -1. \]
+
+We can confirm this by coding the solution in Python and ensuring that the minimum value derived is accurate. Let's implement this step-by-step in Python.
+```python
+import sympy as sp
+
+# Define the variables
+x, y = sp.symbols('x y', real=True)
+
+# Define the equation
+equation = x**2 + y**2 - 14*x - 48*y
+
+# Solve for y in terms of x
+y_solutions = sp.solve(equation, y)
+
+# Find the minimum value of y
+min_y = min([sp.minimum(sol, x, sp.S.Reals) for sol in y_solutions])
+
+print(min_y)
+```
+Code execution result: -1
+
+Thus, the minimum value of \( y \) that satisfies the equation \( x^2 + y^2 = 14x + 48y \) is \(\boxed{-1}\). This confirms our earlier analytical solution.
+

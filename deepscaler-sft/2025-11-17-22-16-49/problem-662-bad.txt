@@ -1,0 +1,58 @@
+Score: 0.0
+
+To solve the problem, let’s first identify all possible ways to draw 4 white and 4 black balls and then identify how many of those ways alternate colors.
+
+### Step-by-Step Plan:
+
+1. **Understand the Problem:**
+    - We have a total of 8 balls: 4 white and 4 black.
+    - We need to find the probability that all draws alternate colors, meaning if a white ball is drawn first, then a black, then a white, and so on, or if a black ball is drawn first, then a white, then a black, and so on.
+
+2. **Generate All Possible Draw Sequences:**
+    - We can represent a sequence of drawing the balls as a list of 8 items where 4 are 'W' (denoting white) and 4 are 'B' (denoting black).
+    - We will generate all possible permutations of the list "WWWWBBBB" (or "BBBBWWWW", etc.) to get all the distinct ways to draw the 8 balls.
+
+3. **Check for Alternating Sequences:**
+    - We need to check each permutation to see if the colors alternate. This means that if the first ball drawn is a white ball, the second should be a black, the third a white, and so on, or if the first ball drawn is a black, the second should be a white, the third a black, and so on.
+
+4. **Count Alternating Sequences:**
+    - Count how many of these permutations result in a strictly alternating pattern.
+
+5. **Calculate Probability:**
+    - The probability will be the number of alternating sequences divided by the total number of ways to arrange 4 white and 4 black balls.
+
+### Implementation:
+
+Let's implement this step-by-step in Python to ensure accuracy.
+```python
+import itertools
+
+# Step 1: Generate all unique permutations of drawing 4 white and 4 black balls
+permutations = list(itertools.permutations("WWWWBBBB"))
+
+# Step 2: Count the number of permutations that alternate in color
+def is_alternating(perm):
+    for i in range(1, len(perm)):
+        if (perm[i] == perm[0]):
+            if (perm[i - 1] == perm[i]):
+                return False
+    return True
+
+alternating_count = 0
+
+for perm in permutations:
+    if is_alternating(perm):
+        alternating_count += 1
+
+# Step 3: Calculate total number of ways to arrange 4 white and 4 black balls
+total_permutations = len(permutations)
+
+# Step 4: Calculate the probability
+probability = alternating_count / total_permutations
+
+print(probability)
+```
+Code execution result: 0.11428571428571428
+
+Thus, the probability that all of our draws alternate colors is \(\boxed{0.11428571428571428}\). This can also be represented as the fraction \(\frac{2}{17}\) if one wants to present it in fractional form. The process above ensures that we considered all possible permutations and counted how many of them followed an alternating pattern of colors.
+

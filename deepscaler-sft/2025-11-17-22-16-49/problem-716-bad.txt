@@ -1,0 +1,101 @@
+Score: 0.0
+
+Let's start by determining what \( h(x) \) is. We know that \( f(x) = ax + b \) and \( g(x) = -3x + 5 \). So, we can express \( h(x) \) as follows:
+
+\[ h(x) = f(g(x)) = f(-3x + 5) \]
+
+Substitute \( g(x) \) into \( f(x) \):
+
+\[ f(-3x + 5) = a(-3x + 5) + b = -3ax + 5a + b \]
+
+Thus,
+
+\[ h(x) = -3ax + 5a + b \]
+
+Next, we know that the inverse function \( h^{-1}(x) = x + 7 \). To find \( h(x) \), we start from its inverse. If \( h^{-1}(x) = x + 7 \), then by definition of the inverse function, we have:
+
+\[ h(h^{-1}(x)) = x \]
+
+Substitute \( h^{-1}(x) \) into \( h \):
+
+\[ h(x + 7) = (x + 7) \]
+
+We substitute \( x + 7 \) into \( h(x) \):
+
+\[ h(x + 7) = -3a(x + 7) + 5a + b \]
+
+We set this equal to \( x + 7 \):
+
+\[ -3a(x + 7) + 5a + b = x + 7 \]
+
+Expand and simplify the left side:
+
+\[ -3ax - 21a + 5a + b = x + 7 \]
+
+This simplifies to:
+
+\[ -3ax - 16a + b = x + 7 \]
+
+For the above equation to hold for all \( x \), the coefficients of \( x \) and the constant terms on both sides of the equation must be equal. Therefore, we get two equations by comparing the coefficients:
+
+1. \(-3a = 1\)
+2. \(-16a + b = 7\)
+
+First, solve the first equation for \( a \):
+
+\[ -3a = 1 \implies a = -\frac{1}{3} \]
+
+Now substitute \( a = -\frac{1}{3} \) into the second equation:
+
+\[ -16 \left( -\frac{1}{3} \right) + b = 7 \implies \frac{16}{3} + b = 7 \]
+
+To isolate \( b \), we get:
+
+\[ b = 7 - \frac{16}{3} \]
+
+Convert 7 to a fraction with denominator 3:
+
+\[ 7 = \frac{21}{3} \]
+
+Thus:
+
+\[ b = \frac{21}{3} - \frac{16}{3} = \frac{5}{3} \]
+
+We need to find \( a - b \):
+
+\[ a - b = -\frac{1}{3} - \frac{5}{3} = -\frac{6}{3} = -2 \]
+
+Let's verify this solution by coding the process to ensure accuracy.
+```python
+from sympy import symbols, Eq, solve
+
+# Define the variables
+a, b, x = symbols('a b x')
+
+# Create the equation based on h(x + 7) = x + 7
+h_x = -3 * a * x + 5 * a + b
+h_x_substituted = h_x.subs(x, x + 7)
+
+# Set the equation equal to x + 7
+eq = Eq(h_x_substituted, x + 7)
+
+# Solve for a and b
+solution = solve((eq.lhs - eq.rhs), (a, b))
+
+print(solution)
+```
+Code execution result: {a: -1/3, b: 5/3}
+
+This confirms our analytical solution. So, we have:
+
+\[ a = -\frac{1}{3} \]
+\[ b = \frac{5}{3} \]
+
+Now, we compute \( a - b \):
+
+\[ a - b = -\frac{1}{3} - \frac{5}{3} = -\frac{6}{3} = -2 \]
+
+Thus, the final answer is:
+
+\(\boxed{-2}\)
+

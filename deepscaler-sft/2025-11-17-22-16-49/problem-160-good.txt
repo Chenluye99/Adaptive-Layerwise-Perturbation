@@ -1,0 +1,48 @@
+Score: 1.0
+
+First, let's break down the problem and set up our approach for solving it step by step.
+
+1. **Generate All Possible Combinations:**
+   - We have 5 colors: red (R), white (W), blue (B), green (G), yellow (Y).
+   - We need to generate all possible ways to color the three strips using these 5 colors.
+   - Each strip must be a different color from its adjacent strips.
+
+2. **Apply the Constraints:**
+   - No two adjacent strips can be the same color.
+   - No color can be used more than twice across the entire flag.
+
+3. **Count Valid Flags:**
+   - We need to check each combination and ensure it meets both constraints, then count those combinations that satisfy these constraints.
+
+We'll use Python to iterate through all possible ways of coloring the three strips and then check for the constraints.
+
+Let's implement this step by step.
+```python
+import itertools
+
+# List of colors available
+colors = ['R', 'W', 'B', 'G', 'Y']
+
+# Initialize a counter for valid flags
+valid_flags_count = 0
+
+# Generate all possible ways to color the three strips with the 5 colors
+for flag in itertools.product(colors, repeat=3):
+    strip1, strip2, strip3 = flag
+    
+    # Check the first constraint: no two adjacent strips can be the same color
+    if strip1 != strip2 and strip2 != strip3:
+        # Check the second constraint: no color can be used more than twice
+        color_count = {'R': 0, 'W': 0, 'B': 0, 'G': 0, 'Y': 0}
+        for color in flag:
+            color_count[color] += 1
+        
+        if all(count <= 2 for count in color_count.values()):
+            valid_flags_count += 1
+
+print(valid_flags_count)
+```
+Code execution result: 80
+
+Thus, the number of distinct flags that can be made, considering both constraints, is \(\boxed{80}\). This is our final answer.
+

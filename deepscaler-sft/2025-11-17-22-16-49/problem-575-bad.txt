@@ -1,0 +1,52 @@
+Score: 0.0
+
+To solve this problem, we need to determine the monthly rent per square meter that is required to recover the initial investment over the service life of 50 years, considering the annual interest rate of 5%.
+
+### Step-by-Step Solution:
+
+1. **Calculate the Total Investment per Square Meter:**
+   - The construction investment is 250 yuan per square meter.
+
+2. **Convert the Service Life to Years:**
+   - The service life is given as 50 years.
+
+3. **Calculate the Required Annual Equivalent Rent:**
+   - To find the equivalent annual rental amount needed to recover the investment, we can use the formula for the present value of an annuity. We need to find the annual rental amount that, when discounted at 5% per year over 50 years, would be equivalent to the initial investment of 250 yuan.
+   - The formula for the present value of an annuity is:
+     \[
+     PV = \frac{R \times (1 - (1 + r)^{-n})}{r}
+     \]
+     where \( PV \) is the present value of the investment, \( R \) is the annual rental amount, \( r \) is the annual interest rate, and \( n \) is the number of years.
+     Rearranging this formula to solve for \( R \), we get:
+     \[
+     R = \frac{PV \times r}{1 - (1 + r)^{-n}}
+     \]
+     Substituting \( PV = 250 \), \( r = 0.05 \), and \( n = 50 \):
+     \[
+     R = \frac{250 \times 0.05}{1 - (1 + 0.05)^{-50}}
+     \]
+
+4. **Convert the Annual Rent to Monthly Rent:**
+   - Once we have the annual rent required, we can convert it to a monthly rent by dividing it by 12.
+
+Let's implement this step-by-step in Python to get the precise answer.
+```python
+import sympy as sp
+
+# Define variables
+PV = 250  # Present Value (initial investment per square meter)
+r = 0.05  # Annual Interest Rate
+n = 50    # Number of years
+
+# Calculate the required annual rental amount (R)
+R = (PV * r) / (1 - (1 + r)**(-n))
+
+# Convert the annual rent to a monthly rent
+monthly_rent = R / 12
+
+print(monthly_rent)
+```
+Code execution result: 1.1411819892861763
+
+Thus, the monthly rent per square meter required to recoup the total investment is \(\boxed{1.1411819892861763}\) yuan. This is the final answer.
+

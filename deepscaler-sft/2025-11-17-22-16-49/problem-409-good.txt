@@ -1,0 +1,74 @@
+Score: 1.0
+
+First, let's start solving this step-by-step.
+
+1. **Understand the Problem:**
+    - We are given that \(\theta = \arctan \frac{5}{12}\).
+    - We need to find the principal value of the argument of the complex number \( z = \frac{\cos 2\theta + i \sin 2\theta}{239 + i} \).
+
+2. **Calculate \(2\theta\):**
+    - Since \(\theta = \arctan \frac{5}{12}\), then \(\tan \theta = \frac{5}{12}\).
+    - We know that \(\cos 2\theta = \cos^2 \theta - \sin^2 \theta\) and \(\sin 2\theta = 2 \sin \theta \cos \theta\).
+    - To get \(\cos \theta\) and \(\sin \theta\), we use the identity that if \(\tan \theta = \frac{5}{12}\), then we can consider a right triangle with opposite side 5 and adjacent side 12, so the hypotenuse is \(\sqrt{5^2 + 12^2} = 13\). Thus, \(\sin \theta = \frac{5}{13}\) and \(\cos \theta = \frac{12}{13}\).
+    - Substituting these into the double-angle formulas gives:
+      \[
+      \cos 2\theta = \cos^2 \theta - \sin^2 \theta = \left( \frac{12}{13} \right)^2 - \left( \frac{5}{13} \right)^2 = \frac{144}{169} - \frac{25}{169} = \frac{119}{169}
+      \]
+      \[
+      \sin 2\theta = 2 \sin \theta \cos \theta = 2 \cdot \frac{5}{13} \cdot \frac{12}{13} = \frac{120}{169}
+      \]
+    - Therefore, \(\cos 2\theta + i \sin 2\theta = \frac{119}{169} + i \frac{120}{169}\).
+
+3. **Form the Complex Number \(z\):**
+    - We have \( z = \frac{\frac{119}{169} + i \frac{120}{169}}{239 + i} \).
+    - To divide by a complex number, we multiply by the conjugate of the denominator:
+      \[
+      z = \frac{\left( \frac{119}{169} + i \frac{120}{169} \right) (239 - i)}{(239 + i) (239 - i)} = \frac{\left( \frac{119}{169} + i \frac{120}{169} \right) (239 - i)}{239^2 + 1}
+      \]
+    - First, compute the denominator: \( 239^2 + 1 = 57121 + 1 = 57122 \).
+    - Next, compute the numerator: \(\left( \frac{119}{169} + i \frac{120}{169} \right) (239 - i) \).
+
+4. **Perform the Multiplication:**
+    - Distribute \(\left( \frac{119}{169} + i \frac{120}{169} \right)\) over \( 239 - i \):
+      \[
+      \left( \frac{119}{169} + i \frac{120}{169} \right) (239 - i) = \frac{119}{169} \cdot 239 - \frac{119}{169} \cdot i + i \frac{120}{169} \cdot 239 - i \cdot i \frac{120}{169}
+      \]
+      \[
+      = \frac{119 \cdot 239}{169} - \frac{119 i}{169} + \frac{120 \cdot 239 i}{169} + \frac{120}{169}
+      \]
+      \[
+      = \frac{119 \cdot 239 + 120}{169} + i \left( \frac{120 \cdot 239 - 119}{169} \right)
+      \]
+    - We can compute the real and imaginary parts separately and then get the argument of the resulting complex number.
+
+Let's perform these computations using Python to ensure accuracy.
+```python
+import cmath
+
+# Given values
+theta = cmath.atan(5 / 12)
+
+# Compute 2 * theta
+two_theta = 2 * theta
+
+# Construct the numerator cos(2 * theta) + i * sin(2 * theta)
+numerator = cmath.cos(two_theta) + 1j * cmath.sin(two_theta)
+
+# Construct the denominator 239 + i
+denominator = 239 + 1j
+
+# Compute z
+z = numerator / denominator
+
+# Get the argument of z
+arg_z = cmath.phase(z)
+
+# Return the result
+print(arg_z)
+```
+Code execution result: 0.7853981633974485
+
+The principal value of the argument of the complex number \( z = \frac{\cos 2 \theta + i \sin 2 \theta}{239 + i} \) is \(\boxed{0.7853981633974485}\).
+
+This value is recognizable as \(\frac{\pi}{4}\), so we can also write it as \(\boxed{\frac{\pi}{4}}\). This is the final answer.
+

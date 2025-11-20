@@ -1,0 +1,50 @@
+Score: 1.0
+
+To solve this problem, we need to determine the probability that a sequence of six coin tosses contains exactly two heads.
+
+1. **Determine the Total Number of Outcomes:**
+    - Each coin toss has 2 possible outcomes (heads or tails).
+    - Therefore, six coin tosses have \(2^6 = 64\) possible outcomes.
+
+2. **Determine the Number of Favorable Outcomes:**
+    - We need the number of sequences of six coin tosses that contain exactly two heads.
+    - This is a combinatorial problem where we choose 2 positions out of 6 for the heads, and the rest will automatically be tails.
+    - The number of ways to choose 2 positions out of 6 is given by the binomial coefficient \(\binom{6}{2}\).
+
+3. **Calculate the Binomial Coefficient:**
+    - The binomial coefficient \(\binom{6}{2}\) is calculated as:
+      \[
+      \binom{6}{2} = \frac{6!}{2!(6-2)!} = \frac{6!}{2! \cdot 4!} = \frac{6 \cdot 5}{2 \cdot 1} = 15
+      \]
+    - So, there are 15 favorable sequences that contain exactly two heads.
+
+4. **Calculate the Probability:**
+    - The probability is the ratio of the number of favorable outcomes to the total number of outcomes:
+      \[
+      \text{Probability} = \frac{\text{Number of Favorable Outcomes}}{\text{Total Number of Outcomes}} = \frac{15}{64}
+      \]
+
+Let's confirm this by implementing it in Python to ensure accuracy.
+```python
+import itertools
+
+# Generate all possible sequences of 6 coin tosses
+sequences = list(itertools.product(['H', 'T'], repeat=6))
+
+# Count the sequences that have exactly two heads
+favorable_sequences = [seq for seq in sequences if seq.count('H') == 2]
+
+# Calculate the probability
+num_favorable = len(favorable_sequences)
+num_total = len(sequences)
+
+probability = num_favorable / num_total
+
+print(((num_favorable, num_total, probability)))
+```
+Code execution result: (15, 64, 0.234375)
+
+This result confirms that there are 15 favorable sequences, and the total number of sequences is 64, giving a probability of \(\frac{15}{64}\).
+
+Thus, the probability that the sequence contains exactly two heads is \(\boxed{\frac{15}{64}}\). This is our final answer.
+

@@ -1,0 +1,49 @@
+Score: 0.0
+
+First, let's use the trigonometric identities and properties of angles to find \(\sin 2\alpha\).
+
+1. We are given:
+   \[
+   \frac{\pi}{2} < \alpha < \beta < \frac{3\pi}{4}
+   \]
+   This means that both \(\alpha\) and \(\beta\) are in the second quadrant, but since \(\alpha < \beta\), \(\alpha - \beta\) is a negative angle, and \(\alpha + \beta\) is in the second quadrant because \(\frac{\pi}{2} < \alpha < \frac{3\pi}{4}\) and \(\frac{\pi}{2} < \beta < \frac{3\pi}{4}\), so \(\pi < \alpha + \beta < \frac{3\pi}{2}\).
+
+2. We are also given:
+   \[
+   \cos(\alpha - \beta) = \frac{12}{13}
+   \]
+   \[
+   \sin(\alpha + \beta) = -\frac{3}{5}
+   \]
+   Since \(\alpha - \beta\) is a negative angle, \(\sin(\alpha - \beta) = -\sqrt{1 - \cos^2(\alpha - \beta)} = -\frac{5}{13}\) because \(\cos^2(\alpha - \beta) + \sin^2(\alpha - \beta) = 1\).
+
+   And since \(\alpha + \beta\) is in the interval \((\pi, \frac{3\pi}{2})\), \(\cos(\alpha + \beta) = -\sqrt{1 - \sin^2(\alpha + \beta)} = -\frac{4}{5}\).
+
+3. Using angle sum and difference identities, we know:
+   \[
+   \sin 2\alpha = \sin[(\alpha + \beta) + (\alpha - \beta)] = \sin (\alpha + \beta) \cos (\alpha - \beta) + \cos (\alpha + \beta) \sin (\alpha - \beta)
+   \]
+   Substituting the given and derived values:
+   \[
+   \sin 2\alpha = \left(-\frac{3}{5}\right) \left(\frac{12}{13}\right) + \left(-\frac{4}{5}\right) \left(-\frac{5}{13}\right)
+   \]
+   Let's compute this step-by-step using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Given values
+cos_alpha_minus_beta = 12 / 13
+sin_alpha_plus_beta = -3 / 5
+
+# Calculate sin(alpha - beta) and cos(alpha + beta)
+sin_alpha_minus_beta = -sp.sqrt(1 - cos_alpha_minus_beta**2)
+cos_alpha_plus_beta = -sp.sqrt(1 - sin_alpha_plus_beta**2)
+
+# Now compute sin(2*alpha) using the angle sum identity
+sin_2alpha = sin_alpha_plus_beta * cos_alpha_minus_beta + cos_alpha_plus_beta * sin_alpha_minus_beta
+print(sin_2alpha.evalf())
+```
+Code execution result: -0.246153846153846
+
+Thus, the value of \(\sin 2\alpha\) is \(\boxed{-0.246153846153846}\). This is the final answer.
+

@@ -1,0 +1,101 @@
+Score: 1.0
+
+To determine the values of \( k \) for which the system of equations has a non-trivial solution, we need to check when the system has a solution other than the trivial solution \((x, y, z) = (0, 0, 0)\). A system of linear equations has a non-trivial solution if and only if its coefficient matrix is singular, i.e., its determinant is zero.
+
+The system of equations is:
+\[
+\begin{align*}
+x + ky - z &= 0, \\
+kx - y - z &= 0, \\
+x + y - kz &= 0
+\end{align*}
+\]
+
+We can represent this system as an augmented matrix and find its determinant:
+\[
+\begin{pmatrix}
+1 & k & -1 & 0 \\
+k & -1 & -1 & 0 \\
+1 & 1 & -k & 0
+\end{pmatrix}
+\]
+
+The coefficient matrix of the system is:
+\[
+A = \begin{pmatrix}
+1 & k & -1 \\
+k & -1 & -1 \\
+1 & 1 & -k
+\end{pmatrix}
+\]
+
+We need to find the determinant of \( A \) and set it to 0:
+\[
+\text{det}(A) = \begin{vmatrix}
+1 & k & -1 \\
+k & -1 & -1 \\
+1 & 1 & -k
+\end{vmatrix} = 0
+\]
+
+The determinant of a 3x3 matrix is calculated as follows:
+\[
+\text{det}(A) = 1 \cdot \begin{vmatrix} -1 & -1 \\ 1 & -k \end{vmatrix} - k \cdot \begin{vmatrix} k & -1 \\ 1 & -k \end{vmatrix} + (-1) \cdot \begin{vmatrix} k & -1 \\ 1 & 1 \end{vmatrix}
+\]
+
+Let's compute these 2x2 determinants:
+\[
+\begin{vmatrix} -1 & -1 \\ 1 & -k \end{vmatrix} = (-1)(-k) - (-1)(1) = k + 1
+\]
+\[
+\begin{vmatrix} k & -1 \\ 1 & -k \end{vmatrix} = (k)(-k) - (-1)(1) = -k^2 + 1
+\]
+\[
+\begin{vmatrix} k & -1 \\ 1 & 1 \end{vmatrix} = (k)(1) - (-1)(1) = k + 1
+\]
+
+Substituting these back into the determinant formula, we get:
+\[
+\text{det}(A) = 1 \cdot (k + 1) - k \cdot (-k^2 + 1) - 1 \cdot (k + 1) = k + 1 + k^3 - k - k - 1 = k^3 - k
+\]
+
+So, we need to solve:
+\[
+k^3 - k = 0
+\]
+
+Factoring out \( k \):
+\[
+k(k^2 - 1) = 0 \implies k(k - 1)(k + 1) = 0
+\]
+
+Thus, the solutions are:
+\[
+k = 0, \, k = 1, \, k = -1
+\]
+
+Let's verify this by coding the solution in Python to ensure the accuracy.
+```python
+import sympy as sp
+
+# Define the variables
+k = sp.symbols('k')
+
+# Define the coefficient matrix
+matrix = sp.Matrix([
+    [1, k, -1],
+    [k, -1, -1],
+    [1, 1, -k]
+])
+
+# Calculate the determinant of the matrix
+det = matrix.det()
+
+# Solve for k when the determinant is 0
+solution = sp.solve(det, k)
+print(solution)
+```
+Code execution result: [-1, 0, 1]
+
+Thus, the values of \( k \) for which the system has a non-trivial solution are \(\boxed{-1, 0, 1}\). This confirms our previous analytical solution.
+

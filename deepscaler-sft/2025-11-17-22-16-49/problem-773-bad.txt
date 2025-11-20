@@ -1,0 +1,37 @@
+Score: 1.0
+
+To solve this problem, we need to check each number between 100 and 150 to see if its digits are three different digits in increasing order.
+
+1. **Loop Through the Numbers:**
+   We'll iterate through each number from 100 to 150.
+   
+2. **Extract Digits:**
+   For each number, extract its hundreds, tens, and units digits.
+
+3. **Check Conditions:**
+   - Ensure that all three digits are different.
+   - Ensure that the digits are in strictly increasing order.
+
+4. **Count Matching Numbers:**
+   Count how many such numbers meet both conditions.
+
+Let's implement this step-by-step plan in Python to ensure accuracy.
+```python
+count = 0
+
+for num in range(100, 151):
+    str_num = str(num)
+    digits = [int(d) for d in str_num]
+    
+    # Check if all digits are different
+    if len(set(digits)) == 3:
+        # Check if digits are in strictly increasing order
+        if digits[0] < digits[1] and digits[1] < digits[2]:
+            count += 1
+
+print(count)
+```
+Code execution result: 18
+
+Thus, the number of integers between 100 and 150 that have three different digits in increasing order is \(\boxed{18}\). This is the final answer.
+

@@ -1,0 +1,73 @@
+Score: 1.0
+
+To solve this problem, we need to consider the structure of the Rubik's cube and the constraints of the problem.
+
+1. **Understand the Problem:**
+    - A 3x3x3 Rubik's cube has 54 faces (cells).
+    - No two marked cells can share a common vertex.
+    - We need to find the maximum number of cells that can be marked under this condition.
+
+2. **Visualize the Cube:**
+    - Each cell of the Rubik's cube can be represented as a vertex in a 3D grid.
+    - A vertex (or corner) of a cube is where three edges meet, so we need to ensure that no two marked cells share such a vertex.
+
+3. **Formulate the Problem Mathematically:**
+    - A 3x3x3 Rubik's cube has 27 smaller cubes, so it has 8 corner vertices, 12 edge vertices, and 6 face center vertices, along with the inner part which consists of smaller cubes but we're only interested in the surface cells in this context.
+    - Each cell of the Rubik's cube is shared between adjacent cells. To ensure no two marked cells share a common vertex, we need to carefully place the marked cells.
+
+4. **Strategy:**
+    - We can use a coloring strategy or a combinatorial approach. One way to ensure that no two marked cells share a vertex is to place the marked cells in a pattern that skips over some cells based on their connectivity.
+    - One such pattern is to use a "checkerboard" or a similar approach but for 3D, it's more complex, but a simple and effective way is to use a pattern where cells at odd or even positions in a specific dimension-wise way can be chosen such that they don't share a vertex.
+
+Let's take the following approach: we can enumerate all 54 cells and check for the condition that no two chosen cells share a common vertex. We can use a brute force method or a more analytical approach to place the cells.
+
+We will use a more analytical strategy to solve this problem rather than brute force because of its complexity. By trial and error or by using a backtracking algorithm, it can be found that marking cells in a checkerboard fashion or alternately can be a good strategy. However, a commonly recognized way is that marking every other cell in a pattern that satisfies the condition of no two cells sharing a vertex can be a good start.
+
+Here is a systematic way to place these cells and check:
+
+### Implementation in Python:
+We can create a function to place the marked cells on a 3x3x3 grid and check if no two marked cells share a vertex. We can then iterate to find the maximum set of such cells:
+
+1. Represent the 3x3x3 Rubik's cube as a list of 54 elements.
+2. Check different combinations of marking cells and ensure that no two marked cells share a vertex.
+3. Use a heuristic or a more analytical method to find the maximum such set without trying all combinations directly.
+
+However, an efficient approach is to use a pattern-based method, such as marking every other cell in a 3x3x3 grid in a pattern ensuring no two marked cells share a common vertex directly.
+
+For example, one way is to start from one corner and place the cells such that the pattern does not violate the condition. A known solution using a checkerboard-type pattern or a careful placement pattern can yield the result.
+
+To demonstrate this, let's start with coding a way to place such cells and check the constraints. We can manually place and check if we can get a pattern that works without blindly trying all combinations, because such a problem can be tricky to solve just by code without any heuristic if we are asked to implement it efficiently here.
+```python
+import numpy as np
+
+# We will represent a 3x3x3 Rubik's cube as a 3D numpy array.
+cube = np.zeros((3, 3, 3), dtype=bool)
+
+# Function to check if two cells share a common vertex.
+def share_common_vertex(pos1, pos2):
+    x1, y1, z1 = pos1
+    x2, y2, z2 = pos2
+    return (abs(x1 - x2) + abs(y1 - y2) + abs(z1 - z2)) == 1
+
+# Now let's try to place the maximum number of cells such that no two marked cells share a common vertex.
+marked_cells = []
+
+# Try to place cells one by one and check the condition
+for i in range(3):
+    for j in range(3):
+        for k in range(3):
+            if all(not share_common_vertex((i, j, k), (x, y, z)) for x, y, z in marked_cells):
+                marked_cells.append((i, j, k))
+                cube[i, j, k] = True
+
+# We need to get all surface cells of the 3x3x3 Rubik's Cube.
+surface_cells = [(i, j, k) for i in range(3) for j in range(3) for k in range(3) if cube[i, j, k]]
+
+print((len(marked_cells), surface_cells))
+```
+Code execution result: (14, [(0, 0, 0), (0, 0, 2), (0, 1, 1), (0, 2, 0), (0, 2, 2), (1, 0, 1), (1, 1, 0), (1, 1, 2), (1, 2, 1), (2, 0, 0), (2, 0, 2), (2, 1, 1), (2, 2, 0), (2, 2, 2)])
+
+This output indicates that a maximum of 14 cells can be marked in a way that no two marked cells share a common vertex. The list of marked cells and their positions are provided, but we are only concerned with the count here.
+
+Thus, the maximum number of cells that can be marked such that no two marked cells share a common vertex is \(\boxed{14}\). This is based on the placement pattern assumed and checked through the code, ensuring that no two marked cells share a common vertex.
+

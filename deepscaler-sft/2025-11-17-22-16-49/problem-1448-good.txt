@@ -1,0 +1,43 @@
+Score: 1.0
+
+First, we start by using the condition \( f(1) = 0 \). Given \( f(x) = ax^2 + bx + c \), substituting \( x = 1 \) gives:
+\[ a(1)^2 + b(1) + c = 0 \implies a + b + c = 0 \implies c = -a - b. \]
+Thus, we can rewrite \( f(x) \) as:
+\[ f(x) = ax^2 + bx - a - b. \]
+
+Next, we use the conditions \( 50 < f(7) < 60 \) and \( 70 < f(8) < 80 \):
+\[ f(7) = a(7)^2 + b(7) - a - b = 49a + 7b - a - b = 48a + 6b, \]
+\[ f(8) = a(8)^2 + b(8) - a - b = 64a + 8b - a - b = 63a + 7b. \]
+So, we have:
+\[ 50 < 48a + 6b < 60, \]
+\[ 70 < 63a + 7b < 80. \]
+
+We need to find integer values for \( a \) and \( b \) that satisfy both inequalities. After finding such values, we substitute \( a \) and \( b \) into \( f(100) \):
+\[ f(100) = a(100)^2 + b(100) - a - b = 10000a + 100b - a - b = 9999a + 99b, \]
+and determine the value of \( k \) such that:
+\[ 5000k < 9999a + 99b < 5000(k+1). \]
+
+We will implement a Python code to solve for \( a \) and \( b \) and then find the corresponding \( k \).
+```python
+import sympy as sp
+
+# Set up the constraints
+solution = []
+
+# Search for possible integer values of a and b that satisfy both inequalities
+for a in range(-100, 101):
+    for b in range(-100, 101):
+        if 50 < 48 * a + 6 * b < 60 and 70 < 63 * a + 7 * b < 80:
+            c = -a - b
+            f_100 = 9999 * a + 99 * b
+            for k in range(-1000, 1000):
+                if 5000 * k < f_100 < 5000 * (k + 1):
+                    solution.append(k)
+                    break
+
+print(set(solution))  # Get unique possible values for k
+```
+Code execution result: {3}
+
+Thus, the only integer value of \( k \) that satisfies all the conditions is \(\boxed{3}\). This is our final answer.
+

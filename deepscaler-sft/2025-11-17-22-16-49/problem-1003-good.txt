@@ -1,0 +1,55 @@
+Score: 1.0
+
+To solve this problem, we need to find all integer solutions to the equation \(x^2 - y^2 = 2000^2\). We can start by rewriting the equation using the difference of squares:
+
+\[x^2 - y^2 = (x - y)(x + y) = 2000^2.\]
+
+Let's denote \(a = x - y\) and \(b = x + y\). Then, we have:
+
+\[a \cdot b = 2000^2.\]
+
+Here, \(a\) and \(b\) must be such that both \(x\) and \(y\) are integers. From the definitions of \(a\) and \(b\), we get:
+
+\[x = \frac{a + b}{2}, \quad y = \frac{b - a}{2}.\]
+
+For \(x\) and \(y\) to be integers, both \(\frac{a + b}{2}\) and \(\frac{b - a}{2}\) must be integers. This means that \(a + b\) and \(b - a\) must both be even. Therefore, \(a\) and \(b\) must either be both even or both odd. Since \(2000^2\) is even, both \(a\) and \(b\) must be even. Let's say \(a = 2m\) and \(b = 2n\), then:
+
+\[(2m)(2n) = 2000^2 \implies 4mn = 2000^2 \implies mn = \frac{2000^2}{4} = 1000^2.\]
+
+So, we need to find all pairs of integers \((m, n)\) such that their product is \(1000^2 = 1000000\), and then check if the corresponding \(a\) and \(b\) yield integer solutions for \(x\) and \(y\).
+
+Let's iterate through all possible pairs \((m, n)\) such that \(mn = 1000000\) and check if both \(\frac{a + b}{2}\) and \(\frac{b - a}{2}\) are integers, and that they produce valid integer solutions for \(x\) and \(y\). We will then count how many such pairs yield solutions.
+
+We'll use Python to perform this calculation accurately.
+```python
+import sympy as sp
+
+# Initialize a set to store unique lattice points (x, y)
+lattice_points = set()
+
+# Iterate through all possible pairs (m, n) such that m * n = 1000000
+for m in range(1, 1000001):
+    if 1000000 % m == 0:
+        n = 1000000 // m
+        a = 2 * m
+        b = 2 * n
+        
+        # Check if the solutions for x and y are integers
+        x = (a + b) // 2
+        y = (b - a) // 2
+        
+        if (a + b) % 2 == 0 and (b - a) % 2 == 0:
+            lattice_points.add((x, y))
+            lattice_points.add((x, -y))
+            lattice_points.add((-x, y))
+            lattice_points.add((-x, -y))
+
+# Get the unique lattice points and return their count
+lattice_points = list(set(lattice_points))
+num_lattice_points = len(lattice_points)
+print(num_lattice_points)
+```
+Code execution result: 98
+
+Thus, the number of lattice points that lie on the hyperbola \(x^2 - y^2 = 2000^2\) is \(\boxed{98}\). This is the final answer.
+

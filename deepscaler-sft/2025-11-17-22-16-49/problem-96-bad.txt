@@ -1,0 +1,57 @@
+Score: 1.0
+
+First, let's consider the right-angled triangle \( VWX \) where \( \angle W \) is the right angle. We know the following:
+
+- \( VX = \sqrt{13} \)
+- \( VW = 3 \)
+
+We want to find \(\tan V\). The tangent of an angle in a right triangle is given by the ratio of the length of the opposite side to the length of the adjacent side with respect to that angle.
+
+In this case, for \(\angle V\):
+
+- The length of the side opposite to \(\angle V\) is \( WX \).
+- The length of the side adjacent to \(\angle V\) is \( VW = 3 \).
+
+First, we need to determine the length of \( WX \). We can use the Pythagorean theorem:
+
+\[ VX^2 = VW^2 + WX^2 \]
+
+Substitute the known values:
+
+\[ (\sqrt{13})^2 = 3^2 + WX^2 \]
+
+This simplifies to:
+
+\[ 13 = 9 + WX^2 \]
+
+Rearrange to solve for \( WX^2 \):
+
+\[ WX^2 = 13 - 9 \]
+\[ WX^2 = 4 \]
+\[ WX = \sqrt{4} = 2 \]
+
+Now that we have the length of \( WX \), we can calculate \(\tan V\):
+
+\[
+\tan V = \frac{\text{opposite}}{\text{adjacent}} = \frac{WX}{VW} = \frac{2}{3}
+\]
+
+Let's confirm this with Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Given values
+VX = sp.sqrt(13)
+VW = 3
+
+# Use the Pythagorean theorem to solve for WX
+WX = sp.solve(VX**2 - VW**2 - sp.symbols('WX')**2, sp.symbols('WX'))[1]  # We take the positive root
+
+# Calculate tan(V)
+tan_V = WX / VW
+print(tan_V)
+```
+Code execution result: 2/3
+
+Thus, the value of \(\tan V\) is \(\boxed{\frac{2}{3}}\). This confirms our earlier calculation.
+

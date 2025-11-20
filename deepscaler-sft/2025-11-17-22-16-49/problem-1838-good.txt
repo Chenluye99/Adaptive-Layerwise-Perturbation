@@ -1,0 +1,71 @@
+Score: 1.0
+
+To solve this problem, we need to set up a system of equations based on the problem statement.
+
+Let's define:
+- \( r \) as the number of regular packs.
+- \( s \) as the number of super packs.
+
+From the problem, we have the following information:
+1. Each regular pack contains 4 batteries.
+2. Each super pack contains 6 batteries.
+3. A total of 32 packs were shipped, so:
+\[ r + s = 32 \]
+4. A total of 166 batteries were shipped, so:
+\[ 4r + 6s = 166 \]
+
+We now have a system of two equations:
+\[
+\begin{cases}
+r + s = 32, \\
+4r + 6s = 166.
+\end{cases}
+\]
+
+We can solve this system step-by-step. First, we can solve the first equation for \( s \):
+\[ s = 32 - r. \]
+
+Next, substitute this expression for \( s \) into the second equation:
+\[ 4r + 6(32 - r) = 166. \]
+
+Now, let's solve this equation for \( r \):
+\[ 4r + 192 - 6r = 166, \]
+\[ -2r + 192 = 166, \]
+\[ -2r = 166 - 192, \]
+\[ -2r = -26, \]
+\[ r = 13. \]
+
+Now that we have the value of \( r \), we can substitute it back into the equation \( s = 32 - r \) to find \( s \):
+\[ s = 32 - 13 = 19. \]
+
+To ensure the solution is accurate, we can substitute \( r = 13 \) and \( s = 19 \) back into our original equations to verify:
+
+1. Check the total number of packs:
+\[ r + s = 13 + 19 = 32, \]
+which is correct.
+
+2. Check the total number of batteries:
+\[ 4r + 6s = 4(13) + 6(19) = 52 + 114 = 166, \]
+which is also correct.
+
+So, the solution is accurate. The number of regular packs sent is \( r = 13 \). Let's confirm this by implementing it in Python to ensure the result is accurate.
+```python
+from sympy import symbols, Eq, solve
+
+# Define the variables
+r, s = symbols('r s')
+
+# Set up the equations based on the problem statement
+eq1 = Eq(r + s, 32)
+eq2 = Eq(4 * r + 6 * s, 166)
+
+# Solve the system of equations
+solution = solve((eq1, eq2), (r, s))
+print(solution)
+```
+Code execution result: {r: 13, s: 19}
+
+This confirms that the solution to the system of equations is \( r = 13 \) and \( s = 19 \). Therefore, the number of regular packs sent is:
+
+\(\boxed{13}\)
+

@@ -1,0 +1,45 @@
+Score: 1.0
+
+### Part (a)
+
+To solve part (a), we need to find a five-digit palindromic number that is divisible by 5. A five-digit palindromic number has the form $\overline{abcba}$, where $a, b,$ and $c$ are digits, and $a \neq 0$ (since it is a five-digit number).
+
+For a number to be divisible by 5, its last digit must be either 0 or 5. Since the number is palindromic, the first digit must also match the last digit. Therefore, the first and last digits must both be 0 or 5, but since the number is five-digit, the first digit cannot be 0, so it must be 5.
+
+So, the number must have the form $\overline{5bc5b}$. We can check this by generating a few numbers in this form and checking if they are divisible by 5. For example, 50005, 51115, 52225, etc., and check each of them.
+
+### Part (b)
+
+To solve part (b), we need to count all such five-digit palindromic numbers that satisfy the condition of being divisible by 5. We can generate all five-digit palindromic numbers and then check which of these numbers are divisible by 5.
+
+Let's implement this step-by-step in Python.
+```python
+def is_palindromic(n):
+    """ Check if a number is palindromic. """
+    return str(n) == str(n)[::-1]
+
+count = 0
+palindromic_divisible_by_5 = []
+
+for num in range(10000, 100000):
+    if num % 5 == 0 and is_palindromic(num):
+        palindromic_divisible_by_5.append(num)
+        count += 1
+
+print((palindromic_divisible_by_5[:5], count))
+```
+Code execution result: ([50005, 50105, 50205, 50305, 50405], 100)
+
+From the code, we get the following results:
+
+1. Five examples of five-digit palindromic numbers that are divisible by 5: \([50005, 50105, 50205, 50305, 50405]\).
+2. The total count of such numbers is 100.
+
+So, the answers are:
+
+### Part (a)
+One possible five-digit palindromic number that is divisible by 5 is \(\boxed{50005}\).
+
+### Part (b)
+The total number of five-digit palindromic numbers that are divisible by 5 is \(\boxed{100}\).
+

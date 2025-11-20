@@ -1,0 +1,60 @@
+Score: 1.0
+
+To find the domain of the function \( f(x) = \sqrt{1 - \sqrt{2 - \sqrt{3 - x}}} \), we need to ensure that all expressions under the square root signs are non-negative, as the square root of a negative number is not defined in the real number system.
+
+Let's proceed step-by-step:
+
+1. **Innermost Square Root:**
+    - The innermost expression is \(\sqrt{3 - x}\). For this to be a real number, we need:
+      \[
+      3 - x \geq 0 \implies x \leq 3.
+      \]
+
+2. **Next Layer:**
+    - The next expression is \(\sqrt{2 - \sqrt{3 - x}}\). For this to be a real number, we need:
+      \[
+      2 - \sqrt{3 - x} \geq 0 \implies \sqrt{3 - x} \leq 2.
+      \]
+    - Squaring both sides, we get:
+      \[
+      3 - x \leq 4 \implies -x \leq 1 \implies x \geq -1.
+      \]
+    - So, combining this with the previous condition \(x \leq 3\), we get:
+      \[
+      -1 \leq x \leq 3.
+      \]
+
+3. **Outermost Layer:**
+    - The outermost expression is \(\sqrt{1 - \sqrt{2 - \sqrt{3 - x}}}\). For this to be a real number, we need:
+      \[
+      1 - \sqrt{2 - \sqrt{3 - x}} \geq 0 \implies \sqrt{2 - \sqrt{3 - x}} \leq 1.
+      \]
+    - Squaring both sides, we get:
+      \[
+      2 - \sqrt{3 - x} \leq 1 \implies \sqrt{3 - x} \geq 1.
+      \]
+    - Squaring both sides again, we get:
+      \[
+      3 - x \geq 1 \implies -x \geq -2 \implies x \leq 2.
+      \]
+    - Combining this with the previous condition \(-1 \leq x \leq 3\), we get:
+      \[
+      -1 \leq x \leq 2.
+      \]
+
+So, the domain of \( f(x) = \sqrt{1 - \sqrt{2 - \sqrt{3 - x}}} \) is \([-1, 2]\). Let's verify this by implementing it in Python to ensure the accuracy of our solution.
+```python
+import sympy as sp
+
+# Define the variable and function
+x = sp.symbols('x')
+f = sp.sqrt(1 - sp.sqrt(2 - sp.sqrt(3 - x)))
+
+# Find the domain of the function
+domain = sp.solve_univariate_inequality(1 - sp.sqrt(2 - sp.sqrt(3 - x)) >= 0, x, relational=False)
+print(domain)
+```
+Code execution result: Interval(-1, 2)
+
+This confirms our analytical solution. Therefore, the domain of the function \( f(x) = \sqrt{1 - \sqrt{2 - \sqrt{3 - x}}} \) is \(\boxed{[-1, 2]}\). This means that \( f(x) \) is defined for all \( x \) in the interval \([-1, 2]\).
+

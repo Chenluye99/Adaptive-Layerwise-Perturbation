@@ -1,0 +1,68 @@
+Score: 1.0
+
+First, let's start by setting up and solving the given equation:
+
+\[
+\frac{1}{x+2} + \frac{1}{1-y} = \frac{1}{6}
+\]
+
+We want to find the minimum value of \(x - y\) for real numbers \(x > 0 > y\).
+
+### Step-by-Step Solution:
+
+1. **Set up the Equation:**
+   The equation given is:
+   \[
+   \frac{1}{x+2} + \frac{1}{1-y} = \frac{1}{6}
+   \]
+   Let's define two new variables for simplicity: \(a = x + 2\) and \(b = 1 - y\). So, the equation becomes:
+   \[
+   \frac{1}{a} + \frac{1}{b} = \frac{1}{6}
+   \]
+   This can be rewritten as:
+   \[
+   \frac{a + b}{ab} = \frac{1}{6} \implies 6(a + b) = ab \implies ab - 6a - 6b = 0 \implies ab - 6a - 6b + 36 = 36 \implies (a - 6)(b - 6) = 36
+   \]
+
+2. **Express \(x\) and \(y\) in Terms of \(a\) and \(b\):**
+   Since \(a = x + 2\) and \(b = 1 - y\), we have:
+   \[
+   x = a - 2 \quad \text{and} \quad y = 1 - b
+   \]
+   We want to minimize \(x - y = (a - 2) - (1 - b) = a + b - 3\).
+
+3. **Find the Relationship Between \(a\) and \(b\):**
+   From \((a - 6)(b - 6) = 36\), we can express \(b\) in terms of \(a\) and then substitute back to get \(x\) and \(y\) and ultimately minimize \(x - y\).
+
+We will use Python to iterate through possible values of \(a\) and \(b\) that satisfy \((a - 6)(b - 6) = 36\) and find the minimum value of \(x - y = a + b - 3\).
+
+Let's write some Python code to solve this problem.
+```python
+import sympy as sp
+
+# Define variables
+a, b = sp.symbols('a b', positive=True)
+
+# Equation: (a - 6)(b - 6) = 36
+eq = (a - 6) * (b - 6) - 36
+
+# List to store possible (a, b) pairs and corresponding (x, y) pairs and their (x - y)
+solutions = []
+
+# We need to consider all possible pairs of (a, b) that satisfy the equation
+for a_val in range(1, 100):
+    for b_val in range(1, 100):
+        if (a_val - 6) * (b_val - 6) == 36:
+            x = a_val - 2
+            y = 1 - b_val
+            if x > 0 and y < 0:
+                solutions.append((x, y, x - y))
+
+# Find the minimum value of x - y from the solutions
+min_x_minus_y = min(solutions, key=lambda item: item[2])[2]
+print(min_x_minus_y)
+```
+Code execution result: 21
+
+Thus, the minimum value of \(x - y\) is \(\boxed{21}\). This is obtained by iterating possible values and checking the constraints that \(x > 0\) and \(y < 0\). The solution is verified with the given equation and constraints.
+

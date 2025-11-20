@@ -1,0 +1,38 @@
+Score: 1.0
+
+To solve this problem, we need to consider all permutations of the digits {1, 1, 5, 0} and then check which of these permutations form a four-digit number that is a multiple of 5.
+
+1. **Generate all unique permutations of the digits 1, 1, 5, 0:**
+   The digits are 1, 1, 5, 0, but since we need a four-digit number, the first digit cannot be 0 (because 0 would make it a three-digit number or less).
+
+2. **Check for Valid Permutations:**
+   - Each permutation should be a four-digit number, so it should not start with 0.
+   - The number should be a multiple of 5, so the last digit should be either 0 or 5.
+
+3. **Count the Valid Permutations:**
+   - We will generate all unique permutations of the list [1, 1, 5, 0], then check each of these permutations to ensure they meet the above criteria (i.e., they are a four-digit number and are divisible by 5).
+
+Let's implement this step-by-step process using Python.
+```python
+import itertools
+
+# Get all unique permutations of the digits 1, 1, 5, 0
+digits = [1, 1, 5, 0]
+permutations = set()
+
+for perm in set(itertools.permutations(digits)):
+    num = int(''.join(map(str, perm)))
+    if 1000 <= num <= 9999:  # Ensure it is a four-digit number
+        permutations.add(num)
+
+# Filter the permutations to get only the numbers that are multiples of 5
+multiples_of_5 = [num for num in permutations if num % 5 == 0]
+
+# Get the count of such numbers
+num_ways = len(multiples_of_5)
+print(num_ways)
+```
+Code execution result: 5
+
+Thus, the number of ways to arrange the digits of 1150 to get a four-digit multiple of 5 is \(\boxed{5}\). This is the final answer.
+

@@ -1,0 +1,82 @@
+Score: 1.0
+
+First, we set up the problem and define the polynomial \( Q(x) = a_0 + a_1 x + a_2 x^2 + \cdots + a_n x^n \).
+
+We are given the following conditions:
+1. \( Q(1) = 4 \)
+2. \( Q(5) = 152 \)
+
+Substitute \( x = 1 \) into \( Q(x) \):
+\[ Q(1) = a_0 + a_1 \cdot 1 + a_2 \cdot 1^2 + \cdots + a_n \cdot 1^n = a_0 + a_1 + a_2 + \cdots + a_n = 4 \]
+
+Substitute \( x = 5 \) into \( Q(x) \):
+\[ Q(5) = a_0 + a_1 \cdot 5 + a_2 \cdot 5^2 + \cdots + a_n \cdot 5^n = a_0 + 5a_1 + 25a_2 + \cdots + 5^n a_n = 152 \]
+
+We need to find a set of nonnegative integer coefficients \( a_0, a_1, a_2, \ldots, a_n \) that satisfy these equations, and then use these coefficients to determine \( Q(6) \).
+
+To achieve this, we can use Python to solve for possible values of the \( a_i \) such that both conditions hold, and then compute \( Q(6) \).
+
+Let's start by iterating through possible combinations of nonnegative integers for the coefficients and check if they satisfy both conditions.
+
+We will use Python to perform this search and computation.
+```python
+import itertools
+
+# Set up bounds for coefficients based on initial conditions
+# Since a_0 + a_1 + a_2 + ... + a_n = 4, each a_i can only be at most 4 (if all the other a_j's were zero).
+
+max_coeff_value = 4
+num_vars = 4  # We assume up to 4 variables based on trial and error prior steps because higher degrees would probably make it very large to meet Q(5) = 152 while keeping Q(1) = 4.
+
+# Brute force check coefficients from 0 to 4 for all possible combinations of up to 4 variables, but in practical implementation will check higher combinations if needed.
+found_solution = None
+
+for n in range(1, 20):  # Let's check for polynomials up to degree 19 (arbitrary, but reasonably high upper bound)
+    for coeffs in itertools.product(range(max_coeff_value + 1), repeat=n + 1):
+        a = list(coeffs)
+        Q_1 = sum(a)
+        Q_5 = sum(a_i * (5 ** i) for i, a_i in enumerate(a))
+
+        if Q_1 == 4 and Q_5 == 152:
+            found_solution = a
+            break
+    
+    if found_solution:
+        break
+
+print(found_solution)
+```
+Code execution result: [2, 0, 1, 1]
+
+So, the coefficients that satisfy the conditions are \( a_0 = 2 \), \( a_1 = 0 \), \( a_2 = 1 \), and \( a_3 = 1 \). We assume that this set of coefficients is up to the degree of 3 because it is a reasonable assumption based on the degree bounds we can place from our conditions. Hence, our polynomial is given by:
+\[ Q(x) = 2 + 0 \cdot x + 1 \cdot x^2 + 1 \cdot x^3 = 2 + x^2 + x^3 \]
+
+We will now verify this polynomial by computing \( Q(6) \):
+
+\[ Q(6) = 2 + 6^2 + 6^3 = 2 + 36 + 216 = 254 \]
+
+To ensure the result is accurate, we will use Python to check this solution and make sure there are no other solutions by testing a broader range if required.
+```python
+# We defined our polynomial Q(x) using the found coefficients and then compute Q(6).
+
+def Q(x, coeffs):
+    return sum(coeffs[i] * (x ** i) for i in range(len(coeffs)))
+
+# Constructing the polynomial based on found coefficients [2, 0, 1, 1]
+coefficients = [2, 0, 1, 1]
+
+# Let's check if this polynomial indeed satisfies the conditions Q(1) = 4 and Q(5) = 152
+Q_1 = Q(1, coefficients)
+Q_5 = Q(5, coefficients)
+
+print(((Q_1, Q_5, Q(6, coefficients))))
+```
+Code execution result: (4, 152, 254)
+
+We have confirmed that the polynomial \( Q(x) = 2 + x^2 + x^3 \) satisfies both conditions \( Q(1) = 4 \) and \( Q(5) = 152 \), and computing \( Q(6) \) yields:
+
+\[ Q(6) = 254 \]
+
+Thus, the final answer is:
+\(\boxed{254}\)
+

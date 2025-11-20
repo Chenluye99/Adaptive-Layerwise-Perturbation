@@ -1,0 +1,53 @@
+Score: 1.0
+
+To solve the problem, we need to find how many positive integers less than 900 are either perfect cubes or perfect squares. 
+
+1. **Identify Perfect Squares Less Than 900:**
+    - A number is a perfect square if there exists an integer \( n \) such that \( n^2 < 900 \).
+    - The largest integer \( n \) that satisfies \( n^2 < 900 \) is \( \lfloor \sqrt{899} \rfloor \).
+
+2. **Identify Perfect Cubes Less Than 900:**
+    - A number is a perfect cube if there exists an integer \( m \) such that \( m^3 < 900 \).
+    - The largest integer \( m \) that satisfies \( m^3 < 900 \) is \( \lfloor \sqrt[3]{899} \rfloor \).
+
+3. **Identify Numbers That Are Both Perfect Squares and Perfect Cubes (i.e., Perfect Sixth Powers) Less Than 900:**
+    - A number that is both a perfect square and a perfect cube is a perfect sixth power.
+    - A number is a perfect sixth power if there exists an integer \( k \) such that \( k^6 < 900 \).
+    - The largest integer \( k \) that satisfies \( k^6 < 900 \) is \( \lfloor \sqrt[6]{899} \rfloor \).
+
+4. **Use the Inclusion-Exclusion Principle:**
+    - Use the principle of inclusion and exclusion to find the count of numbers that are either perfect squares or perfect cubes.
+    - The formula is: 
+      \[
+      |A \cup B| = |A| + |B| - |A \cap B|
+      \]
+      where:
+      - \( |A| \) is the number of perfect squares less than 900,
+      - \( |B| \) is the number of perfect cubes less than 900,
+      - \( |A \cap B| \) is the number of perfect sixth powers less than 900.
+
+Let's implement this step-by-step in Python to ensure accuracy.
+```python
+import math
+
+# Find the count of perfect squares less than 900
+max_square = int(math.sqrt(899))
+count_squares = max_square
+
+# Find the count of perfect cubes less than 900
+max_cube = int(899 ** (1/3))
+count_cubes = max_cube
+
+# Find the count of perfect sixth powers less than 900
+max_sixth_power = int(899 ** (1/6))
+count_sixth_powers = max_sixth_power
+
+# Apply the inclusion-exclusion principle
+count_either_squares_or_cubes = count_squares + count_cubes - count_sixth_powers
+
+print(count_either_squares_or_cubes)
+```
+Code execution result: 35
+
+Thus, the number of positive integers less than 900 that are either perfect cubes or perfect squares is \(\boxed{35}\). This is our final answer.
+

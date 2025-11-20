@@ -1,0 +1,68 @@
+Score: 1.0
+
+To solve this problem, let's follow these steps:
+
+1. **Define the Properties of the Original Collection:**
+    - The collection contains five positive integers.
+    - The mean of these five integers is 4.4, so their sum is \(5 \times 4.4 = 22\).
+    - The mode of the collection is 3, meaning 3 appears more frequently than any other number, and it is unique as a mode.
+    - The median of the collection is 4, meaning that when the numbers are listed in increasing order, the third number is 4.
+
+2. **Formulate the Collection:**
+    - Let the five numbers in non-decreasing order be \(a \leq b \leq c \leq d \leq e\).
+    - The median is \(c = 4\), so the collection is of the form \([a, b, 4, d, e]\).
+    - The mode is 3, meaning 3 appears more frequently than any other number, and since 3 is the unique mode, 3 must appear at least twice, but it cannot appear three times or more (otherwise, it would not be the unique mode, and some other number would need to appear twice or more as well).
+    - Therefore, 3 must appear twice, so the collection is of the form \([?, ?, 4, d, e]\) where at least two of the first three positions are 3. We need to ensure that no other number appears more than once, so the collection could be \([3, 3, 4, d, e]\) or some variation ensuring that 3 is the only number repeating and it is the unique mode.
+
+3. **Find Possible Configurations:**
+    - We know \(a + b + 4 + d + e = 22\), so \(a + b + d + e = 18\).
+    - We also know that 3 is the mode, so 3 must appear exactly twice, and no other number can appear more than once.
+    - The smallest possible values for \(a\) and \(b\) that are different from each other and from 3 (to ensure 3 is the unique mode) could be 1 and 2, but this would force other values for \(d\) and \(e\).
+
+    Let's test some valid configurations to satisfy both conditions (sum and mode requirements):
+    - We start with \([3, 3, 4, d, e]\) and check if it's possible to get valid values for \(d\) and \(e\).
+
+    Trying different values for \(d\) and \(e\) such that \(a, b, d, e\) are distinct and all values are positive integers, we can start by coding this step-by-step to ensure accuracy.
+
+4. **Code Implementation:**
+    - We'll iterate through all possible combinations of \([a, b, d, e]\) that meet the above criteria and check if they sum up to 18 when combined with 3 and 4.
+
+Finally, once we have the correct original collection, we add 8 to it and find the new median.
+
+Let's implement this in Python to get the precise answer.
+```python
+import itertools
+
+# Find the original five numbers that meet the conditions
+def find_original_collection():
+    for a in range(1, 20):
+        for b in range(a, 20):
+            for d in range(4, 20):
+                for e in range(d, 20):
+                    if len(set([a, b, 4, d, e])) == 4:  # Ensure all numbers are distinct except for 3 which appears twice
+                        if a == 3 and b == 3:  # Ensure 3 appears exactly twice and is the mode
+                            if a + b + 4 + d + e == 22:
+                                return [a, b, 4, d, e]
+    return None
+
+original_collection = find_original_collection()
+
+# Add 8 to the collection and get the new list
+new_collection = original_collection + [8]
+new_collection.sort()
+
+# Find the new median (the median of a list of 6 numbers is the average of the 3rd and 4th smallest numbers)
+new_median = (new_collection[2] + new_collection[3]) / 2
+
+print((original_collection, new_collection, new_median))
+```
+Code execution result: ([3, 3, 4, 5, 7], [3, 3, 4, 5, 7, 8], 4.5)
+
+So, the original collection that meets all conditions is \([3, 3, 4, 5, 7]\).
+
+When we add 8 to this collection, we get \([3, 3, 4, 5, 7, 8]\). Sorting this collection (though it's already sorted), the new list is \([3, 3, 4, 5, 7, 8]\).
+
+To get the new median, we take the average of the 3rd and 4th numbers in this list because there are six numbers in total. So, the 3rd number is 4 and the 4th number is 5. The new median is \(\frac{4 + 5}{2} = 4.5\).
+
+Hence, the new median is \(\boxed{4.5}\).
+

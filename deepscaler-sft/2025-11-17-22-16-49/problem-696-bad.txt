@@ -1,0 +1,115 @@
+Score: 0.0
+
+We start with the information that the side lengths of the right triangle are \(x\), \(x + y\), and \(x - y\), and we assume \(x + y\) is the hypotenuse because it is the longest side (since \(0 < y < x\)).
+
+According to the Pythagorean theorem, for a right triangle with legs \(a\) and \(b\) and hypotenuse \(c\), we have:
+\[ a^2 + b^2 = c^2. \]
+
+Substitute the side lengths into the equation:
+
+\[ x^2 + (x - y)^2 = (x + y)^2. \]
+
+First, expand and simplify the equation:
+
+\[ x^2 + (x^2 - 2xy + y^2) = x^2 + 2xy + y^2, \]
+\[ 2x^2 - 2xy = x^2 + 2xy + y^2, \]
+\[ 2x^2 - 2xy - x^2 - 2xy = y^2, \]
+\[ x^2 - 4xy = y^2, \]
+\[ x^2 - y^2 = 4xy. \]
+
+This can be factored using the difference of squares on the left side:
+
+\[ (x - y)(x + y) = 4xy. \]
+
+To solve for \(\frac{y}{x}\), let's use a substitution \( \frac{y}{x} = k \), so \( y = kx \). Substitute \( y = kx \) into the equation:
+
+\[ (x - kx)(x + kx) = 4x \cdot kx, \]
+\[ x(1 - k) \cdot x(1 + k) = 4kx^2, \]
+\[ x^2 (1 - k)(1 + k) = 4kx^2. \]
+
+We can cancel \( x^2 \) from both sides (assuming \( x \neq 0 \)):
+
+\[ (1 - k)(1 + k) = 4k, \]
+\[ 1 - k^2 = 4k, \]
+\[ k^2 + 4k - 1 = 0. \]
+
+This is a quadratic equation in \( k \). We solve it using the quadratic formula \( k = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} \), where \( a = 1 \), \( b = 4 \), and \( c = -1 \):
+
+\[ k = \frac{-4 \pm \sqrt{4^2 - 4 \cdot 1 \cdot (-1)}}{2 \cdot 1}, \]
+\[ k = \frac{-4 \pm \sqrt{16 + 4}}{2}, \]
+\[ k = \frac{-4 \pm \sqrt{20}}{2}, \]
+\[ k = \frac{-4 \pm 2\sqrt{5}}{2}, \]
+\[ k = -2 \pm \sqrt{5}. \]
+
+This gives us two potential solutions:
+
+\[ k = -2 + \sqrt{5}, \]
+\[ k = -2 - \sqrt{5}. \]
+
+Since \( 0 < y < x \), it follows that \( 0 < \frac{y}{x} < 1 \). Therefore, we discard the negative solution \( -2 - \sqrt{5} \) because it is less than 0. We are left with:
+
+\[ k = -2 + \sqrt{5}. \]
+
+We need to check if this value is a valid answer, and if it is a common fraction. We can evaluate \(\sqrt{5}\) numerically and determine if \(-2 + \sqrt{5}\) can be expressed as a fraction. To ensure accuracy, let's use Python to confirm this solution by checking if \(-2 + \sqrt{5}\) is a simple fraction or corresponds to a more recognizable fraction.
+```python
+import sympy as sp
+
+# We solve the equation k^2 + 4k - 1 = 0 symbolically to get the exact solution
+k = sp.symbols('k')
+solution = sp.solve(k**2 + 4*k - 1, k)
+
+print(solution)
+```
+Code execution result: [-2 + sqrt(5), -sqrt(5) - 2]
+
+This confirms our previous solutions: \(-2 + \sqrt{5}\) and \(-2 - \sqrt{5}\). As discussed, we discard \(-2 - \sqrt{5}\) because it is less than 0, and we are left with:
+
+\[ k = -2 + \sqrt{5}. \]
+
+To determine if \(-2 + \sqrt{5}\) can be expressed as a common fraction, we can check its numerical value and see if it matches any known fractions or can be simplified to one.
+
+Let's compute the numerical value of \(-2 + \sqrt{5}\) and check if it simplifies to a recognizable common fraction:
+```python
+import sympy as sp
+
+# Evaluate -2 + sqrt(5) numerically
+k_numerical = -2 + sp.sqrt(5)
+
+print(k_numerical.evalf())
+```
+Code execution result: 0.236067977499790
+
+The numerical value of \(-2 + \sqrt{5}\) is approximately \(0.236067977499790\). To determine if this is a common fraction, we can check if it matches a fraction such as \(\frac{1}{4}\), \(\frac{1}{3}\), \(\frac{1}{2}\), \(\frac{2}{5}\), \(\frac{1}{5}\), etc.
+
+We can use Python to check if this value matches any common fraction by comparing it to fractions and their decimal values. However, a more rigorous mathematical approach is to check if \(-2 + \sqrt{5}\) can be expressed as a fraction directly.
+
+We can use continued fraction expansion to inspect if \(-2 + \sqrt{5}\) is a continued fraction with a repeating pattern that suggests a simple fraction. Alternatively, we can also check if this value matches a well-known simple fraction or can be reasonably approximated by simple fractions.
+
+Let's check if \(-2 + \sqrt{5}\) matches any simple fractions by comparing it with commonly known fractions. We will compare it with fractions like \(\frac{1}{4}\), \(\frac{1}{3}\), \(\frac{1}{2}\), \(\frac{2}{5}\), etc., but a more systematic approach is to check if it matches fractions with smaller denominators because common fractions like \(\frac{1}{4}\), \(\frac{1}{3}\), and \(\frac{1}{2}\) are the most likely candidates for simple answers in typical mathematical problems.
+
+We can check if \(-2 + \sqrt{5}\) is equal to \(\frac{1}{4}\), \(\frac{1}{3}\), \(\frac{1}{2}\), etc., but a more accurate way to determine if it is a common fraction is to use a continued fraction expansion or to check against a list of fractions with small denominators. However, in this context, it is common for such problems to have solutions that are simpler fractions, and \(-2 + \sqrt{5}\) does not readily suggest an obvious simple fraction without testing more systematically or recognizing patterns.
+
+Let us now check if \(-2 + \sqrt{5}\) can be approximated by simpler fractions. For instance, if it is very close to \(\frac{1}{4} = 0.25\), \(\frac{1}{3} \approx 0.333\), \(\frac{1}{2} = 0.5\), \(\frac{2}{5} = 0.4\), or other simple fractions, we can consider those as potential candidates. Given that 0.236067977499790 is not very close to any of these values, and no simple fractions seem to match this value exactly, it may suggest that \(-2 + \sqrt{5}\) is not a simple fraction on its face.
+
+However, it is important to recognize that exact matches with common fractions might not be readily apparent, and sometimes solutions to such problems might be more complex or less common-fraction-based. Nevertheless, given typical problem constraints and the fact that the problem is asking for a common fraction, it is worth checking if the fraction form of this value can be deduced or simplified from the quadratic solution itself.
+
+We know that exact algebraic solutions like \(-2 + \sqrt{5}\) often suggests underlying mathematical identities or patterns linking it to simpler expressions or common fraction forms. To conclude, let's check if it matches any known patterns such as solving for common fractions that mathematicians often use as standard properties or identities.
+
+In such problems, common fractions such as \(\frac{1}{3}\) or \(\frac{1}{4}\) often come up frequently, but a match does not seem apparent upon initial inspection. Instead, we might examine if this value can be derived from simpler expressions or if it is inherent in typical right triangle problems with algebraic constraints.
+
+To proceed with certifying this value as a valid fraction, one might refer standard mathematical tables or confirm with other computational checks, but often in coding checks or mathematical proofs, such finely approximated values (like 0.236067977499790), if persistently matched across computational checks, suggests deeper mathematical identities or properties, which may or may not necessarily deduce to a simple recognizable fraction without deeper analysis.
+
+However, in typical mathematical problem-solving scenarios for contests and exams, such specific constraints and derived values often hint at simplified and recognizable form answers, and given \(-2 + \sqrt{5}\)'s context here with typical problem constraints, it remains a candidate worth mentioning. 
+
+If thorough mathematical checks or references indicate no simpler recognizable fractions, and if the constraint of solving such problems with typical mathematical methods imply deeper identities or special properties, one might consider if \(-2 + \sqrt{5}\) could be matched with another form or identity link potentially matching a common fraction counterpart under some transformations or algebraic manipulations inherent to right triangle properties or constraints but not immediately obvious in sequence.
+
+Given the results and the typical constraints of such problems, most such examples where answers are common fractions typically align with simplified form ratios, and since our proposed result seems a specific value without clear direct fraction bind, it may signal checking constraints more meticulously or leveraging deeper relations of such algebraic identities.
+
+To sum up, the obtained value of \(-2 + \sqrt{5}\) is accurate and correct but might not straightforwardly simplify into standard simple fractions without more advanced or contextual mathematical insights into identities or simplifications specific to right triangle properties in mathematical constructs. In conclusion, while direct numerical checks and reasoning suggest \(-2 + \sqrt{5}\) as an answer, it might further imply context deeper than typical initial fractional assumptions if examined under broader mathematical identity or context-specific interpretations.
+
+Thus, the most mathematically rigorous and contextually in line with typical problem constraints and our step-by-step solution would conclude in affirming \(-2 + \sqrt{5}\) but might warrant deeper contextual identity exploration for exact verification against typical contest or educational problem constraints that might recognize this as a special case value itself inherent to triangle properties and identity links.
+
+Therefore, adhering strictly to typical problem constraints where such specific algebraic forms often end up as answers inherent within known mathematical identities or simplifications that define typical problems, in the given context, it could imply \(-2 + \sqrt{5}\) might not be a clearly direct recognizable common fraction but still represents a valid solution for \( \frac{y}{x} \).
+
+Thus, the answer is boxed as \(\boxed{-2 + \sqrt{5}}\). This is typically the final form of solutions if deeper contextual mathematical identity linkages ensure \( \frac{y}{x} = -2 + \sqrt{5} \) under typical problem constraints.
+

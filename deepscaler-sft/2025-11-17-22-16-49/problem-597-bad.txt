@@ -1,0 +1,48 @@
+Score: 0.0
+
+First, let's start by understanding the problem. We have a random variable $\xi$ that follows a normal distribution $N(4, 6^2)$, i.e., $\xi \sim N(4, 36)$. This means that the mean $\mu = 4$ and the standard deviation $\sigma = 6$.
+
+We are also given that $P(\xi \leq 5) = 0.89$. Our task is to find $P(\xi \leq 3)$. To do this, we will use the properties of the normal distribution and compute the z-scores for $\xi = 5$ and $\xi = 3$.
+
+1. **Calculate the Z-Score:**
+   The z-score is calculated using the formula:
+   \[
+   z = \frac{\xi - \mu}{\sigma}
+   \]
+   - For $\xi = 5$:
+     \[
+     z_1 = \frac{5 - 4}{6} = \frac{1}{6}
+     \]
+   - For $\xi = 3$:
+     \[
+     z_2 = \frac{3 - 4}{6} = -\frac{1}{6}
+     \]
+
+2. **Find the Corresponding Probability:**
+   We can use the cumulative distribution function (CDF) of the standard normal distribution to find these probabilities. Let's denote the CDF of the standard normal distribution as $\Phi(z)$. We know that $P(\xi \leq 5) = \Phi(z_1) = 0.89$. We need to find $P(\xi \leq 3) = \Phi(z_2)$.
+
+3. **Using Python and SciPy:**
+   We can use the `scipy.stats` library to compute this. Specifically, we will use the `norm` function from `scipy.stats` to get the CDF values for the z-scores.
+
+Let's implement this step-by-step in Python.
+```python
+import scipy.stats as stats
+
+# Given values
+mu = 4
+sigma = 6
+
+# Calculate the z-scores
+z1 = (5 - mu) / sigma
+z2 = (3 - mu) / sigma
+
+# Find the probabilities using the CDF of the standard normal distribution
+prob_xi_leq_5 = stats.norm.cdf(z1)
+prob_xi_leq_3 = stats.norm.cdf(z2)
+
+print(prob_xi_leq_3)
+```
+Code execution result: 0.43381616738909634
+
+So, the probability $P(\xi \leq 3)$ is $\boxed{0.4338}$. This is the final answer.
+

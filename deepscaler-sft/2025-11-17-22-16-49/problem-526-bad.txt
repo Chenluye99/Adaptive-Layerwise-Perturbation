@@ -1,0 +1,79 @@
+Score: 1.0
+
+To solve this problem, we need to check different permutations of the scores \([71, 76, 80, 82, 91]\) to find out which permutation results in the class average being an integer after each score is entered.
+
+We start with five students, so initially, the class average is 0 (since no scores have been entered yet). As each score is entered, the average is recalculated, and it must always be an integer. Let's call the five scores \(a, b, c, d, e\) in the order Mrs. Walter entered them.
+
+1. After entering the first score, the average of one number is that number itself, so it should be an integer.
+2. After entering the second score, the average of two numbers should be an integer.
+3. After entering the third score, the average of three numbers should be an integer.
+4. After entering the fourth score, the average of four numbers should be an integer.
+5. After entering the fifth score, the average of five numbers should be an integer.
+
+We will generate all permutations of the list \([71, 76, 80, 82, 91]\) and check for each permutation if the condition that the average after each score is entered is an integer is satisfied. If it is, we will determine the last score entered, as this is what the question asks for.
+
+Let's implement this step-by-step in Python:
+```python
+import itertools
+
+scores = [71, 76, 80, 82, 91]
+
+# Check all permutations of the scores
+for perm in itertools.permutations(scores):
+    averages = []
+    for i, score in enumerate(perm):
+        if i == 0:
+            average = score
+        else:
+            average = (averages[-1] * i + score) / (i + 1)
+        averages.append(average)
+        
+        # Check if the average is an integer
+        if not average.is_integer():
+            break
+    else:
+        # If we have checked all scores and the condition is satisfied, get the last score
+        last_score = perm[-1]
+        break
+
+print(last_score)
+```
+Code execution result: AttributeError: 'int' object has no attribute 'is_integer'
+It looks like there is an issue because I tried to use a method (`is_integer()`) that can be applied to `float` objects, but I am using integers directly in the code. To correct this, I will modify the approach slightly so that it checks if the average is an integer properly for all conditions. 
+
+I'll create a list to store the cumulative sum and count of scores as each score is entered and then check if the average (which is the cumulative sum divided by the count) is an integer. If it is not, we will discard that permutation and move on to the next one. 
+
+Let's implement this correct approach now:
+```python
+import itertools
+
+scores = [71, 76, 80, 82, 91]
+
+# Check all permutations of the scores
+for perm in itertools.permutations(scores):
+    is_valid = True
+    
+    cumulative_sum = 0
+    num_scores = 0
+    
+    for score in perm:
+        cumulative_sum += score
+        num_scores += 1
+        
+        average = cumulative_sum / num_scores
+        
+        # Check if the average is an integer
+        if not (average == int(average)):
+            is_valid = False
+            break
+    
+    if is_valid:
+        last_score = perm[-1]
+        break
+
+print(last_score)
+```
+Code execution result: 80
+
+Thus, the last score Mrs. Walter entered, ensuring that the average was always an integer after each score was entered, is \(\boxed{80}\). This is our final answer.
+

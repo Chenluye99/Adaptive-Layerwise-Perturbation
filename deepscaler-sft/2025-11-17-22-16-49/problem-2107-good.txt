@@ -1,0 +1,30 @@
+Score: 1.0
+
+To solve the problem, we need to compute the expression \(1 * (2 * (3 * (\dotsb (999 * 1000) \dotsb)))\) step-by-step using the operation \( * \) defined as:
+
+\[ a * b = \frac{a - b}{1 - ab}. \]
+
+We will start by computing the innermost operation \( 999 * 1000 \), then use the result to compute \( 998 * (\text{result of } 999 * 1000) \), and continue this process until we reach the final expression \( 1 * (\text{result of all previous computations}) \).
+
+Let's implement this step-by-step computation in Python.
+```python
+# We need to define the custom operation `*` and then compute it iteratively from 999 * 1000 down to 1 * (computed_result).
+
+def star_operation(a, b):
+    return (a - b) / (1 - a * b)
+
+# Initialize the result with the last operation 999 * 1000
+result = star_operation(999, 1000)
+
+# Now compute step-by-step from 988 * result up to 1 * result
+for i in range(998, 0, -1):
+    result = star_operation(i, result)
+
+print(result)
+```
+Code execution result: 1.0
+
+Thus, the final answer is:
+
+\(\boxed{1}\)
+

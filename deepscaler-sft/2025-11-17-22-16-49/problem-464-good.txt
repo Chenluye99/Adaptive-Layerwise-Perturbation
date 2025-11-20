@@ -1,0 +1,49 @@
+Score: 1.0
+
+To solve this problem, we need to simulate the daily catches of rabbits and squirrels and iterate until the condition (catching more squirrels than rabbits in a given day) is met. We then need to sum up all the rabbits caught up to that day.
+
+Let's outline the steps:
+
+1. Initialize the number of rabbits and squirrels caught on the first day.
+2. Iterate day-by-day, updating the number of rabbits and squirrels caught based on the conditions given (3 fewer rabbits and 2 more squirrels than the previous day).
+3. Continue the iteration until the number of squirrels caught in a day exceeds the number of rabbits caught in that same day.
+4. Keep track of the total number of rabbits caught up to the day when the condition is met.
+5. Return the total number of rabbits caught up to that day.
+
+Let's implement this step-by-step process in Python.
+```python
+# Initialize the starting values for the first day
+rabbits_caught = [200]
+squirrels_caught = [18]
+
+# Initialize the day counter
+day = 1
+
+# We will continue the loop until the number of squirrels caught in a day exceeds the number of rabbits caught in that same day
+while True:
+    # Calculate the number of rabbits and squirrels caught on the current day
+    rabbits_caught_today = rabbits_caught[-1] - 3
+    squirrels_caught_today = squirrels_caught[-1] + 2
+    
+    # Append the values to the lists if they are positive (since the number of caught animals can't be negative)
+    if rabbits_caught_today > 0:
+        rabbits_caught.append(rabbits_caught_today)
+    if squirrels_caught_today > 0:
+        squirrels_caught.append(squirrels_caught_today)
+    
+    # Check if the number of squirrels caught on this day is greater than the number of rabbits caught on this day
+    if squirrels_caught_today > rabbits_caught_today:
+        break
+    
+    # Move to the next day
+    day += 1
+
+# Calculate the total number of rabbits caught up to this day
+total_rabbits_caught = sum(rabbits_caught)
+
+print(total_rabbits_caught)
+```
+Code execution result: 5491
+
+Thus, the total number of rabbits caught up to the day when they caught more squirrels than rabbits is \(\boxed{5491}\). This is the final answer.
+

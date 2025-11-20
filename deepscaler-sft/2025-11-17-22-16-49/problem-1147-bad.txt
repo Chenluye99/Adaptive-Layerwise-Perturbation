@@ -1,0 +1,27 @@
+Score: 1.0
+
+To solve the problem, we need to find the remainder when \(5^{137}\) is divided by 8.
+
+To approach this, let's first take a look at the powers of 5 and see if there is a pattern when these powers are taken modulo 8.
+
+1. Calculate the first few powers of 5 and reduce them modulo 8:
+    - \(5^1 \mod 8 = 5\)
+    - \(5^2 = 25 \mod 8 = 25 \mod 8 = 1 \cdot 8 + 1 \rightarrow 1 \mod 8 = 1\)
+    - \(5^3 = 5 \cdot 5^2 = 5 \cdot 1 = 5 \mod 8 = 5\)
+    - \(5^4 = 5 \cdot 5^3 = 5 \cdot 5 = 25 \cdot 1 = 25 \mod 8 = 1 \mod 8 = 1\)
+
+We notice that \(5^2 \equiv 1 \mod 8 \) and \(5^4 \equiv 1 \mod 8 \). It appears that higher powers of 5 will cycle in a pattern based on this. Specifically, it looks like \(5^{2k} \equiv 1 \mod 8 \) and \(5^{2k+1} \equiv 5 \mod 8 \) for integers \( k \).
+
+2. Determine the exponent 137 in terms of this pattern:
+    - Since 137 is odd, \( 5^{137} \) will behave like \( 5^1, 5^3, 5^5, \ldots \) which all give a remainder of 5 when divided by 8.
+
+To validate this, let's compute it directly using Python to ensure accuracy.
+```python
+# Calculate 5^137 % 8 using Python
+remainder = pow(5, 137, 8)
+print(remainder)
+```
+Code execution result: 5
+
+Thus, the remainder when \( 5^{137} \) is divided by 8 is \(\boxed{5}\). This confirms our earlier reasoning that the pattern correctly gives us this result.
+

@@ -1,0 +1,84 @@
+Score: 1.0
+
+Let's evaluate each of the given statements for the conditions \(a < 0\), \(a < b < c\):
+
+1. \( ab < bc \)
+2. \( ac < bc \)
+3. \( ab < ac \)
+4. \( a + b < b + c \)
+5. \( \frac{c}{a} < 1 \)
+
+We will analyze each statement one by one.
+
+1. **Statement 1: \( ab < bc \)**
+   - Since \( a < b \) and both are multiplied by \( b \), this would be true if \( a \) and \( c \) had the same sign. But because \( a < 0 \) and \( c > 0 \), \( ac < 0 \) and \( bc > 0 \), so \( ab \) could be either positive or negative, while \( bc \) is always positive. So this statement is not necessarily always true because if \( b \) is positive and \( |a| > |c| \), then \( ab \) could be greater than \( bc \).
+
+2. **Statement 2: \( ac < bc \)**
+   - Since \( a < c \) and both are multiplied by \( c \), and \( a \) is negative while \( c \) is positive, \( ac \) is negative and \( bc \) is positive, so this statement is always true.
+
+3. **Statement 3: \( ab < ac \)**
+   - Since \( a < 0 \) and both are multiplied by \( a \), and because \( b < c \), if we multiply both sides of the inequality \( b < c \) by the negative number \( a \), the direction of the inequality is reversed, so the statement \( ab > ac \) is true, and not \( ab < ac \). So, this statement is not always true.
+
+4. **Statement 4: \( a + b < b + c \)**
+   - By canceling \( b \) on both sides, we get \( a < c \). Since we know \( a < 0 \), \( a < b < c \), hence \( a < c \) is always true, so this statement is always true.
+
+5. **Statement 5: \( \frac{c}{a} < 1 \)**
+   - Since \( a < 0 \) and \( c > 0 \), \(\frac{c}{a}\) is negative (because a positive number divided by a negative number is negative). Any negative number is always less than 1, so this statement is always true.
+
+Thus, we have determined that the statements that must always be true are 2, 4, and 5. We can confirm this by implementing a code to check various values of \(a, b, c\) that satisfy the conditions \(a < 0\) and \(a < b < c\).
+```python
+# Let's check various values of a, b, c to ensure our results are accurate.
+
+# Function to test the statements
+def test_statements():
+    results = []
+    
+    # Trying various values that satisfy the conditions a < 0 and a < b < c
+    test_cases = [
+        (-1, -0.5, 0),      # a = -1, b = -0.5, c = 0 but this does not satisfy a < b < c
+        (-1, 0, 1),
+        (-2, -1, 1),
+        (-10, -5, -2),
+        (-5, -2, 1),
+        (-100, -50, -25),
+        (-20, -10, -5)
+    ]
+    
+    for a, b, c in test_cases:
+        if a < 0 and a < b and b < c:
+            
+            # Evaluate each statement
+            statement_1 = (a * b < b * c)
+            statement_2 = (a * c < b * c)
+            statement_3 = (a * b < a * c)
+            statement_4 = (a + b < b + c)
+            statement_5 = (c / a < 1)
+            
+            # Append results for current case as a tuple
+            results.append((statement_1, statement_2, statement_3, statement_4, statement_5))
+    
+    return results
+
+# Test and get results
+results = test_statements()
+
+# Check if all test cases satisfy the same set of statements
+consistent_statements = set()
+for i, (s1, s2, s3, s4, s5) in enumerate(results):
+    if i == 0:
+        consistent_statements = {idx for idx, val in enumerate([s1, s2, s3, s4, s5], start=1) if val}
+    else:
+        current_set = {idx for idx, val in enumerate([s1, s2, s3, s4, s5], start=1) if val}
+        consistent_statements = consistent_statements & current_set
+
+print(consistent_statements)
+```
+Code execution result: {4, 5}
+
+So, based on our code evaluation, the statements that are always true are:
+
+4. \( a + b < b + c \)
+5. \( \frac{c}{a} < 1 \)
+
+Thus, the final answer is \(\boxed{D, E}\) where D and E correspond to the 4th and 5th statements respectively.
+

@@ -1,0 +1,32 @@
+Score: 1.0
+
+To solve this problem, we need to iterate through all the integers from 2020 to 2400 and check if each integer:
+
+1. Has four distinct digits.
+2. Has its digits in strictly increasing order.
+
+We'll use Python to ensure accuracy in checking these conditions for each number. Let's implement this step by step.
+
+### Steps:
+1. Iterate through all numbers from 2020 to 2400.
+2. For each number, check if it has four distinct digits.
+3. Check if the digits of the number are in strictly increasing order.
+4. Count how many such numbers exist.
+
+Let's implement this in Python.
+```python
+count = 0
+
+for num in range(2020, 2401):
+    str_num = str(num)
+    if len(set(str_num)) == 4:  # Check if all 4 digits are distinct
+        digits = [int(d) for d in str_num]
+        if all(x < y for x, y in zip(digits, digits[1:])):  # Check if digits are in strictly increasing order
+            count += 1
+
+print(count)
+```
+Code execution result: 15
+
+Thus, the number of integers between 2020 and 2400 that have four distinct digits arranged in increasing order is \(\boxed{15}\). This is our final answer.
+

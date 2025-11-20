@@ -1,0 +1,52 @@
+Score: 1.0
+
+Let's start by crafting a function that computes the quotient for a given number when dividing it by the sum of its digits. We will then iterate through a reasonable range of natural numbers (with at least two digits, i.e., from 10 to a chosen upper limit, say 10000, for thoroughness) to find the maximum and minimum quotients and the corresponding numbers.
+
+1. **Compute the Sum of Digits:**
+   For a given number, compute the sum of its digits.
+   
+2. **Compute the Quotient:**
+   Divide the number by the sum of its digits to get the quotient.
+   
+3. **Track Maximum and Minimum Quotients:**
+   Iterate through the range and keep track of the maximum and minimum quotients encountered, as well as the corresponding numbers.
+
+Let's write the Python code to solve this step by step.
+```python
+import numpy as np
+
+max_quotient = 0
+min_quotient = np.inf
+max_number = 0
+min_number = 0
+
+for num in range(10, 10001):
+    sum_of_digits = sum(int(digit) for digit in str(num))
+    
+    if sum_of_digits != 0:
+        quotient = num / sum_of_digits
+        
+        if quotient > max_quotient:
+            max_quotient = quotient
+            max_number = num
+        
+        if quotient < min_quotient:
+            min_quotient = quotient
+            min_number = num
+
+print(((max_number, max_quotient), (min_number, min_quotient)))
+```
+Code execution result: ((10000, 10000.0), (19, 1.9))
+
+Based on the code result, we have:
+
+- The maximum quotient is 10000.0, and it occurs for the number 10000.
+- The minimum quotient is 1.9, and it occurs for the number 19.
+
+Let's explain this a bit further if needed, but the results appear to be correct based on the code execution. To ensure completeness, let's also check if there's any other reasoning that could support or slightly change these conclusions if needed. However, generally, it makes sense because for 10000, the sum of the digits is 1, and 10000 / 1 = 10000, which is maximized. For 19, the sum of the digits is 1 + 9 = 10, and 19 / 10 = 1.9, which is minimized for two-digit numbers we considered.
+
+Thus, the final answers can be boxed as follows:
+
+- The quotient is the largest when the number is 10000, and the largest quotient is \(\boxed{10000.0}\).
+- The quotient is the smallest when the number is 19, and the smallest quotient is \(\boxed{1.9}\).
+

@@ -1,0 +1,54 @@
+Score: 1.0
+
+To solve the problem, we need to set up the equations for the surface area and then solve for the unknown side lengths. Let's denote the side lengths of the rectangular prism by \(a\), \(b\), and the height by \(h = 3\). The surface area \(S\) of the rectangular prism is given by the formula:
+
+\[ S = 2(ab + bh + ah) \]
+
+We are given that the surface area is 52, so we can write:
+
+\[ 2(ab + 3b + 3a) = 52 \]
+
+Dividing both sides by 2, we get:
+
+\[ ab + 3b + 3a = 26 \]
+
+To find the integer solutions for \(a\) and \(b\), we can iterate over possible values of \(a\) and solve for \(b\). Once we find the correct pair \((a, b)\), we can calculate the volume \(V\) of the prism using the formula:
+
+\[ V = a \cdot b \cdot h = a \cdot b \cdot 3 \]
+
+We will use Python to perform this iteration and check which pairs of \(a\) and \(b\) satisfy the equation \(ab + 3b + 3a = 26\). Let's implement this in Python.
+```python
+# We will iterate over possible integer values for a and b and check if they satisfy the equation ab + 3b + 3a = 26.
+
+solutions = []
+
+# We need to consider reasonable bounds for a and b. Since a and b are integers, we can start from 1 and go up to a reasonable upper limit.
+# We can notice that both a and b should be reasonably small because if either a or b becomes too large, the left side of the equation ab + 3b + 3a will quickly exceed 26.
+
+for a in range(1, 27):
+    for b in range(1, 27):
+        if a * b + 3 * b + 3 * a == 26:
+            solutions.append((a, b))
+
+print(solutions)
+```
+Code execution result: [(2, 4), (4, 2)]
+
+This tells us that the pairs \((a, b)\) that satisfy the equation \( ab + 3b + 3a = 26 \) are \((2, 4)\) and \((4, 2)\). Since the order of \(a\) and \(b\) does not matter (as they are just side lengths of the prism), we can use either \((2, 4)\) or \((4, 2)\) to calculate the volume of the prism. The height of the prism is 3, so we can now calculate the volume using either pair, as they are equivalent for the volume calculation (i.e., \(V = a \cdot b \cdot 3\)).
+
+Let's use \(a = 2\) and \(b = 4\) (or vice versa) to find the volume:
+
+\[ V = 2 \cdot 4 \cdot 3 = 24 \]
+
+We can confirm this by coding the volume calculation directly with these values.
+```python
+# Select one of the solutions, for example, (2, 4), to calculate the volume.
+a, b = 2, 4
+height = 3
+volume = a * b * height
+print(volume)
+```
+Code execution result: 24
+
+Thus, the volume of the prism is \(\boxed{24}\). This is confirmed by both reasoning and by the code execution.
+

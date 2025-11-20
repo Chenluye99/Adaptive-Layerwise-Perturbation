@@ -1,0 +1,49 @@
+Score: 1.0
+
+To solve this problem, we need to determine the optimal time point to swap the front and rear tires so that both tires are scrapped at the same time and the bicycle travels the maximum possible distance.
+
+Let's denote:
+- $f$ as the lifespan of the front tire in terms of distance it can travel before it gets worn out entirely (11,000 km).
+- $r$ as the lifespan of the rear tire in terms of distance it can travel before it gets worn out entirely (9,000 km).
+
+When the tires are swapped after traveling $d$ kilometers, the front tire will have traveled $d$ kilometers as the rear tire initially and the rear tire will have traveled $d$ kilometers as the front tire initially. After swapping, each tire will have an additional amount of distance left to reach its full lifespan.
+
+Let's say after swapping, both tires are scrapped at the same time after they have each traveled a total of $D$ kilometers. So, the front tire, which was initially the rear tire, would have traveled $D - d$ distance after being swapped and used as the front tire. Similarly, the rear tire, which was initially the front tire, would have traveled $D - d$ distance after being swapped and used as the rear tire.
+
+The conditions for both tires to be scrapped after some total distance $D$ are:
+- After the front tire was used as the front tire for $(D - d)$ distance, it will have traveled a total of $d + (D - d) = D$ distance, and since its lifespan is 11,000 km, this means $\frac{d}{9000} + \frac{D - d}{11000} = 1$.
+- After the rear tire was used as the rear tire for $(D - d)$ distance, it will have traveled a total of $d + (D - d) = D$ distance, and since its lifespan is 9,000 km, this means $\frac{d}{11000} + \frac{D - d}{9000} = 1$.
+
+We need to solve these two equations:
+1. $\frac{d}{9000} + \frac{D - d}{11000} = 1$
+2. $\frac{d}{11000} + \frac{D - d}{9000} = 1$
+
+Let's solve these equations step-by-step using Python.
+```python
+import sympy as sp
+
+# Define the variables
+d, D = sp.symbols('d D')
+
+# Define the equations
+eq1 = sp.Eq(d / 9000 + (D - d) / 11000, 1)
+eq2 = sp.Eq(d / 11000 + (D - d) / 9000, 1)
+
+# Solve the system of equations
+solution = sp.solve((eq1, eq2), (d, D))
+print(solution)
+```
+Code execution result: {D: 9900, d: 4950}
+
+Thus, the solution to the system of equations is:
+\[ D = 9900 \]
+\[ d = 4950 \]
+
+So, the bicycle can travel a maximum distance of 9,900 kilometers after swapping the tires once, and the optimal point to perform the swap is after 4,950 kilometers.
+
+The final answers are:
+
+\(\boxed{9900}\) (the maximum distance the bicycle can travel after swapping the tires once)
+
+\(\boxed{4950}\) (the distance after which the tires should be swapped)
+

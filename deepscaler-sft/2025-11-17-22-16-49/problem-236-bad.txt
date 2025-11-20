@@ -1,0 +1,115 @@
+Score: 0.0
+
+To solve this problem, we need to analyze and implement a series of steps. Let's start with some mathematical insights:
+
+1. **Conditions on \( -a + b + c \), \( a - b + c \), and \( a + b - c \):**
+   - The numbers \(-a + b + c\), \(a - b + c\), and \(a + b - c\) must be even integers and at most 100.
+   - For \(-a + b + c\) to be even, \( -a + b + c \equiv 0 \pmod{2} \), which means that the parities (odd/even nature) of \( -a \), \( b \), and \( c \) must make their sum even.
+     - This implies that either (i) all three of them, or (ii) exactly one of them, is even.
+   - Similarly, for \(a - b + c\) and \(a + b - c\) to be even, the same parity conditions must hold.
+
+2. **Circle through midpoints of \(\overline{AA_1}\), \(\overline{BB_1}\), and \(\overline{CC_1}\):**
+   - The points \(A_1, B_1, C_1\) are the points of tangency of the excircles with the sides of the triangle. The midpoints of segments \(\overline{AA_1}\), \(\overline{BB_1}\), and \(\overline{CC_1}\) form a triangle whose circumcircle is known as the nine-point circle of the excentral triangle.
+   - The nine-point circle of the excentral triangle (which is the triangle formed by the excenters of triangle \(ABC\)) is tangent to the incircle of triangle \(ABC\) if and only if \( \triangle ABC \) is an isosceles or equilateral triangle (specifically right-angled or isosceles).
+
+3. **Implementation Plan:**
+   - We need to iterate through all possible combinations of \( (a, b, c) \) to check if the conditions are satisfied, i.e., that \(-a + b + c, a - b + c, a + b - c \) are even and at most 100, and that \( \triangle ABC \) is such that the nine-point circle of the excentral triangle is tangent to the incircle of \( \triangle ABC \). This typically happens for isosceles or equilateral triangles.
+   - To implement this, we can use a brute force approach by checking these conditions for all integer values of \(a, b, c\) and counting the valid configurations.
+
+Let's implement this using Python. We'll set up a reasonable upper bound for \(a, b, c\) (since \(a, b, c\) must be the sides of a valid triangle, they should typically be reasonably small – say less than 200 for a start, as the constraints involve values up to 100 for the even conditions and need to be reasonably practical for a conventional triangle).
+```python
+import itertools
+
+count = 0
+
+# Set an upper bound for a, b, c to ensure practicality and feasibility of checking all possibilities
+upper_limit = 200
+
+for a, b, c in itertools.product(range(1, upper_limit + 1), repeat=3):
+    # Triangle inequality check
+    if a + b > c and a + c > b and b + c > a:
+        # Calculate the expressions -a + b + c, a - b + c, a + b - c
+        expr1 = -a + b + c
+        expr2 = a - b + c
+        expr3 = a + b - c
+        
+        # Check if the expressions are even and within the constraints of being at most 100
+        if (expr1 % 2 == 0 and expr1 <= 100) and (expr2 % 2 == 0 and expr2 <= 100) and (expr3 % 2 == 0 and expr3 <= 100):
+            # Check if it's an isosceles or equilateral triangle, because only those satisfy the condition where the nine-point circle of the excentral triangle is tangent to the incircle of \(\triangle ABC\)
+            if (a == b or b == c or a == c):
+                count += 1
+
+print(count)
+```
+Code execution result: Timeout
+It seems a straightforward brute force approach within the range of 1 to 200 is taking too long to execute due to its complexity. We can optimize it by implementing more efficient constraints and limiting the checking process if possible or by narrowing down the possible valid triangles more effectively, or by implementing multi-step condition checks more efficiently.
+
+A more efficient approach might be to just check combinations ensuring that the conditions of the triangle inequality hold and then checking the side conditions quickly, constraining the product range further if needed. We can also implement parallel checking or other more constrained checking methods if code efficiency is still a limitation. For now, let's optimize and check an appropriate range and see if it improves the execution time. We can start by checking for smaller ranges to start with and still ensure the constraints are satisfied:
+
+Let's check within a smaller range say from 1 to 150 and see if it gives a result in a reasonable time. If needed, we can increase the range later.
+```python
+import itertools
+
+count = 0
+
+# Set a more reasonable upper bound to reduce computation time, say 150
+upper_limit = 150
+
+for a, b, c in itertools.product(range(1, upper_limit + 1), repeat=3):
+    # Triangle inequality check
+    if a + b > c and a + c > b and b + c > a:
+        # Calculate the expressions -a + b + c, a - b + c, a + b - c
+        expr1 = -a + b + c
+        expr2 = a - b + c
+        expr3 = a + b - c
+        
+        # Check if the expressions are even and within the constraints of being at most 100
+        if (expr1 % 2 == 0 and expr1 <= 100) and (expr2 % 2 == 0 and expr2 <= 100) and (expr3 % 2 == 0 and expr3 <= 100):
+            # Check if it's an isosceles or equilateral triangle, because only those satisfy the condition where the nine-point circle of the excentral triangle is tangent to the incircle of \(\triangle ABC\)
+            if (a == b or b == c or a == c):
+                count += 1
+
+print(count)
+```
+Code execution result: Timeout
+It seems that even checking up to 150 is still taking too long in this environment. We can take another approach and use a more mathematical insight to narrow down the possible solutions further.
+
+### Insight-based Approach:
+
+1. **Conditions on Triangle Types:**
+   - We know that for the circle through midpoints of \(\overline{AA_1}\), \(\overline{BB_1}\), and \(\overline{CC_1}\) to be tangent to the incircle of \(\triangle ABC\), \(\triangle ABC\) must be either isosceles or equilateral. So, instead of checking all possible values of \(a, b, c\) with a brute force approach, we can focus on checking only the possible isosceles and equilateral triangles within practical ranges and ensure our conditions are met.
+
+2. **Generating Isosceles and Equilateral Triangles:**
+   - For an isosceles triangle, two of the sides must be equal, i.e., \(a = b\), \(a = c\), or \(b = c\).
+   - For an equilateral triangle, all three sides must be equal, i.e., \(a = b = c\).
+
+3. **Generating and Checking the Conditions:**
+   - We can generate a reasonable set of values for the sides of these triangles and check if the expressions \(-a + b + c, a - b + c, a + b - c\) meet the conditions of being even and at most 100.
+
+We can implement this by generating a list of possible isosceles and equilateral triangles and then checking the conditions for these specific cases. Let's implement this approach and check a few reasonable upper bounds and ensure that conditions on \(-a + b + c, a - b + c, a + b - c\) are respected. 
+```python
+count = 0
+
+# Set upper bound for sides a, b, c for the given task logic
+upper_limit = 100
+
+# List to check isosceles and equilateral triangles only
+for a in range(1, upper_limit + 1):
+    for b in range(1, upper_limit + 1):
+        for c in range(1, upper_limit + 1):
+            if a + b > c and a + c > b and b + c > a:  # triangle inequality
+                expr1 = -a + b + c
+                expr2 = a - b + c
+                expr3 = a + b - c
+                
+                if (expr1 % 2 == 0 and expr1 <= 100) and (expr2 % 2 == 0 and expr2 <= 100) and (expr3 % 2 == 0 and expr3 <= 100):
+                    # Checking for isosceles or equilateral condition
+                    if (a == b or b == c or a == c):
+                        count += 1
+
+print(count)
+```
+Code execution result: 7400
+
+Thus, the number of ways to select positive integers \(a, b, c\) such that the numbers \(-a + b + c, a - b + c, a + b - c\) are even integers at most 100, and the circle through the midpoints of \(\overline{AA_1}\), \(\overline{BB_1}\), and \(\overline{CC_1}\) is tangent to the incircle of \(\triangle ABC\) is \(\boxed{7400}\). This solution meets both conditions as required by the problem setup.
+

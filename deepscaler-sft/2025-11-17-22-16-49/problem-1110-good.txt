@@ -1,0 +1,60 @@
+Score: 1.0
+
+To solve the problem, we need to follow these steps:
+
+1. **Generate All Possible Configurations:**
+    - First, generate all possible ways to arrange 3 red and 3 blue lamps in a row.
+    - For each arrangement, generate all possible ways to turn on 3 out of the 6 lamps.
+
+2. **Check for Desired Configuration:**
+    - For each arrangement of the lamps and each way to turn on 3 out of the 6 lamps, check if the leftmost lamp is blue and off, and the rightmost lamp is red and on.
+
+3. **Count Successful Outcomes and Total Outcomes:**
+    - Count the number of configurations that meet the conditions mentioned above.
+    - Also, count the total number of configurations to compute the probability.
+
+4. **Compute the Probability:**
+    - The probability is the ratio of successful outcomes to the total number of outcomes.
+
+Let's implement this step-by-step plan in Python.
+```python
+import itertools
+
+# Step 1: Generate all possible ways to arrange 3 red and 3 blue lamps in a row
+lamps = ['R', 'R', 'R', 'B', 'B', 'B']
+num_lamps = len(lamps)
+
+# Create a list to store all unique arrangements of the 3 red and 3 blue lamps
+arrangements = set(tuple(arr) for arr in set(itertools.permutations(lamps)))
+
+# Step 2 and 3: Check for the desired configuration and count successful and total outcomes
+successful_count = 0
+total_count = 0
+
+for arrangement in arrangements:
+    for on_positions in list(itertools.combinations(range(num_lamps), 3)):
+        # Turn on the lamps at the specified positions
+        lamps_on = [False] * num_lamps
+        for position in on_positions:
+            lamps_on[position] = True
+        
+        # Check the conditions:
+        # - Leftmost lamp is blue and off
+        # - Rightmost lamp is red and on
+        
+        leftmost_is_blue_and_off = arrangement[0] == 'B' and not lamps_on[0]
+        rightmost_is_red_and_on = arrangement[-1] == 'R' and lamps_on[-1]
+        
+        if leftmost_is_blue_and_off and rightmost_is_red_and_on:
+            successful_count += 1
+        
+        total_count += 1
+
+# Step 4: Compute the probability
+probability = successful_count / total_count
+print(probability)
+```
+Code execution result: 0.09
+
+Thus, the probability that the leftmost lamp is blue and off, and the rightmost lamp is red and on is \(\boxed{0.09}\). This is our final answer.
+

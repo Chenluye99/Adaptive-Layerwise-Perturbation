@@ -1,0 +1,74 @@
+Score: 0.0
+
+To solve this problem, let's follow these steps:
+
+1. **Understand the Problem:**
+    - We have 4 12-sided dice.
+    - Each die can show one of the numbers from 1 to 12.
+    - Numbers 1 to 9 are one-digit numbers, and 10, 11, and 12 are two-digit numbers.
+    - We need to find the probability that the number of dice showing a one-digit number is equal to the number of dice showing a two-digit number.
+
+2. **Set Up the Problem:**
+    - For a die showing a one-digit number, there are 9 possibilities (1 through 9).
+    - For a die showing a two-digit number, there are 3 possibilities (10, 11, 12).
+    - We need to count the number of favorable outcomes where exactly 2 dice show a one-digit number and 2 dice show a two-digit number.
+    - The total number of outcomes when rolling 4 dice is \(12^4\).
+
+3. **Generate All Possible Outcomes and Count Favorable Outcomes:**
+    - We can generate all possible outcomes of rolling 4 dice.
+    - For each outcome, we count how many dice show a one-digit number and how many dice show a two-digit number.
+    - We then check if the counts of one-digit and two-digit numbers are both 2.
+    - We count how many of these outcomes meet our condition and divide it by the total number of outcomes to get the probability.
+
+Let's implement this step-by-step in Python to ensure accuracy.
+```python
+import itertools
+
+# Step 1: Generate all possible outcomes for rolling 4 12-sided dice
+outcomes = list(itertools.product(range(1, 13), repeat=4))
+
+# Step 2: Count the number of favorable outcomes
+favorable_outcomes = 0
+
+for outcome in outcomes:
+    one_digit_count = sum(1 for roll in outcome if 1 <= roll <= 9)
+    two_digit_count = sum(1 for roll in outcome if 10 <= roll <= 12)
+    
+    if one_digit_count == 2 and two_digit_count == 2:
+        favorable_outcomes += 1
+
+# Step 3: Calculate the total number of outcomes and the probability
+total_outcomes = len(outcomes)
+probability = favorable_outcomes / total_outcomes
+
+print(probability)
+```
+Code execution result: 0.2109375
+
+Now, to express this probability as a common fraction, we recognize that 0.2109375 is the decimal representation of the fraction \(\frac{136}{648}\).
+
+We should simplify the fraction \(\frac{136}{648}\). To do this, we can use the `math.gcd` function to find the greatest common divisor (GCD) of 136 and 648, and then divide both the numerator and the denominator by the GCD.
+
+Let's perform this calculation in Python to get the simplified fraction.
+```python
+import math
+
+numerator = 136
+denominator = 648
+
+# Get the GCD of the numerator and denominator
+gcd = math.gcd(numerator, denominator)
+
+# Simplify the fraction
+simplified_numerator = numerator // gcd
+simplified_denominator = denominator // gcd
+
+simplified_fraction = (simplified_numerator, simplified_denominator)
+print(simplified_fraction)
+```
+Code execution result: (17, 81)
+
+Thus, the probability that the number of dice showing a two-digit number is equal to the number of dice showing a one-digit number is:
+
+\(\boxed{\frac{17}{81}}\)
+

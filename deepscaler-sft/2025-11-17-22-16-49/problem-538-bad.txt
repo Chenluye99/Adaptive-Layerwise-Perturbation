@@ -1,0 +1,46 @@
+Score: 0.0
+
+To solve the problem, we need to generate the sequence \(a_n\) and check for the first \(n\) such that \(a_n\) is divisible by 99.
+
+We start with \(a_1 = 24\) and then use the recursive formula \(a_n = 100a_{n-1} + 134\) to generate subsequent terms of the sequence. We then need to check for each term if it is divisible by 99.
+
+Let's write some Python code to solve this step-by-step.
+
+1. Initialize \(a_1 = 24\).
+2. Use the recursive formula to generate subsequent terms of the sequence.
+3. Check if the current term is divisible by 99.
+4. Continue until we find the first term that satisfies this condition, and return that value of \(n\).
+
+Let's implement this logic in Python.
+```python
+# Initialize the first term
+a_1 = 24
+
+# Initialize the sequence list with the first term
+sequence = [a_1]
+
+# Generate subsequent terms using the recursive formula and check for divisibility by 99
+n = 1
+while True:
+    # Get the last term in the sequence
+    a_n_minus_1 = sequence[-1]
+    
+    # Generate the next term using the recursive formula
+    a_n = 100 * a_n_minus_1 + 134
+    
+    # Append the new term to the sequence list
+    sequence.append(a_n)
+    
+    # Check if the current term is divisible by 99
+    if a_n % 99 == 0:
+        break
+    
+    # Move to the next term
+    n += 1
+
+print(n)
+```
+Code execution result: 87
+
+Thus, the least value of \( n \) for which \( a_n \) is divisible by 99 is \(\boxed{87}\). This is our final answer.
+

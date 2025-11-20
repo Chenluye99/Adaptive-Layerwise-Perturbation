@@ -1,0 +1,72 @@
+Score: 1.0
+
+First, let's represent the complex number $\sqrt{2} - 5 \sqrt{2} i$ and then apply a 135° counterclockwise rotation around the origin.
+
+### Step-by-Step Solution:
+
+1. **Represent the Complex Number:**
+   The given complex number is $\sqrt{2} - 5 \sqrt{2} i$. In general, a complex number $z$ can be represented as $z = a + bi$, where $a$ and $b$ are real numbers, and in our case, $a = \sqrt{2}$ and $b = -5 \sqrt{2}$.
+
+2. **Rotation of a Complex Number:**
+   A rotation of a complex number $z$ by an angle $\theta$ around the origin is given by multiplying $z$ by $e^{i \theta}$. For a 135° (or $\frac{3\pi}{4}$ radians) rotation, we have:
+   \[
+   e^{i \cdot \frac{3\pi}{4}} = \cos \left( \frac{3 \pi}{4} \right) + i \sin \left( \frac{3 \pi}{4} \right)
+   \]
+   We know that:
+   \[
+   \cos \left( \frac{3 \pi}{4} \right) = -\frac{\sqrt{2}}{2}, \quad \sin \left( \frac{3 \pi}{4} \right) = \frac{\sqrt{2}}{2}
+   \]
+   Therefore:
+   \[
+   e^{i \cdot \frac{3\pi}{4}} = -\frac{\sqrt{2}}{2} + i \frac{\sqrt{2}}{2}
+   \]
+
+3. **Apply the Rotation:**
+   To rotate the complex number $\sqrt{2} - 5 \sqrt{2} i$ by 135°, we multiply it by $e^{i \cdot \frac{3\pi}{4}}$:
+   \[
+   z_{\text{rotated}} = (\sqrt{2} - 5 \sqrt{2} i) \cdot \left( -\frac{\sqrt{2}}{2} + i \frac{\sqrt{2}}{2} \right)
+   \]
+
+4. **Perform the Multiplication:**
+   Let's do this multiplication step-by-step using Python to ensure accuracy.
+```python
+import cmath
+
+# Define the original complex number
+z = complex(sqrt(2), -5 * sqrt(2))
+
+# Define the rotation angle
+theta = 135 / 180 * cmath.pi
+
+# Get the rotation factor
+rotation_factor = cmath.exp(1j * theta)
+
+# Perform the rotation
+z_rotated = z * rotation_factor
+print(z_rotated)
+```
+Code execution result: NameError: name 'sqrt' is not defined
+It appears there was an issue because the `sqrt` function is not recognized in this context. I'll make sure to use `math.sqrt` to get the square root value properly. Let's correct this and proceed with the code.
+```python
+import cmath
+import math
+
+# Define the original complex number
+z = complex(math.sqrt(2), -5 * math.sqrt(2))
+
+# Define the rotation angle in radians
+theta = 135 / 180 * cmath.pi
+
+# Get the rotation factor
+rotation_factor = cmath.exp(1j * theta)
+
+# Perform the rotation
+z_rotated = z * rotation_factor
+print(z_rotated)
+```
+Code execution result: (4.000000000000001+6j)
+
+Thus, the resulting complex number after a 135° counterclockwise rotation of $\sqrt{2} - 5 \sqrt{2} i$ around the origin is:
+
+\(\boxed{4 + 6i}\)
+

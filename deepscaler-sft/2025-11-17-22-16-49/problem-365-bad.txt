@@ -1,0 +1,42 @@
+Score: 1.0
+
+To solve this problem, we need to determine the probability that the two numbers rolled on a standard 6-sided die differ by 2.
+
+1. **List Out All Possible Outcomes:**
+    - When rolling a 6-sided die twice, there are \(6 \times 6 = 36\) possible outcomes.
+    
+2. **Identify Favorable Outcomes:**
+    - We need to identify which of these 36 outcomes have numbers that differ by 2.
+    - We will check each pair \((i, j)\) where \(i\) is the result of the first roll and \(j\) is the result of the second roll, and see if \(|i - j| = 2\).
+
+3. **Count the Favorable Outcomes:**
+    - We need to go through all pairs and count those that satisfy the condition \(|i - j| = 2\).
+    - The pairs that satisfy this condition are: \((1, 3), (2, 4), (3, 1), (3, 5), (4, 2), (4, 6), (5, 3), (6, 4)\).
+
+4. **Calculate the Probability:**
+    - The probability is the number of favorable outcomes divided by the total number of outcomes (36).
+
+Let's implement this step-by-step using Python to ensure accuracy.
+```python
+# Initialize a counter for the number of favorable outcomes
+favorable_outcomes = 0
+
+# Loop through all possible outcomes of rolling a 6-sided die twice
+for i in range(1, 7):
+    for j in range(1, 7):
+        if abs(i - j) == 2:
+            favorable_outcomes += 1
+
+# Calculate the probability as a fraction
+total_outcomes = 36
+probability = favorable_outcomes / total_outcomes
+
+# Return the result as a fraction
+from fractions import Fraction
+probability_fraction = Fraction(favorable_outcomes, total_outcomes)
+print(probability_fraction)
+```
+Code execution result: 2/9
+
+Thus, the probability that the integers rolled on the first two rolls of a standard 6-sided die differ by 2 is \(\boxed{\frac{2}{9}}\). This is our final answer.
+

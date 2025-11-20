@@ -1,0 +1,59 @@
+Score: 1.0
+
+First, let's set up the problem and use some geometric properties along with Python to ensure our result is accurate.
+
+### Step-by-Step Solution
+
+1. **Identify the Triangle Properties:**
+    - We have a right triangle with angles of 30°, 60°, and 90°.
+    - For a right triangle with angles 30° and 60°, the sides are in the ratio \(1 : \sqrt{3} : 2\). So, if we let the shorter leg be \(a\), the longer leg will be \(a \cdot \sqrt{3}\), and the hypotenuse will be \(2a\).
+
+2. **Utilize the Altitude to the Hypotenuse:**
+    - The altitude to the hypotenuse in a right triangle creates two smaller right triangles that are similar to each other and to the original triangle.
+    - The length of the altitude to the hypotenuse of a right triangle can be given by the formula involving the legs of the triangle: \( h = \frac{a \cdot b}{c} \), where \( a \) and \( b \) are the legs and \( c \) is the hypotenuse.
+    - But for a 30-60-90 triangle, there is a more straightforward relationship using properties of similar triangles and trigonometric ratios. The altitude to the hypotenuse for such a triangle can be expressed in terms of the legs.
+
+3. **Relationship Involving Altitude of 3 Units:**
+    - For a 30-60-90 triangle, the altitude (let's call it \( h \)) to the hypotenuse when the legs are scaled appropriately, can be derived as \( h = \frac{a \cdot \sqrt{3}}{2} \).
+    - Given that this altitude is 3 units, we can set up the equation: \[ \frac{a \cdot \sqrt{3}}{2} = 3. \]
+    - Solving for \( a \):
+      \[
+      a \cdot \sqrt{3} = 6 \implies a = \frac{6}{\sqrt{3}} = 2 \sqrt{3}.
+      \]
+
+4. **Find the Legs of the Triangle:**
+    - Now that we have \( a = 2 \sqrt{3} \), the other leg would be \( a \cdot \sqrt{3} = (2 \sqrt{3}) \cdot \sqrt{3} = 2 \cdot 3 = 6 \).
+    - The hypotenuse of the triangle would be \( 2a = 2 \cdot 2 \sqrt{3} = 4 \sqrt{3} \).
+
+5. **Compute the Area of the Triangle:**
+    - The area \( A \) of a right triangle is given by \( \frac{1}{2} \times \text{leg}_1 \times \text{leg}_2 \).
+    - Substituting the values of the legs, we get:
+      \[
+      \text{Area} = \frac{1}{2} \times 2 \sqrt{3} \times 6 = \frac{1}{2} \times 12 \sqrt{3} = 6 \sqrt{3}.
+      \]
+
+Let's confirm this with Python to ensure the accuracy of our solution.
+```python
+import sympy as sp
+
+# Let's define the variables and solve the equation
+a = sp.symbols('a', positive=True)
+
+# The equation derived from the altitude condition
+altitude_eq = (a * sp.sqrt(3)) / 2 - 3
+
+# Solve for 'a'
+a_value = sp.solve(altitude_eq, a)[0]
+
+# Now, compute the other leg and the hypotenuse
+other_leg = a_value * sp.sqrt(3)
+hypotenuse = 2 * a_value
+
+# Calculate the area of the triangle
+area = (1/2) * a_value * other_leg
+print(area)
+```
+Code execution result: 6.0*sqrt(3)
+
+Thus, the area of the triangle is \(\boxed{6 \sqrt{3}}\). This confirms that our solution is accurate.
+

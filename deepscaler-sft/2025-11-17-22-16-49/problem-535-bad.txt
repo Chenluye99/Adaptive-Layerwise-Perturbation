@@ -1,0 +1,41 @@
+Score: 0.0
+
+To solve this problem, we need to find the initial number of chess pieces that form a solid rectangular dot matrix on a Go board with 19 × 19 grid points. Let's denote the dimensions of the original solid rectangular matrix as \(a \times b\). The number of chess pieces in this matrix is \(a \cdot b\).
+
+After adding 45 more chess pieces, the dimensions of the matrix become either \(a \times c\) or \(b \times c\) (where \(c\) is the new dimension along the other side, and the dimension that was unchanged remains the same). So, the new number of chess pieces is \(a \cdot c\) or \(b \cdot c\).
+
+We know that the difference in the number of pieces between the new matrix and the original matrix is 45:
+
+\[ a \cdot c = a \cdot b + 45 \quad \text{or} \quad b \cdot c = a \cdot b + 45 \]
+
+This means that either \(a \cdot c - a \cdot b = 45\) or \(b \cdot c - a \cdot b = 45\), which simplifies to:
+
+\[ a(c - b) = 45 \quad \text{or} \quad b(c - a) = 45 \]
+
+We need to find all possible pairs \((a, b)\) such that \(1 \leq a, b \leq 19\), and then check for possible values of \(c\) so that the new matrix dimensions are valid (i.e., \(1 \leq c \leq 19\)).
+
+To maximize the original number of chess pieces, we need to maximize \(a \cdot b\) under the above constraints. We will iterate through all possible pairs \((a, b)\) and check if there exists an integer \(c\) that satisfies the conditions and maximizes \(a \cdot b\).
+
+Let's write the Python code to solve this step-by-step.
+```python
+max_original_pieces = 0
+
+for a in range(1, 20):
+    for b in range(1, 20):
+        original_pieces = a * b
+        for c in range(1, 20):
+            if (a * c == original_pieces + 45):
+                if (1 <= c <= 19):
+                    if (a == b or b == c or a == c):  # Ensure we have a valid rectangle transformation
+                        max_original_pieces = max(max_original_pieces, original_pieces)
+            elif (b * c == original_pieces + 45):
+                if (1 <= c <= 19):
+                    if (a == b or b == c or a == c):  # Ensure we have a valid rectangle transformation
+                        max_original_pieces = max(max_original_pieces, original_pieces)
+
+print(max_original_pieces)
+```
+Code execution result: 225
+
+Thus, the maximum number of chess pieces that Little Tiger originally used is \(\boxed{225}\). This is the final answer.
+

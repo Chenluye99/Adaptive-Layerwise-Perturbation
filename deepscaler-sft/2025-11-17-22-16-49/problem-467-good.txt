@@ -1,0 +1,52 @@
+Score: 1.0
+
+To solve this problem, we need to determine the values of the digits \( P, Q, R, S, \) and \( T \) that make the equation valid, and then compute their sum.
+
+The given equation is:
+
+\[
+\begin{array}{rrrrr}
+7 & Q & 2 & S & T \\
+-P & 3 & R & 9 & 6 \\
+\hline
+2 & 2 & 2 & 2 & 2 
+\end{array}
+\]
+
+This translates to the equation:
+
+\[
+7Q2S T - P3R96 = 22222
+\]
+
+We'll iterate through all possible values for the digits \( P, Q, R, S, T \) (from 0 to 9) and check which combination satisfies this equation. Once we find the correct values, we will compute the sum \( P + Q + R + S + T \).
+
+Let's implement this step-by-step using Python.
+```python
+# We'll iterate through all possible values for P, Q, R, S, T (0 through 9) and check which combination satisfies the equation
+
+for P in range(1, 10):  # P must be a digit such that 7Q2ST - P3R96 = 22222, so P can't be 0 (because it should be a four-digit number minus another four-digit number to get 22222, so the leading digit of the minuend must be 7)
+    for Q in range(10):
+        for R in range(10):
+            for S in range(10):
+                for T in range(10):
+                    num1 = 70000 + Q * 1000 + 2 * 100 + S * 10 + T
+                    num2 = P * 10000 + 3 * 1000 + R * 100 + 9 * 10 + 6
+                    if num1 - num2 == 22222:
+                        solution = (P, Q, R, S, T)
+                        break
+
+print((solution, sum(solution)))
+```
+Code execution result: ((5, 6, 9, 1, 8), 29)
+
+Thus, the values that solve the equation are \( P = 5 \), \( Q = 6 \), \( R = 9 \), \( S = 1 \), and \( T = 8 \). The sum of these values is:
+
+\[
+P + Q + R + S + T = 5 + 6 + 9 + 1 + 8 = 29
+\]
+
+So, the final answer is:
+
+\(\boxed{29}\)
+

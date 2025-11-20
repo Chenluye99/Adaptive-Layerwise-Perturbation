@@ -1,0 +1,55 @@
+Score: 1.0
+
+To solve the problem, we need to find all pairs of integers \((m, n)\) such that \(\gcd(m, n) = 2\) and \(\mathop{\text{lcm}}[m, n] = 108\). We can use the relationship between the GCD and LCM of two numbers: \[ m \cdot n = \gcd(m, n) \cdot \mathop{\text{lcm}}[m, n]. \]
+
+Given \(\gcd(m, n) = 2\) and \(\mathop{\text{lcm}}[m, n] = 108\), we substitute these values in to get:
+\[ m \cdot n = 2 \cdot 108 = 216. \]
+
+So, we have:
+\[ m \cdot n = 216. \]
+
+Since \(\gcd(m, n) = 2\), both \(m\) and \(n\) must be even. Let \( m = 2a \) and \( n = 2b \), where \(\gcd(a, b) = 1\). Substituting \( m = 2a \) and \( n = 2b \) into the equation \( m \cdot n = 216 \), we get:
+\[ (2a) \cdot (2b) = 216 \implies 4ab = 216 \implies ab = 54. \]
+
+Now, we need to find all pairs of positive integers \((a, b)\) such that \(\gcd(a, b) = 1\) and \( ab = 54 \). We can list the factor pairs of 54 and then check which of these pairs have \(\gcd = 1\):
+
+The factor pairs of 54 are:
+\[ (1, 54), (2, 27), (3, 18), (6, 9). \]
+
+We need to check which of these pairs have \(\gcd = 1\):
+- \(\gcd(1, 54) = 1\)
+- \(\gcd(2, 27) = 1\)
+- \(\gcd(3, 18) = 3 \neq 1\)
+- \(\gcd(6, 9) = 3 \neq 1\)
+
+Thus, the valid pairs \((a, b)\) are \((1, 54)\) and \((2, 27)\).
+
+For each valid pair \((a, b)\), we get the corresponding \((m, n)\) as \((2a, 2b)\):
+1. For \((a, b) = (1, 54)\), we get \((m, n) = (2 \cdot 1, 2 \cdot 54) = (2, 108)\).
+2. For \((a, b) = (54, 1)\), we get \((m, n) = (2 \cdot 54, 2 \cdot 1) = (108, 2)\).
+3. For \((a, b) = (2, 27)\), we get \((m, n) = (2 \cdot 2, 2 \cdot 27) = (4, 54)\).
+4. For \((a, b) = (27, 2)\), we get \((m, n) = (2 \cdot 27, 2 \cdot 2) = (54, 4)\).
+
+We must ensure that we check all possible orderings and eliminate duplicates if necessary. We'll implement this logic in Python to make sure we haven't missed any other valid pairs and to avoid duplicates or miscounts.
+
+Let's write the Python code to find all pairs and ensure we have the correct count.
+```python
+import math
+
+# Initialize a list to store valid (m, n) pairs
+valid_pairs = []
+
+# Check all pairs (m, n) such that 1 <= m, n <= 108 (since lcm(m, n) = 108, both m and n should be in this range)
+for m in range(1, 109):
+    for n in range(1, 109):
+        if math.gcd(m, n) == 2 and math.lcm(m, n) == 108:
+            valid_pairs.append((m, n))
+
+# Return the count of valid pairs
+num_valid_pairs = len(valid_pairs)
+print(num_valid_pairs)
+```
+Code execution result: 4
+
+Thus, the number of ordered pairs of positive integers \((m, n)\) that satisfy \(\gcd(m, n) = 2\) and \(\mathop{\text{lcm}}[m, n] = 108\) is \(\boxed{4}\). This confirms that our reasoning and code implementation are correct.
+

@@ -1,0 +1,66 @@
+Score: 1.0
+
+To solve this problem, we need to determine the domain of the composite function \( p(q(x)) \). 
+
+1. **Define the Functions:**
+    - \( p(x) = \sqrt{-x} \)
+    - \( q(x) = 8x^2 + 10x - 3 \)
+
+2. **Form the Composite Function:**
+    - The composite function \( p(q(x)) = \sqrt{-(8x^2 + 10x - 3)} \).
+    - For \( p(q(x)) \) to be defined, the expression inside the square root must be non-negative, i.e., \( -(8x^2 + 10x - 3) \geq 0 \).
+    - This is equivalent to \( 8x^2 + 10x - 3 \leq 0 \).
+
+3. **Find the Roots of the Quadratic Equation:**
+    - To solve \( 8x^2 + 10x - 3 \leq 0 \), we first find the roots of the equation \( 8x^2 + 10x - 3 = 0 \).
+    - We can use the quadratic formula \( x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} \) where \( a = 8 \), \( b = 10 \), and \( c = -3 \).
+
+Let's compute the roots:
+
+\[
+x = \frac{-10 \pm \sqrt{10^2 - 4 \cdot 8 \cdot (-3)}}{2 \cdot 8} = \frac{-10 \pm \sqrt{100 + 96}}{16} = \frac{-10 \pm \sqrt{196}}{16} = \frac{-10 \pm 14}{16}
+\]
+
+This gives us two solutions:
+
+\[
+x = \frac{4}{16} = \frac{1}{4}, \quad x = \frac{-24}{16} = -\frac{3}{2}
+\]
+
+4. **Determine the Interval:**
+    - The quadratic expression \( 8x^2 + 10x - 3 \) is a parabola that opens upwards (since the coefficient of \( x^2 \) is positive), so it is non-positive between its roots. Therefore, the inequality \( 8x^2 + 10x - 3 \leq 0 \) is satisfied for:
+
+\[
+-\frac{3}{2} \leq x \leq \frac{1}{4}
+\]
+
+So, the domain of \( p(q(x)) \) is \( -\frac{3}{2} \leq x \leq \frac{1}{4} \). This means \( a = -\frac{3}{2} \) and \( b = \frac{1}{4} \).
+
+5. **Find \( b - a \):**
+    - We need to calculate \( b - a = \frac{1}{4} - \left( -\frac{3}{2} \right) = \frac{1}{4} + \frac{3}{2} = \frac{1}{4} + \frac{6}{4} = \frac{7}{4} \).
+
+Let's implement this in Python to confirm our results.
+```python
+import sympy as sp
+
+# Define the variables and functions
+x = sp.symbols('x')
+p = sp.sqrt(-x)
+q = 8 * x**2 + 10 * x - 3
+
+# Form the composite function p(q(x))
+composite_function = p.subs(x, q)
+
+# Find the domain of p(q(x))
+domain_condition = - (8 * x**2 + 10 * x - 3) >= 0
+solution = sp.solve_univariate_inequality(domain_condition, x, relational=False)
+
+# Get the boundaries of the solution interval
+a, b = solution.start, solution.end
+result = b - a
+print(result)
+```
+Code execution result: 7/4
+
+Thus, the value of \( b - a \) is \(\boxed{\frac{7}{4}}\). This confirms that our solution is accurate.
+

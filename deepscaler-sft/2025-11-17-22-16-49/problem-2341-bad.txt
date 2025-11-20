@@ -1,0 +1,39 @@
+Score: 1.0
+
+To solve the problem, let's start by setting up the equations based on the problem statement.
+
+1. **Problem Understanding:**
+    - The square of \(a\) and the square root of \(b\) vary inversely. This means that:
+      \[
+      a^2 \cdot \sqrt{b} = k
+      \]
+      where \(k\) is a constant.
+    - We are given that \(a = 2\) when \(b = 81\). Substituting these values into the equation, we get:
+      \[
+      2^2 \cdot \sqrt{81} = k \implies 4 \cdot 9 = k \implies k = 36
+      \]
+    - Now, we need to find the value of \(b\) when \(ab = 48\). We can substitute \(a = \frac{48}{b}\) into the inverse relationship equation:
+      \[
+      \left(\frac{48}{b}\right)^2 \cdot \sqrt{b} = 36
+      \]
+
+2. **Formulating and Solving the Equation:**
+    - Let's solve this step-by-step using Python to find the accurate value of \(b\).
+```python
+import sympy as sp
+
+# Define the variables
+b = sp.symbols('b', positive=True)
+
+# Equation derived from the problem
+a = 48 / b
+equation = (a)**2 * sp.sqrt(b) - 36
+
+# Solve for b
+solution = sp.solve(equation, b)
+print(solution)
+```
+Code execution result: [16]
+
+Thus, the value of \( b \) when \( ab = 48 \) is \(\boxed{16}\). This is our final answer.
+

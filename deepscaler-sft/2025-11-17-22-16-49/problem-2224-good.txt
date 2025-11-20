@@ -1,0 +1,52 @@
+Score: 1.0
+
+Given the expression \((2 - 7i)(a + bi)\) and the condition that this product is pure imaginary, we want to find \(\frac{a}{b}\).
+
+1. **Expand the Expression:**
+   First, we expand \((2 - 7i)(a + bi)\):
+   \[
+   (2 - 7i)(a + bi) = 2a + 2bi - 7ai - 7bi^2.
+   \]
+   Since \(i^2 = -1\), we can rewrite the expression as:
+   \[
+   2a + 2bi - 7ai + 7b = (2a + 7b) + (2b - 7a)i.
+   \]
+   For this expression to be pure imaginary, the real part must be zero:
+   \[
+   2a + 7b = 0.
+   \]
+
+2. **Set Up the Equation:**
+   From the equation \(2a + 7b = 0\), we can solve for \(\frac{a}{b}\):
+   \[
+   2a = -7b \implies a = -\frac{7}{2}b \implies \frac{a}{b} = -\frac{7}{2}.
+   \]
+
+Let's verify this step-by-step using Python to ensure the result is accurate.
+```python
+import sympy as sp
+
+# Define the variables
+a, b = sp.symbols('a b', real=True, nonzero=True)
+
+# Define the expression (2 - 7i)(a + bi)
+expr = (2 - 7 * sp.I) * (a + b * sp.I)
+
+# Separate the real and imaginary parts of the expression
+real_part = sp.re(expr)
+imaginary_part = sp.im(expr)
+
+# We want the real part to be 0 (since the expression is pure imaginary)
+solution = sp.solve(real_part, a)
+
+# Find a/b
+a_val = solution[0]
+a_div_b = a_val / b
+print(a_div_b)
+```
+Code execution result: -7/2
+
+Thus, the value of \(\frac{a}{b}\) that satisfies the condition that \((2 - 7i)(a + bi)\) is pure imaginary is
+
+\(\boxed{-\frac{7}{2}}\)
+

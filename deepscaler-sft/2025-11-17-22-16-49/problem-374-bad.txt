@@ -1,0 +1,57 @@
+Score: 0.0
+
+To solve this problem, we need to write a Python program that performs the following steps:
+
+1. **Define a function to compute the digit sum of a number**.
+2. **Define a function to compute the quotient when a number is divided by the sum of its digits**.
+3. **Iterate through a reasonable range of natural numbers (starting from 10, since we need at least a two-digit number) and compute the quotient for each**.
+4. **Keep track of the maximum and minimum quotients encountered, as well as the corresponding numbers**.
+
+Let's implement this step-by-step in Python.
+```python
+import itertools
+
+def digit_sum(n):
+    """Compute the digit sum of n."""
+    return sum(int(digit) for digit in str(n))
+
+def find_max_min_quotients():
+    max_quotient = 0
+    min_quotient = float("inf")
+    number_with_max_quotient = 0
+    number_with_min_quotient = 0
+    
+    # We'll consider the range from 10 to 1000 as an initial exploration, meaning numbers with at most 3 digits.
+    for num in range(10, 1000):
+        sum_of_digits = digit_sum(num)
+        if sum_of_digits != 0:  # To avoid division by zero
+            quotient = num / sum_of_digits
+            
+            if quotient > max_quotient:
+                max_quotient = quotient
+                number_with_max_quotient = num
+                
+            if quotient < min_quotient:
+                min_quotient = quotient
+                number_with_min_quotient = num
+    
+    return max_quotient, number_with_max_quotient, min_quotient, number_with_min_quotient
+
+max_quotient, num_max_quotient, min_quotient, num_min_quotient = find_max_min_quotients()
+print(((max_quotient, num_max_quotient, min_quotient, num_min_quotient)))
+```
+Code execution result: (100.0, 100, 1.9, 19)
+
+This result tells us that:
+
+- The maximum quotient is \(100.0\), which occurs when the number is 100.
+- The minimum quotient is \(1.9\), which occurs when the number is 19.
+
+Let's confirm and finalize by detailing our findings and ensuring that 100 and 19 were correctly identified as providing the maximum and minimum quotients, respectively. We can check a few more numbers around these candidates if needed. But based on our computation, it seems correct because 100 has a digit sum of 1 (1+0+0), so 100 / 1 = 100 which is clearly the highest quotient we have found so far. And for 19, the digit sum is 1 (1+9), so 19 / 1 = 19, and any other two-digit number will have a smaller quotient.
+
+Thus, the final answers are:
+- The maximum quotient is \(\boxed{100.0}\) and it occurs for the number \(\boxed{100}\).
+- The minimum quotient is \(\boxed{1.9}\) and it occurs for the number \(\boxed{19}\). 
+
+This concludes that 100 yields the highest quotient, and 19 yields the lowest quotient when each number is divided by the sum of its digits.
+

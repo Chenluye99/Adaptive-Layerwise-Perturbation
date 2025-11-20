@@ -1,0 +1,128 @@
+Score: 1.0
+
+To solve this problem, we will follow these steps:
+
+1. **Calculate the Area of Triangle \(ABC\):**
+    - Use Heron's formula to find the area of triangle \(ABC\) with side lengths \(AB = 12\), \(BC = 25\), and \(CA = 17\).
+    - Heron's formula states that the area of a triangle whose sides have lengths \(a\), \(b\), and \(c\) is:
+      \[
+      \text{Area} = \sqrt{s(s-a)(s-b)(s-c)}
+      \]
+      where \( s = \frac{a + b + c}{2} \) is the semi-perimeter of the triangle.
+
+2. **Find the Relationship Between \(PQRS\) and \(ABC\):**
+    - When rectangle \(PQRS\) is inscribed in triangle \(ABC\) such that \(P\) is on \(\overline{AB}\), \(Q\) is on \(\overline{AC}\), and \(R\) and \(S\) are on \(\overline{BC}\), the side \(PQ = \omega\) is parallel to \(BC\).
+    - The height of the smaller triangle formed above the rectangle is proportional to the length of the segment of \(BC\) that does not contain \(R\) and \(S\), and it is also proportional to \(\omega\).
+
+3. **Find the Height Relationship:**
+    - Let's denote the height of triangle \(ABC\) from vertex \(A\) to side \(BC\) as \(h_A\). Since \(PQ \parallel BC\), the triangle formed above the rectangle is similar to triangle \(ABC\).
+    - If the height of the smaller triangle above the rectangle is \(h\), then the height from \(A\) to \(PQ\) is \(h_A - h\). The ratio of the heights of the similar triangles is the same as the ratio of the lengths of their corresponding sides. Since the top side of the smaller triangle above the rectangle is \(\omega\) (which is a fraction of the length of \(BC = 25\)), the height of this smaller triangle is proportional to \(\omega/25\).
+
+4. **Express the Area of Rectangle \(PQRS\):**
+    - The height of the smaller triangle above the rectangle is proportional to \(1 - \omega/25\), so the height of the rectangle \(PQRS\) is \(h_A \cdot \left(1 - \frac{\omega}{25}\right)\).
+    - The height \(h_A\) of triangle \(ABC\) can be calculated using the formula \( \text{Area} = \frac{1}{2} \times \text{base} \times \text{height} \):
+      \[
+      h_A = \frac{2 \times \text{Area}}{BC} = \frac{2 \times \text{Area}}{25}
+      \]
+    - The area of the rectangle \(PQRS\) is the product of its height and width:
+      \[
+      \text{Area}(PQRS) = \omega \cdot h_A \cdot \left(1 - \frac{\omega}{25}\right)
+      \]
+    - Substituting \( h_A \) and simplifying, we get:
+      \[
+      \text{Area}(PQRS) = \omega \cdot \frac{2 \times \text{Area}}{25} \cdot \left(1 - \frac{\omega}{25}\right)
+      \]
+      \[
+      \text{Area}(PQRS) = \frac{2 \times \text{Area}}{25} \cdot \omega \left(1 - \frac{\omega}{25}\right)
+      \]
+      \[
+      \text{Area}(PQRS) = \frac{2 \times \text{Area}}{25} \cdot \left(\omega - \frac{\omega^2}{25}\right)
+      \]
+      \[
+      \text{Area}(PQRS) = \frac{2 \times \text{Area}}{25} \cdot \omega - \frac{2 \times \text{Area}}{25^2} \cdot \omega^2
+      \]
+      \[
+      \text{Area}(PQRS) = \alpha \omega - \beta \omega^2
+      \]
+    - We can see that \(\alpha = \frac{2 \times \text{Area}}{25}\) and \(\beta = \frac{2 \times \text{Area}}{25^2} = \frac{2 \times \text{Area}}{625}\).
+
+5. **Compute the Area of Triangle \(ABC\) Using Heron's Formula:**
+    - Let's compute the area using Heron's formula:
+      \[
+      s = \frac{12 + 25 + 17}{2} = 27
+      \]
+      \[
+      \text{Area} = \sqrt{27(27 - 12)(27 - 25)(27 - 17)} = \sqrt{27 \cdot 15 \cdot 2 \cdot 10} = \sqrt{8100} = 90
+      \]
+    - Now substitute the area into the expression for \(\beta\):
+      \[
+      \beta = \frac{2 \times 90}{625} = \frac{180}{625} = \frac{36}{125}
+      \]
+    - Here, 36 and 125 are relatively prime, so \( m = 36 \) and \( n = 125 \).
+
+6. **Find \( m + n \):**
+    - The solution is \( m + n = 36 + 125 = 161 \).
+
+Let's confirm this by coding the solution to ensure accuracy.
+```python
+import sympy as sp
+
+# Given side lengths of triangle ABC
+a = 12
+b = 25
+c = 17
+
+# Compute the semi-perimeter
+s = (a + b + c) / 2
+
+# Use Heron's formula to calculate the area of triangle ABC
+area_ABC = sp.sqrt(s * (s - a) * (s - b) * (s - c))
+
+# Now calculate β as per our derivation
+numerator = 2 * area_ABC
+denominator = 25 ** 2
+beta = numerator / denominator
+
+# Get the fraction form and get m and n
+m, n = beta.as_numer_denom()
+
+# Result
+result = m + n
+print(result)
+```
+Code execution result: 1.28800000000000
+
+It looks there was a misinterpretation in how \( \beta \) was being handled in the previous steps. We need to ensure that we get the correct values for \( m \) and \( n \) directly from sympy. Let's perform a more detailed check and ensure that the value is correctly simplified and represented as a fraction.
+
+Let's recheck and compute it properly by ensuring the precise values for `m` and `n` are straightforwardly given by `beta.as_numer_denom()`. We will ensure the proper handling of fractions and validate the computations accurately in the next section of the code.
+```python
+import sympy as sp
+
+# Define the side lengths
+a, b, c = 12, 25, 17
+
+# Compute the semi-perimeter
+s = (a + b + c) / 2
+
+# Use Heron's formula to calculate the area of triangle ABC
+area_ABC = sp.sqrt(s * (s - a) * (s - b) * (s - c))
+
+# Now we calculate β properly step-by-step for verification
+numerator = 2 * area_ABC
+denominator = 25 ** 2
+beta = numerator / denominator
+
+# Ensure beta is represented as a fraction in simplest form
+beta_fraction = sp.Rational(numerator, denominator)
+
+# Get the fraction form and get m and n
+m, n = beta_fraction.as_numer_denom()
+
+# Result
+result = m + n
+print(result)
+```
+Code execution result: 161
+
+Thus, we have the correct value for \( m + n \), and it is \(\boxed{161}\). This is the final answer. The detailed steps and code confirm that the solution is accurate.
+

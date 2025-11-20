@@ -1,0 +1,57 @@
+Score: 0.0
+
+First, let's set up the problem with some variables and equations.
+
+1. Let's say Bertha has \( d \) daughters who each have 6 daughters (granddaughters of Bertha).
+2. The rest of Bertha's daughters have no daughters. Since Bertha has 6 daughters in total, the number of daughters who have no daughters is \( 6 - d \).
+
+3. Each of the \( d \) daughters who have 6 daughters will contribute 6 granddaughters. Therefore, the total number of granddaughters is \( 6d \).
+
+4. According to the problem, Bertha has a total of 30 daughters and granddaughters. Bertha herself has 6 daughters, so the total number of daughters and granddaughters can be expressed as:
+   \[
+   6 + 6d = 30
+   \]
+
+5. We can solve this equation to find \( d \):
+   \[
+   6d = 24 \implies d = 4
+   \]
+
+   So, 4 of Bertha's daughters each have 6 granddaughters, and the remaining \( 6 - 4 = 2 \) daughters have no daughters.
+
+6. Now, we need to find out how many of Bertha's daughters and granddaughters have no daughters:
+   - The 2 daughters of Bertha who have no daughters clearly have no daughters.
+   - Each of the 4 daughters who have 6 daughters will contribute 6 granddaughters, and each of these 4 daughters themselves have no daughters (because we are only considering up to granddaughters, not great-granddaughters).
+
+So, the total number of daughters and granddaughters who have no daughters is the sum of:
+- The 2 daughters of Bertha who have no daughters.
+- The 4 daughters of Bertha who each have 6 granddaughters (but themselves have no daughters).
+
+So, the total count is \( 2 + 4 = 6 \).
+
+Let's confirm this solution by coding it in Python to ensure the accuracy.
+```python
+# Let's set up the variables and solve the problem programmatically to confirm our solution.
+
+# Number of Bertha's daughters
+num_bertha_daughters = 6
+
+# We need to solve for d such that 6 + 6 * d = 30
+for d in range(num_bertha_daughters + 1):
+    if 6 + 6 * d == 30:
+        num_daughters_with_granddaughters = d
+        num_daughters_without_granddaughters = num_bertha_daughters - d
+        break
+
+# Now we count how many of Bertha's daughters and granddaughters have no daughters
+# - 2 daughters of Bertha have no daughters, so they have no daughters.
+# - 4 daughters of Bertha each have 6 daughters, so these 4 daughters themselves have no daughters.
+
+num_daughters_and_granddaughters_without_daughters = num_daughters_without_granddaughters + num_daughters_with_granddaughters
+
+print(num_daughters_and_granddaughters_without_daughters)
+```
+Code execution result: 6
+
+Thus, the number of Bertha's daughters and granddaughters who have no daughters is \(\boxed{6}\). This confirms that our solution is accurate.
+

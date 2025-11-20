@@ -1,0 +1,44 @@
+Score: 1.0
+
+To solve the problem, let's start by understanding it step-by-step:
+
+1. **Determine the Total Number of Ways to Choose a 4-Person Committee:**
+    - There are 20 members (10 boys and 10 girls).
+    - The number of ways to choose a 4-person committee from 20 members is given by the combination formula \(\binom{20}{4}\).
+
+2. **Determine the Number of Ways to Choose a 4-Person Committee That Does Not Meet the Condition (i.e., Either All Boys or All Girls):**
+    - The number of ways to choose a 4-person committee that is all boys is \(\binom{10}{4}\).
+    - The number of ways to choose a 4-person committee that is all girls is \(\binom{10}{4}\).
+    - So, the number of ways to choose a 4-person committee that is either all boys or all girls is \(\binom{10}{4} + \binom{10}{4}\).
+
+3. **Determine the Number of Ways to Choose a 4-Person Committee That Has At Least 1 Boy and 1 Girl:**
+    - The number of ways to choose a 4-person committee that has at least 1 boy and 1 girl is the total number of ways to choose any 4-person committee minus the number of ways to choose a 4-person committee that is either all boys or all girls.
+    - This can be written as \(\binom{20}{4} - \left(\binom{10}{4} + \binom{10}{4}\right)\).
+
+4. **Calculate the Probability:**
+    - The probability that the committee has at least 1 boy and at least 1 girl is the ratio of the number of ways to choose a 4-person committee that has at least 1 boy and 1 girl to the total number of ways to choose any 4-person committee.
+
+Let's implement this step-by-step using Python to get the precise answer.
+```python
+import math
+
+# Calculate combinations
+C_20_4 = math.comb(20, 4)
+C_10_4 = math.comb(10, 4)
+
+# Number of ways to choose a 4-person committee that is either all boys or all girls
+ways_all_boys = C_10_4
+ways_all_girls = C_10_4
+ways_all_boys_or_girls = ways_all_boys + ways_all_girls
+
+# Number of ways to choose a 4-person committee that has at least 1 boy and 1 girl
+ways_at_least_1_boy_1_girl = C_20_4 - ways_all_boys_or_girls
+
+# Calculate the probability
+probability_at_least_1_boy_1_girl = ways_at_least_1_boy_1_girl / C_20_4
+print(probability_at_least_1_boy_1_girl)
+```
+Code execution result: 0.913312693498452
+
+Thus, the probability that the committee has at least 1 boy and at least 1 girl is \(\boxed{0.913312693498452}\). This is the final answer.
+

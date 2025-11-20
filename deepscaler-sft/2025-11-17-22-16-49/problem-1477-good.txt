@@ -1,0 +1,54 @@
+Score: 1.0
+
+To solve this problem, let's define the problem more formally.
+
+1. **Problem Description:**
+    - We have two mathematicians, each with a lifespan of 100 years.
+    - Each mathematician is equally likely to be born at any point during a 500-year period.
+    - We need to find the probability that the two mathematicians' lifespans overlap, i.e., they were contemporaries for any length of time.
+
+2. **Formulation:**
+    - Let's denote the birth years of the two mathematicians as \(B_1\) and \(B_2\) respectively, where both \(B_1\) and \(B_2\) are uniformly distributed over the interval [0, 500].
+    - The first mathematician will be alive from year \(B_1\) to \(B_1 + 100\).
+    - The second mathematician will be alive from year \(B_2\) to \(B_2 + 100\).
+    - For the two mathematicians to have been contemporaries, there needs to be some overlap in the years they were both alive, i.e., the intervals \([B_1, B_1 + 100]\) and \([B_2, B_2 + 100]\) must intersect.
+
+3. **Mathematical Condition for Overlap:**
+    - The intervals overlap if and only if the start of one interval is before the end of the other interval. Mathematically, this means:
+      \[
+      B_1 < B_2 + 100 \quad \text{and} \quad B_2 < B_1 + 100
+      \]
+    - Rearrange these inequalities, we get:
+      \[
+      B_1 - B_2 < 100 \quad \text{and} \quad B_2 - B_1 < 100
+      \]
+    - This can also be written as:
+      \[
+      -100 < B_1 - B_2 < 100 \quad \text{or} \quad |B_1 - B_2| < 100
+      \]
+
+4. **Integral Solution:**
+    - To find the probability, we need to integrate over the region where this condition holds true over the 500 by 500 square defined by the birth years of the two mathematicians.
+    - The probability is given by the integral of the condition \(|B_1 - B_2| < 100\) over the square \([0, 500] \times [0, 500]\), divided by the total area of the square, which is 500 * 500 = 250000.
+
+Let's implement this in Python to get the accurate result.
+```python
+import sympy as sp
+
+# Define the variables
+B1, B2 = sp.symbols('B1 B2')
+
+# Define the constraints for the integrand based on our condition |B1 - B2| < 100
+condition = (B1 - B2 < 100) & (B2 - B1 < 100)
+
+# Set up the double integral over [0, 500] x [0, 500]
+integral = sp.integrate(sp.Piecewise((1, condition), (0, True)), (B1, 0, 500), (B2, 0, 500))
+
+# Calculate the probability as the ratio of the integral to the area of the square [0, 500] x [0, 500]
+probability = integral / 500**2
+print(probability)
+```
+Code execution result: 9/25
+
+Thus, the probability that the two mathematicians were contemporaries for any length of time is \(\boxed{\frac{9}{25}}\). This is the final answer.
+

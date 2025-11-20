@@ -1,0 +1,74 @@
+Score: 0.0
+
+To solve this problem, let's follow these steps:
+
+1. **Define Helper Functions:**
+   - A function to check if a number is prime.
+   - A function to check if a number is a cube.
+   - A function to get the prime factors of a number and count them.
+
+2. **Implement the Main Logic:**
+   - We need to check each positive integer, starting from 1, to see if it meets all the conditions: it should be neither a prime number nor a perfect cube, and it should have an even number of prime factors, with all prime factors being greater than 60.
+   - We can use a loop to check each number against these conditions until we find the smallest such number.
+
+Let's start by defining the helper functions:
+
+1. **Function to Check if a Number is Prime:**
+   A number is prime if it is greater than 1 and has no positive divisors other than 1 and itself.
+
+2. **Function to Check if a Number is a Cube:**
+   A number is a perfect cube if there exists an integer \( n \) such that \( n^3 = \text{number} \).
+
+3. **Function to Get and Count the Prime Factors of a Number:**
+   We will get the prime factors of the number, count them, and check if all the prime factors are greater than 60.
+
+With these functions in place, we can iterate through the numbers, check the conditions, and return the smallest number that meets all the criteria.
+```python
+import sympy
+
+def is_prime(n):
+    """Check if a number is a prime."""
+    return sympy.isprime(n)
+
+def is_cube(n):
+    """Check if a number is a perfect cube."""
+    return round(n ** (1/3)) ** 3 == n
+
+def get_prime_factors(n):
+    """Get the prime factors of a number and count them, and check if all prime factors are greater than 60."""
+    factors = []
+    # Check for number of 2s that divide n
+    while n % 2 == 0:
+        factors.append(2)
+        n = n // 2
+
+    # Check for other primes
+    for i in range(3, int(n**0.5) + 1, 2):
+        while n % i == 0:
+            factors.append(i)
+            n = n // i
+
+    # This condition is to check if n is a prime number greater than 2
+    if n > 2:
+        factors.append(n)
+
+    return factors
+
+def find_special_number():
+    n = 1
+    while True:
+        if not is_prime(n) and not is_cube(n):
+            factors = get_prime_factors(n)
+            if len(factors) > 0:
+                all_factors_greater_than_60 = all(factor > 60 for factor in set(factors))
+                if len(set(factors)) % 2 == 0 and all_factors_greater_than_60:
+                    return n
+        n += 1
+
+special_number = find_special_number()
+print(special_number)
+```
+Code execution result: 4087
+
+Thus, the smallest positive integer that is neither prime nor a cube and that has an even number of prime factors, all greater than 60, is \(\boxed{4087}\). This is our final answer.
+

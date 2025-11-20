@@ -1,0 +1,41 @@
+Score: 1.0
+
+First, let's break down the problem and solve it step-by-step.
+
+1. **Understand the Problem:**
+    - We have an 8-foot by 10-foot floor, so the total area of the floor is \(8 \times 10 = 80\) square feet.
+    - The floor is tiled with 1-foot by 1-foot tiles, so there are \(8 \times 10 = 80\) tiles in total.
+    - Each 1-foot by 1-foot tile has a pattern consisting of four white quarter circles, each with a radius of 0.5 feet.
+    - Each quarter circle, when put together, forms a full circle with radius 0.5 feet. The area of a full circle with radius 0.5 feet is \(\pi \left( \frac{1}{2} \right)^2 = \pi \cdot \frac{1}{4} = \frac{\pi}{4}\) square feet.
+    - Since there are four quarter circles on each tile, the total white area on each tile is \(\frac{\pi}{4} \times 4 = \pi\) square feet.
+    - The area of each 1-foot by 1-foot tile is 1 square foot. So, the shaded area of each tile is \(1 - \pi\) square feet.
+    - Since there are 80 tiles, the total shaded area of the floor is \(80 \times (1 - \pi)\) square feet.
+
+2. **Formulate and Implement the Solution in Python:**
+    - We'll compute this step-by-step using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Number of tiles
+num_tiles = 8 * 10
+
+# Area of one tile
+tile_area = 1 * 1
+
+# Area of the circles on one tile
+radius = 0.5
+circle_area_one_quarter = sp.pi * radius**2 / 4
+circle_full = circle_area_one_quarter * 4
+circle_area_one_tile = circle_full
+
+# Shaded area of one tile
+shaded_area_one_tile = tile_area - circle_area_one_tile
+
+# Total shaded area of the floor
+total_shaded_area = num_tiles * shaded_area_one_tile
+print(total_shaded_area)
+```
+Code execution result: 80 - 20.0*pi
+
+Thus, the total shaded area of the floor is \(\boxed{80 - 20\pi}\) square feet. This is the final answer.
+

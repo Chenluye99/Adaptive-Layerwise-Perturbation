@@ -1,0 +1,33 @@
+Score: 1.0
+
+To solve this problem, we need to determine the smallest integer \( n \) such that \( n! \) (n factorial) ends in exactly 290 zeroes. The number of trailing zeroes in a factorial is determined by the number of times it can be divided by 10, which is the product of 2 and 5. Since there are usually more 2s than 5s in the prime factorization of a factorial, the number of trailing zeroes is determined by the number of times the factorial can be divided by 5.
+
+To find this out, we count the number of factors of 5 in the prime factorization of \( n! \). For a given number \( n \), the number of factors of 5 in \( n! \) is given by:
+\[ \left\lfloor \frac{n}{5} \right\rfloor + \left\lfloor \frac{n}{25} \right\rfloor + \left\lfloor \frac{n}{125} \right\rfloor + \left\lfloor \frac{n}{625} \right\rfloor + \cdots \]
+
+We need to find the smallest \( n \) such that this count is exactly 290. We can implement this using a Python code that checks this condition iteratively. Let's write the code to solve this problem.
+```python
+import math
+
+def count_factors_of_5(n):
+    count = 0
+    power_of_5 = 5
+    while power_of_5 <= n:
+        count += n // power_of_5
+        power_of_5 *= 5
+    return count
+
+# We will start checking from n = 1 and go upwards until we find the correct n.
+n = 1
+while True:
+    if count_factors_of_5(n) == 290:
+        result = n
+        break
+    n += 1
+
+print(result)
+```
+Code execution result: 1170
+
+Thus, the smallest \( n \) such that \( n! \) ends in 290 zeroes is \(\boxed{1170}\). This is our final answer.
+

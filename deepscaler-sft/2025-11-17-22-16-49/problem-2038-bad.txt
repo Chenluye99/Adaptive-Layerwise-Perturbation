@@ -1,0 +1,46 @@
+Score: 1.0
+
+First, let's start by simplifying the given equation \(3x^2 - 2(x^2 + 4) = 42\).
+
+1. Distribute the \(-2\) on the left side of the equation:
+   \[
+   3x^2 - 2x^2 - 8 = 42
+   \]
+
+2. Combine like terms:
+   \[
+   x^2 - 8 = 42
+   \]
+
+3. Add 8 to both sides of the equation to isolate \(x^2\):
+   \[
+   x^2 = 50
+   \]
+
+Now, we want to find the value of \(x^4\). We can square both sides of the equation \(x^2 = 50\):
+
+\[
+(x^2)^2 = 50^2 \implies x^4 = 2500
+\]
+
+Let's use Python to verify this step-by-step solution.
+```python
+import sympy as sp
+
+# Define the variable
+x = sp.symbols('x')
+
+# Set up the equation
+equation = 3*x**2 - 2*(x**2 + 4) - 42
+
+# Solve the equation for x
+solutions = sp.solve(equation, x)
+
+# Calculate x^4 for each solution
+x4_values = [sol**4 for sol in solutions]
+print(x4_values)
+```
+Code execution result: [2500, 2500]
+
+This confirms that the value of \( x^4 \) is \(\boxed{2500}\). The computation is accurate, as both solutions for \( x \) yield the same value for \( x^4 \).
+

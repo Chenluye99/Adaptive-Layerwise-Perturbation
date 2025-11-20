@@ -1,0 +1,206 @@
+Score: 1.0
+
+Let's solve the problem step-by-step using Python to ensure the result is accurate.
+
+1. **Problem Understanding:**
+    - We need to find a complex number \(\alpha \neq 1\) such that:
+        - The distance from \(\alpha^2\) to 1 is twice the distance from \(\alpha\) to 1.
+        - The distance from \(\alpha^4\) to 1 is four times the distance from \(\alpha\) to 1.
+    - Mathematically, these conditions can be written as:
+        - \(|\alpha^2 - 1| = 2 |\alpha - 1|\)
+        - \(|\alpha^4 - 1| = 4 |\alpha - 1|\)
+
+2. **Formulate Equations:**
+    - Let \(\alpha = x + yi\) where \(x\) and \(y\) are real numbers, and \(i\) is the imaginary unit.
+    - Then, \(\alpha - 1 = (x - 1) + yi\) and its magnitude is given by:
+      \[
+      |\alpha - 1| = \sqrt{(x - 1)^2 + y^2}
+      \]
+    - Similarly, \(\alpha^2 - 1\) and \(\alpha^4 - 1\) can be computed and their magnitudes are:
+      \[
+      |\alpha^2 - 1| = \sqrt{((x + yi)^2 - 1)^2}
+      \]
+      \[
+      |\alpha^4 - 1| = \sqrt{((x + yi)^4 - 1)^2}
+      \]
+
+3. **Set Up Conditions as Equations:**
+    - Substitute the conditions into equations:
+      \[
+      |\alpha^2 - 1| = 2 |\alpha - 1|
+      \]
+      \[
+      |\alpha^4 - 1| = 4 |\alpha - 1|
+      \]
+
+4. **Implement in Python:**
+    - We will use symbolic computation with Python's `sympy` to solve the system of equations.
+
+Let's implement this step-by-step in Python using `sympy`.
+
+```python
+import sympy as sp
+
+# Define the complex variable
+alpha = sp.symbols('alpha', complex=True)
+
+# Set up the equations based on the conditions given in the problem
+eq1 = sp.Eq(sp.Abs(alpha**2 - 1), 2 * sp.Abs(alpha - 1))
+eq2 = sp.Eq(sp.Abs(alpha**4 - 1), 4 * sp.Abs(alpha - 1))
+
+# Solve the system of equations
+solution = sp.solve([eq1, eq2], alpha)
+
+print(solution)
+```
+Code execution result: NotImplementedError: solving Abs(alpha**2 - 1) when the argument is not real or imaginary.
+To handle this, we can solve the equations by considering the general form of a complex number and using numerical methods or breaking it down into real and imaginary parts directly. However, given the complexity, it's often easier to manipulate and solve these equations symbolically by breaking them down as follows:
+
+1. **Express in Terms of Real and Imaginary Parts:**
+   Let \(\alpha = x + yi\), where \(x\) and \(y\) are real numbers. Then we can express the magnitudes as follows:
+   - \(|\alpha - 1| = \sqrt{(x - 1)^2 + y^2}\)
+   - \(|\alpha^2 - 1| = \sqrt{((x + yi)^2 - 1)^2} = \sqrt{(x^2 - y^2 - 1 + 2xyi)^2}\)
+   - \(|\alpha^4 - 1| = \sqrt{((x + yi)^4 - 1)^2}\)
+
+2. **Formulate the Equations in Terms of Real and Imaginary Parts:**
+   - First, we calculate \((x + yi)^2 = x^2 - y^2 + 2xyi\), so \(\alpha^2 - 1 = (x^2 - y^2 - 1) + 2xyi\), and its magnitude is:
+     \[
+     |\alpha^2 - 1| = \sqrt{(x^2 - y^2 - 1)^2 + (2xy)^2}
+     \]
+   - Next, we calculate \((x + yi)^4 = ((x + yi)^2)^2 = (x^2 - y^2 + 2xyi)^2 = (x^2 - y^2)^2 - (2xy)^2 + 2(x^2 - y^2)(2xy)i = (x^2 - y^2)^2 - 4x^2 y^2 + 4xy(x^2 - y^2)i\), so \(\alpha^4 - 1 = ((x^2 - y^2)^2 - 4x^2 y^2 - 1) + 4xy(x^2 - y^2)i\), and its magnitude is:
+     \[
+     |\alpha^4 - 1| = \sqrt{((x^2 - y^2)^2 - 4x^2 y^2 - 1)^2 + (4xy(x^2 - y^2))^2}
+     \]
+
+3. **Set Up and Solve the Equations:**
+   - Substitute these into the conditions:
+     \[
+     \sqrt{(x^2 - y^2 - 1)^2 + (2xy)^2} = 2 \sqrt{(x - 1)^2 + y^2}
+     \]
+     \[
+     \sqrt{((x^2 - y^2)^2 - 4x^2 y^2 - 1)^2 + (4xy(x^2 - y^2))^2} = 4 \sqrt{(x - 1)^2 + y^2}
+     \]
+
+Let's implement this system of equations in Python using `sympy` to solve for \(x\) and \(y\):
+
+```python
+import sympy as sp
+
+# Define variables
+x, y = sp.symbols('x y', real=True)
+
+# Define the equations based on the conditions
+eq1 = sp.Eq(sp.sqrt((x**2 - y**2 - 1)**2 + (2 * x * y)**2), 2 * sp.sqrt((x - 1)**2 + y**2))
+eq2 = sp.Eq(sp.sqrt(((x**2 - y**2)**2 - 4 * x**2 * y**2 - 1)**2 + (4 * x * y * (x**2 - y**2))**2), 4 * sp.sqrt((x - 1)**2 + y**2))
+
+# Solve the system of equations
+solution = sp.solve([eq1, eq2], (x, y))
+
+# Get the corresponding complex numbers
+alpha_solutions = [x + y * sp.I for x, y in solution if x + y * sp.I != 1]
+
+print(alpha_solutions)
+```
+Code execution result: Timeout
+It appears that solving this system of equations directly symbolically is quite intensive and may take longer than expected. Therefore, we can approximate the solutions by using numerical solvers. Let's use `scipy.optimize`'s `fsolve` function to find numerical solutions to the system of equations.
+
+We will convert our system of equations into a form that can be solved numerically. We'll define functions that represent our equations and then use an optimization routine to find the values of \(x\) and \(y\) that satisfy both conditions.
+
+1. **Convert to Numerical Form:**
+   We can define functions for \(f_1\) and \(f_2\) such that:
+   \[
+   f_1(x, y) = \sqrt{(x^2 - y^2 - 1)^2 + (2xy)^2} - 2 \sqrt{(x - 1)^2 + y^2}
+   \]
+   \[
+   f_2(x, y) = \sqrt{((x^2 - y^2)^2 - 4x^2 y^2 - 1)^2 + (4xy(x^2 - y^2))^2} - 4 \sqrt{(x - 1)^2 + y^2}
+   \]
+
+2. **Use Numerical Solver:**
+   Use `fsolve` from `scipy.optimize` to solve these functions simultaneously.
+
+Let's implement this in Python:
+
+```python
+import numpy as np
+from scipy.optimize import fsolve
+
+# Define the system of equations
+def equations(vars):
+    x, y = vars
+    eq1 = np.sqrt((x**2 - y**2 - 1)**2 + (2 * x * y)**2) - 2 * np.sqrt((x - 1)**2 + y**2)
+    eq2 = np.sqrt(((x**2 - y**2)**2 - 4 * x**2 * y**2 - 1)**2 + (4 * x * y * (x**2 - y**2))**2) - 4 * np.sqrt((x - 1)**2 + y**2)
+    return [eq1, eq2]
+
+# Initial guess for (x, y)
+initial_guess = [1, 1]
+
+# Solve the system of equations
+solution = fsolve(equations, initial_guess)
+
+# Get the corresponding complex number
+x_sol, y_sol = solution
+alpha_sol = x_sol + y_sol * 1j
+
+# Find all distinct solutions by trying different initial guesses
+solutions = set()
+for i in range(10):
+    initial_guess = [np.random.uniform(-10, 10), np.random.uniform(-10, 10)]
+    sol = fsolve(equations, initial_guess)
+    x_sol, y_sol = sol
+    alpha = x_sol + y_sol * 1j
+    if alpha not in solutions:
+        solutions.add(alpha)
+
+# Convert solutions back to list and return distinct solutions
+alpha_solutions = list(solutions)
+
+print(alpha_solutions)
+```
+Code execution result: [(4.7836670614984736e-14+1.7320508075688725j), (1.0000000000000022-6.17797597893738e-08j), (1.0000000000000118+1.596227342312584e-07j), (1.0000000000002172-2.614949136172992e-07j), (1.0000000000002034-8.618879113168683e-07j), (-1.1323455303757371e-11-1.732050807569101j), (-0.6177975978938305-1.207283201638908j)]
+
+From the solutions above, it is clear that many of them are very close to \(\alpha = 1\) or are approximate solutions that can be considered equivalent to well-known complex numbers. The significant solutions from the context of complex numbers and typical mathematical expressions are likely to be simpler, rational, or well-known constants.
+
+We should check for solutions that are well-known or simplified expressions, such as \( \alpha = \pm \sqrt{3} \), etc. Let's consider \(\alpha = \sqrt{3}i\) and \(\alpha = -\sqrt{3}i\) as candidates, as well as \(\alpha = \frac{\sqrt{3}}{2} + \frac{1}{2}i, \alpha = \frac{\sqrt{3}}{2} - \frac{1}{2}i\), etc. However, these solutions still need to be verified against the original conditions.
+
+We should simplify and check if \(\alpha = \sqrt{3}i\) or \(\alpha = - \sqrt{3}i\) satisfy the given conditions, because these are typical candidates for such problems involving magnitudes of complex numbers.
+
+Let's verify these solutions by plugging in \(\alpha = \sqrt{3}i\) and \(\alpha = - \sqrt{3}i\) back into the original conditions.
+
+1. **Verification for \(\alpha = \sqrt{3}i\):**
+   - \(\alpha = \sqrt{3}i \implies \alpha - 1 = \sqrt{3}i - 1\)
+     \[
+     |\alpha - 1| = |\sqrt{3}i - 1| = \sqrt{(\sqrt{3})^2 + (-1)^2} = \sqrt{3 + 1} = \sqrt{4} = 2
+     \]
+   - \(\alpha^2 = (\sqrt{3}i)^2 = -3 \implies \alpha^2 - 1 = -3 - 1 = -4 \)
+     \[
+     |\alpha^2 - 1| = |-4| = 4
+     \]
+     So, \(|\alpha^2 - 1| = 2 \cdot |\alpha - 1| \implies 4 = 2 \cdot 2 \implies 4 = 4\), which is true.
+   - \(\alpha^4 = (\sqrt{3}i)^4 = (-3)^2 = 9 \implies \alpha^4 - 1 = 9 - 1 = 8 \)
+     \[
+     |\alpha^4 - 1| = |8| = 8
+     \]
+     So, \(|\alpha^4 - 1| = 4 \cdot |\alpha - 1| \implies 8 = 4 \cdot 2 \implies 8 = 8\), which is true.
+
+2. **Verification for \(\alpha = - \sqrt{3}i\):**
+   - \(\alpha = - \sqrt{3}i \implies \alpha - 1 = - \sqrt{3}i - 1\)
+     \[
+     |\alpha - 1| = | - \sqrt{3}i - 1 | = \sqrt{(\sqrt{3})^2 + (-1)^2} = \sqrt{3 + 1} = \sqrt{4} = 2
+     \]
+   - \(\alpha^2 = (- \sqrt{3}i)^2 = -3 \implies \alpha^2 - 1 = -3 - 1 = -4 \)
+     \[
+     |\alpha^2 - 1| = |-4| = 4
+     \]
+     So, \(|\alpha^2 - 1| = 2 \cdot |\alpha - 1| \implies 4 = 2 \cdot 2 \implies 4 = 4\), which is true.
+   - \(\alpha^4 = (- \sqrt{3}i)^4 = (-3)^2 = 9 \implies \alpha^4 - 1 = 9 - 1 = 8 \)
+     \[
+     |\alpha^4 - 1| = |8| = 8
+     \]
+     So, \(|\alpha^4 - 1| = 4 \cdot |\alpha - 1| \implies 8 = 4 \cdot 2 \implies 8 = 8\), which is true.
+
+Both \(\alpha = \sqrt{3}i\) and \(\alpha = - \sqrt{3}i\) satisfy the conditions given in the problem. Therefore, the distinct solutions are \(\alpha = \sqrt{3}i\) and \(\alpha = - \sqrt{3}i\).
+
+So, the final answer is:
+
+\(\boxed{\sqrt{3}i, - \sqrt{3}i}\)
+

@@ -1,0 +1,36 @@
+Score: 1.0
+
+To solve this problem, we need to check each integer between 1000 and 9999 to see if it is balanced. An integer is balanced if the sum of its first two digits is equal to the sum of its last two digits.
+
+Here is the step-by-step approach:
+
+1. Initialize a counter to keep track of how many balanced integers we find.
+2. Iterate through each integer from 1000 to 9999.
+3. For each integer, convert it to a string to easily access its individual digits.
+4. Extract the first, second, third, and fourth digits of the integer.
+5. Check if the sum of the first two digits is equal to the sum of the last two digits.
+6. If the condition is true, increment the counter.
+7. After iterating through all the integers, return the value of the counter as the result.
+
+Let's implement this in Python.
+```python
+# Initialize counter for balanced integers
+balanced_count = 0
+
+# Iterate through each integer from 1000 to 9999
+for num in range(1000, 10000):
+    str_num = str(num)
+    
+    # Get the digits
+    d1, d2, d3, d4 = int(str_num[0]), int(str_num[1]), int(str_num[2]), int(str_num[3])
+    
+    # Check if the sum of the first two digits equals the sum of the last two digits
+    if (d1 + d2) == (d3 + d4):
+        balanced_count += 1
+
+print(balanced_count)
+```
+Code execution result: 615
+
+Thus, the number of balanced integers between 1000 and 9999 is \(\boxed{615}\). This is our final answer.
+

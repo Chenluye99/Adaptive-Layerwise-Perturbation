@@ -1,0 +1,96 @@
+Score: 1.0
+
+To solve for \( f(2007) \), we start by analyzing the functional equation given in the problem:
+
+\[ f(x) + f\left(1 - \frac{1}{x}\right) = \log |x|. \]
+
+First, let's substitute some values for \( x \) and see if we can obtain a system of equations that will help us solve for \( f(x) \).
+
+1. **Substitute \( x = 2007 \):**
+
+\[ f(2007) + f\left(1 - \frac{1}{2007}\right) = \log |2007|. \]
+This simplifies to:
+\[ f(2007) + f\left(\frac{2006}{2007}\right) = \log 2007. \quad \text{(Equation 1)} \]
+
+2. **Substitute \( x = \frac{2006}{2007} \):**
+
+We need to find \( 1 - \frac{1}{\frac{2006}{2007}} = 1 - \frac{2007}{2006} = \frac{2006 - 2007}{2006} = -\frac{1}{2006} \).
+
+So, we substitute \( x = \frac{2006}{2007} \):
+
+\[ f\left(\frac{2006}{2007}\right) + f\left(1 - \frac{1}{\frac{2006}{2007}}\right) = \log \left| \frac{2006}{2007} \right|. \]
+This simplifies to:
+\[ f\left(\frac{2006}{2007}\right) + f\left(-\frac{1}{2006}\right) = \log \frac{2006}{2007}. \quad \text{(Equation 2)} \]
+
+3. **Substitute \( x = -\frac{1}{2006} \):**
+
+We need to find \( 1 - \frac{1}{-\frac{1}{2006}} = 1 + 2006 = 2007 \).
+
+So, we substitute \( x = -\frac{1}{2006} \):
+
+\[ f\left(-\frac{1}{2006}\right) + f\left(1 - \frac{1}{-\frac{1}{2006}}\right) = \log \left| -\frac{1}{2006} \right|. \]
+This simplifies to:
+\[ f\left(-\frac{1}{2006}\right) + f(2007) = \log \frac{1}{2006} = -\log 2006. \quad \text{(Equation 3)} \]
+
+Now, we have three equations:
+1. \( f(2007) + f\left(\frac{2006}{2007}\right) = \log 2007 \)
+2. \( f\left(\frac{2006}{2007}\right) + f\left(-\frac{1}{2006}\right) = \log \frac{2006}{2007} = \log 2006 - \log 2007 \)
+3. \( f\left(-\frac{1}{2006}\right) + f(2007) = -\log 2006 \)
+
+Let's denote:
+\[ a = f(2007), \]
+\[ b = f\left(\frac{2006}{2007}\right), \]
+\[ c = f\left(-\frac{1}{2006}\right). \]
+
+So, we have the following system of equations:
+1. \( a + b = \log 2007 \)
+2. \( b + c = \log 2006 - \log 2007 \)
+3. \( c + a = -\log 2006 \)
+
+We can solve this system step by step.
+
+First, solve Equation 3 for \( c \):
+\[ c = -\log 2006 - a. \]
+
+Next, substitute \( c \) into Equation 2:
+\[ b + (-\log 2006 - a) = \log 2006 - \log 2007, \]
+which simplifies to:
+\[ b - \log 2006 - a = \log 2006 - \log 2007, \]
+\[ b - a = 2 \log 2006 - \log 2007. \quad \text{(Equation 4)} \]
+
+Now, substitute \( c = -\log 2006 - a \) into Equation 1:
+\[ a + b = \log 2007, \]
+and we already have:
+\[ b - a = 2 \log 2006 - \log 2007. \]
+
+We can solve this system of linear equations by adding and subtracting these equations appropriately.
+
+Let's solve it step-by-step using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define variables
+a, b, c = sp.symbols('a b c')
+
+# Define the equations based on our substitutions
+eq1 = sp.Eq(a + b, sp.log(2007))
+eq2 = sp.Eq(b + c, sp.log(2006) - sp.log(2007))
+eq3 = sp.Eq(c + a, -sp.log(2006))
+
+# Solve the system of equations
+solution = sp.solve((eq1, eq2, eq3), (a, b, c))
+
+print(solution)
+```
+Code execution result: {a: -log(2006) + log(2007), b: log(2006), c: -log(2007)}
+
+From solving the system of equations, we get:
+
+\[ f(2007) = a = -\log 2006 + \log 2007. \]
+
+Using properties of logarithms, we know that \(\log 2007 - \log 2006 = \log \frac{2007}{2006}\). Therefore,
+
+\[ f(2007) = \log \frac{2007}{2006}. \]
+
+Thus, the value of \( f(2007) \) is \(\boxed{\log \frac{2007}{2006}}\). This is the final answer.
+

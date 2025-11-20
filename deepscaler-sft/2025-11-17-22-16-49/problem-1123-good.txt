@@ -1,0 +1,34 @@
+Score: 1.0
+
+To solve the problem, we need to minimize the expression \(\frac{1}{a + b} + \frac{1}{b + c}\) under the constraints \(a + b + c = 5\) and \(1 \leq a, b, c \leq 2\).
+
+First, let's express \(c\) in terms of \(a\) and \(b\) using the constraint \(a + b + c = 5\):
+\[ c = 5 - a - b. \]
+
+Then, substitute \(c\) into the expression we want to minimize:
+\[ \frac{1}{a + b} + \frac{1}{b + (5 - a - b)} = \frac{1}{a + b} + \frac{1}{5 - a}. \]
+
+We need to iterate over the possible values of \(a\) and \(b\) within the interval \([1, 2]\) and compute the corresponding \(c\) to ensure it also lies within \([1, 2]\). Then, we will evaluate the expression \(\frac{1}{a + b} + \frac{1}{5 - a}\) for these values and find the minimum value.
+
+Let's implement this step-by-step using Python.
+```python
+import numpy as np
+
+min_value = float("inf")
+
+# We will iterate through possible values of a and b in the interval [1, 2] with a small step size for precision.
+step = 0.001
+for a in np.arange(1, 2 + step, step):
+    for b in np.arange(1, 2 + step, step):
+        c = 5 - a - b
+        if 1 <= c <= 2:
+            expr_value = 1 / (a + b) + 1 / (5 - a)
+            if expr_value < min_value:
+                min_value = expr_value
+
+print(min_value)
+```
+Code execution result: 0.5714285714285804
+
+Thus, the minimum value of \(\frac{1}{a + b} + \frac{1}{b + c}\) under the given constraints is \(\boxed{0.5714285714285804}\). This is our final answer.
+

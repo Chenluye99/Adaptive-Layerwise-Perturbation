@@ -1,0 +1,65 @@
+Score: 1.0
+
+First, let's determine the current total height of the five tallest buildings in Los Angeles in 1985. We know that:
+
+1. The mean height of the five buildings is 733 feet.
+2. Therefore, the total height of the five buildings is \( 733 \times 5 = 3665 \) feet.
+3. We know the height of the tallest building is 858 feet and the height of the shortest building is 625 feet.
+
+Let's call the heights of the three other buildings \( h_1, h_2, \) and \( h_3 \). Then, the equation for the total height of the five buildings can be written as:
+\[ h_1 + h_2 + h_3 + 858 + 625 = 3665. \]
+This simplifies to:
+\[ h_1 + h_2 + h_3 + 1483 = 3665, \]
+so
+\[ h_1 + h_2 + h_3 = 3665 - 1483 = 2182. \]
+
+Now, if a new building with a height of 885 feet is added, the new total height of the six buildings will be:
+\[ 3665 + 885 = 4550 \text{ feet}. \]
+And the new mean height of these six buildings will be:
+\[ \frac{4550}{6}. \]
+
+We want to find out by how many feet adding this new building increases the mean height of the original five buildings. First, we calculate the new mean height of the six buildings, and then we find the mean height of just the original five buildings again for comparison.
+
+The original mean height of the five buildings was 733 feet. To get the increase in mean height after adding the 885-foot building, we need to calculate the new mean height of the five original buildings if we replace the shortest building (625 feet) with the new building (885 feet).
+
+The new set of heights for the five buildings (replacing the shortest building with the new one) would be: 885, \( h_1 \), \( h_2 \), \( h_3 \), and 858. The total height of these five buildings would be:
+\[ 885 + h_1 + h_2 + h_3 + 858. \]
+We already know that \( h_1 + h_2 + h_3 = 2182 \), so the new total height is:
+\[ 885 + 2182 + 858 = 3925 \text{ feet}. \]
+The new mean height of these five buildings would be:
+\[ \frac{3925}{5} = 785 \text{ feet}. \]
+
+The increase in mean height is:
+\[ 785 - 733 = 52 \text{ feet}. \]
+
+Let's confirm this with Python code. We'll perform the steps above programmatically to ensure accuracy.
+```python
+# Given values
+mean_height_original = 733
+num_buildings = 5
+total_height_original = mean_height_original * num_buildings
+
+# Heights of the buildings
+height_shortest = 625
+height_tallest = 858
+
+# Calculate the sum of the heights of the other three buildings
+sum_other_three_heights = total_height_original - (height_shortest + height_tallest)
+
+# New building height to be added
+height_new_building = 885
+
+# Calculate the new total height if the new building replaces the shortest one
+new_total_height = (total_height_original - height_shortest) + height_new_building
+
+# Calculate the new mean height with the six buildings, though we are only interested in the mean of the original five buildings with the new building replacing the shortest one
+new_mean_height_with_new_building = new_total_height / num_buildings
+
+# Calculate the increase in mean height
+increase_in_mean_height = new_mean_height_with_new_building - mean_height_original
+print(increase_in_mean_height)
+```
+Code execution result: 52.0
+
+So, the mean height of the five tallest buildings would increase by \(\boxed{52}\) feet if a new building with a height of 885 feet were constructed and it replaced the shortest building among the original five. This confirms our solution is accurate.
+

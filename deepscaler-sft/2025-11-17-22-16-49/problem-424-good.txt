@@ -1,0 +1,73 @@
+Score: 1.0
+
+First, let's start by simplifying the function \( f(x) = 2 \sqrt{3} \sin x \cos x + 2 \cos^2 x - 1 \).
+
+1. **Simplify the Function:**
+   - We know that \( 2 \sin x \cos x = \sin 2x \), so \( 2 \sqrt{3} \sin x \cos x = \sqrt{3} \sin 2x \).
+   - We also know that \( \cos^2 x = \frac{1 + \cos 2x}{2} \), so \( 2 \cos^2 x = 1 + \cos 2x \), and therefore \( 2 \cos^2 x - 1 = \cos 2x \).
+   - Substituting these into the function, we get:
+     \[
+     f(x) = \sqrt{3} \sin 2x + \cos 2x
+     \]
+   - We can express this as a single sine or cosine function by recognizing that we can write \( \sqrt{3} \sin 2x + \cos 2x \) in the form \( R \sin(2x + \phi) \) where \( R = \sqrt{(\sqrt{3})^2 + 1^2} = 2 \) and \(\tan \phi = \frac{1}{\sqrt{3}} \Rightarrow \phi = \frac{\pi}{6} \).
+   - Therefore, we have:
+     \[
+     f(x) = 2 \sin \left( 2x + \frac{\pi}{6} \right)
+     \]
+
+2. **Find the Axis of Symmetry and Center of Symmetry:**
+   - The function \( f(x) = 2 \sin \left( 2x + \frac{\pi}{6} \right) \) is a sine function with amplitude 2 and period \(\pi\).
+   - The axis of symmetry of \( \sin \theta \) occurs at \(\theta = \frac{\pi}{2} + k\pi \) for integers \( k \). For \( f(x) = 2 \sin \left( 2x + \frac{\pi}{6} \right) \), the argument \( 2x + \frac{\pi}{6} = \frac{\pi}{2} + k\pi \), so:
+     \[
+     2x + \frac{\pi}{6} = \frac{\pi}{2} + k\pi \implies 2x = \frac{\pi}{3} + k\pi \implies x = \frac{\pi}{6} + \frac{k\pi}{2}
+     \]
+     Thus, the axis of symmetry is at \( x = \frac{\pi}{6} + \frac{k\pi}{2} \) for integers \( k \).
+   - The center of symmetry of \( \sin \theta \) occurs at \(\theta = k\pi \) for integers \( k \). For \( f(x) = 2 \sin \left( 2x + \frac{\pi}{6} \right) \), the argument \( 2x + \frac{\pi}{6} = k\pi \), so:
+     \[
+     2x + \frac{\pi}{6} = k\pi \implies 2x = - \frac{\pi}{6} + k\pi \implies x = - \frac{\pi}{12} + \frac{k\pi}{2}
+     \]
+     Thus, the center of symmetry is at \( x = - \frac{\pi}{12} + \frac{k\pi}{2} \) for integers \( k \).
+
+3. **Find the Maximum and Minimum Values on the Interval \(\left[-\frac{\pi}{6}, \frac{\pi}{4}\right]\):**
+   - First, we need to determine the range of the argument \( 2x + \frac{\pi}{6} \) over the interval \(\left[-\frac{\pi}{6}, \frac{\pi}{4}\right]\).
+   - When \( x = - \frac{\pi}{6} \):
+     \[
+     2 \left( - \frac{\pi}{6} \right) + \frac{\pi}{6} = - \frac{\pi}{6}
+     \]
+   - When \( x = \frac{\pi}{4} \):
+     \[
+     2 \left( \frac{\pi}{4} \right) + \frac{\pi}{6} = \frac{\pi}{2} + \frac{\pi}{6} = \frac{2\pi}{3}
+     \]
+   - So, we need to consider the values of \( 2 \sin \theta \) where \(\theta \) ranges from \(- \frac{\pi}{6}\) to \(\frac{2\pi}{3}\).
+
+Let's implement this in Python to get the precise maximum and minimum values of \( f(x) \) on the interval \(\left[-\frac{\pi}{6}, \frac{\pi}{4}\right]\).
+```python
+import numpy as np
+
+# Define the function
+def f(x):
+    return 2 * np.sin(2 * x + np.pi / 6)
+
+# Generate values of f(x) over the interval [-π/6, π/4]
+x = np.linspace(-np.pi / 6, np.pi / 4, 1000)
+y = f(x)
+
+# Find the maximum and minimum values of f(x) on the interval
+max_value = np.max(y)
+min_value = np.min(y)
+
+print(((max_value, min_value)))
+```
+Code execution result: (1.9999997252951935, -0.9999999999999999)
+
+Hence, the maximum and minimum values of \( f(x) \) on the interval \(\left[-\frac{\pi}{6}, \frac{\pi}{4}\right]\) are:
+
+\[
+\boxed{2} \quad \text{(maximum value)}
+\]
+\[
+\boxed{-1} \quad \text{(minimum value)}
+\]
+
+These results were obtained by evaluating the function \( f(x) = 2 \sin \left( 2x + \frac{\pi}{6} \right) \) over the interval \(\left[-\frac{\pi}{6}, \frac{\pi}{4}\right]\) and finding its maximum and minimum values.
+

@@ -1,0 +1,54 @@
+Score: 0.0
+
+First, let's formally understand the problem and develop a plan before coding it. Polya starts on the 6th floor and can move either up or down based on a coin flip. Each coin flip has a 50% chance of being heads or tails. After five coin flips, Polya's destination floors are determined as follows:
+
+- Each heads means moving up one floor.
+- Each tails means moving down one floor.
+
+We need to find the probability that after these five moves, Polya is on the 7th floor or higher (i.e., 7th, 8th, 9th, 10th, 11th, 12th, 13th, 14th, or 15th floor). That means her final floor after the five moves should be between 7 and 15, inclusive.
+
+To end up on a floor $f$ starting from the 6th floor after 5 moves, the net change in floor level after 5 coin flips must be a value that results in a floor $f$ where:
+\[ 7 \leq 6 + (\text{net change}) \leq 15 \]
+This implies:
+\[ 1 \leq \text{net change} \leq 9 \]
+where the net change is the number of heads minus the number of tails after 5 coin flips.
+
+To achieve this, we need to iterate through all possible sequences of 5 coin flips, compute the resulting floor for each sequence, and count how many of these sequences result in a floor that is 7 or higher.
+
+There are \(2^5 = 32\) possible sequences of 5 coin flips. For each sequence, let's compute the final floor and check if it's 7 or higher. We then compute the probability as the ratio of the number of successful sequences to the total number of sequences.
+
+Let's implement this step by step in Python to get an accurate answer.
+```python
+import itertools
+
+# Initialize count for successful outcomes and total outcomes
+successful_outcomes = 0
+total_outcomes = 0
+
+# Generate all possible sequences of 5 coin flips (each sequence is either H or T)
+sequences = list(itertools.product(['H', 'T'], repeat=5))
+
+# Iterate over each sequence and determine the final floor Polya ends up on
+for seq in sequences:
+    heads = sum(1 for flip in seq if flip == 'H')  # Count number of heads
+    tails = 5 - heads  # Count number of tails
+    final_floor = 6 + (heads - tails)  # Calculate the final floor
+
+    # Check if the final floor is 7 or higher
+    if 7 <= final_floor <= 15:
+        successful_outcomes += 1
+
+    total_outcomes += 1
+
+# Calculate the probability as a fraction
+probability = successful_outcomes / total_outcomes
+
+# Return the result as a common fraction
+from fractions import Fraction
+probability_fraction = Fraction(successful_outcomes, total_outcomes)
+print(probability_fraction)
+```
+Code execution result: 1/2
+
+Thus, the probability that each of Polya's next five stops is on the 7th floor or higher is \(\boxed{\frac{1}{2}}\). This is the final answer.
+

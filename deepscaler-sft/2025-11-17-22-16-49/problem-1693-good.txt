@@ -1,0 +1,50 @@
+Score: 1.0
+
+First, let's establish the general forms of the arithmetic sequence \(a_n\) and the geometric sequence \(b_n\):
+
+- An arithmetic sequence is given by \( a_n = a_1 + (n-1)d \), where \(a_1\) is the first term and \(d\) is the common difference.
+- A geometric sequence is given by \( b_n = b_1 \cdot r^{n-1} \), where \(b_1\) is the first term and \(r\) is the common ratio.
+
+Given the sequence \( c_n = a_n + b_n \), we have:
+\[ c_1 = a_1 + b_1 = 1, \]
+\[ c_2 = a_2 + b_2 = (a_1 + d) + (b_1 \cdot r) = 4, \]
+\[ c_3 = a_3 + b_3 = (a_1 + 2d) + (b_1 \cdot r^2) = 15, \]
+\[ c_4 = a_4 + b_4 = (a_1 + 3d) + (b_1 \cdot r^3) = 2. \]
+
+We need to solve this system of equations to find \( a_1, d, b_1, r \). Once we have these values, we can compute \( c_5 = a_5 + b_5 \).
+
+Let's start by setting up these equations and solving them step by step using Python.
+```python
+import sympy as sp
+
+# Define the variables
+a1, d, b1, r = sp.symbols('a1 d b1 r')
+
+# Set up the system of equations based on the given conditions
+eq1 = a1 + b1 - 1
+eq2 = (a1 + d) + (b1 * r) - 4
+eq3 = (a1 + 2 * d) + (b1 * r**2) - 15
+eq4 = (a1 + 3 * d) + (b1 * r**3) - 2
+
+# Solve the system of equations
+solution = sp.solve((eq1, eq2, eq3, eq4), (a1, d, b1, r))
+
+print(solution)
+```
+Code execution result: [(1/2, 5, 1/2, -3)]
+
+From solving the system of equations, we get:
+\[ a_1 = \frac{1}{2}, \quad d = 5, \quad b_1 = \frac{1}{2}, \quad r = -3. \]
+
+Now, we can use these values to find \( c_5 \):
+\[ c_5 = a_5 + b_5. \]
+
+First, let's compute \( a_5 \) and \( b_5 \):
+\[ a_5 = a_1 + 4d = \frac{1}{2} + 4 \cdot 5 = \frac{1}{2} + 20 = \frac{41}{2}, \]
+\[ b_5 = b_1 \cdot r^4 = \frac{1}{2} \cdot (-3)^4 = \frac{1}{2} \cdot 81 = \frac{81}{2}. \]
+
+Therefore,
+\[ c_5 = a_5 + b_5 = \frac{41}{2} + \frac{81}{2} = \frac{41 + 81}{2} = \frac{122}{2} = 61. \]
+
+So, the value of \( c_5 \) is \(\boxed{61}\). This is our final answer.
+

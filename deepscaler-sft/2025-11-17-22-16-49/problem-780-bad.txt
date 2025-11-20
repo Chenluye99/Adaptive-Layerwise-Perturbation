@@ -1,0 +1,44 @@
+Score: 1.0
+
+To solve this problem, we will use the `scipy.optimize` module to find the minimum value of the given function \(\frac{x^2}{y - 1} + \frac{y^2}{x - 1}\) subject to the constraints \(x > 1\) and \(y > 1\).
+
+The steps are as follows:
+
+1. **Define the Function:**
+   We define the function \( f(x, y) = \frac{x^2}{y - 1} + \frac{y^2}{x - 1} \).
+
+2. **Set Up Constraints:**
+   The constraints are \( x > 1 \) and \( y > 1 \). To use `scipy.optimize`, we need to convert these into bounds for \( x \) and \( y \), i.e., \( 1 < x \) and \( 1 < y \).
+
+3. **Use Optimization Function:**
+   We will use the `minimize` function from `scipy.optimize` to find the minimum value of the function. The `minimize` function can handle both bounds and constraints, but in this case, we will use bounds for simplicity since we're looking for values greater than 1.
+
+Let's implement this step-by-step in Python.
+
+```python
+import scipy.optimize as optimize
+
+# Define the function to minimize
+def func(vars):
+    x, y = vars
+    return (x**2 / (y - 1)) + (y**2 / (x - 1))
+
+# Set initial guess for x and y
+initial_guess = [2, 2]
+
+# Define bounds for x and y (they need to be greater than 1)
+bounds = [(1.0001, None), (1.0001, None)]
+
+# Perform the optimization
+solution = optimize.minimize(func, initial_guess, bounds=bounds)
+
+# Get the minimum value and the corresponding (x, y)
+min_value = solution.fun
+optimal_x, optimal_y = solution.x
+
+print(min_value)
+```
+Code execution result: 8.0
+
+Thus, the minimum value of the function \(\frac{x^2}{y - 1} + \frac{y^2}{x - 1}\) for real numbers \(x > 1\) and \(y > 1\) is \(\boxed{8}\). This result was obtained by using optimization techniques implemented in `scipy.optimize`.
+

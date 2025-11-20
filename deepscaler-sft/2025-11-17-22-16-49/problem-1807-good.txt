@@ -1,0 +1,103 @@
+Score: 1.0
+
+To solve the problem, we need to find a polynomial \( P(x) \) such that it satisfies the equation:
+\[ P(x) = P(0) + P(1) x + P(2) x^2 \]
+and the condition:
+\[ P(-1) = 1. \]
+
+Let's assume that \( P(x) \) is a polynomial of degree at most 2, because the right-hand side of the equation \( P(x) = P(0) + P(1) x + P(2) x^2 \) is a polynomial of degree at most 2. So, we can write:
+\[ P(x) = a x^2 + b x + c. \]
+
+Now, we need to determine the coefficients \( a, b, \) and \( c \) by using the given conditions.
+
+1. First, we evaluate \( P(0) \):
+\[ P(0) = c. \]
+
+2. Next, we evaluate \( P(1) \):
+\[ P(1) = a(1)^2 + b(1) + c = a + b + c. \]
+
+3. Then, we evaluate \( P(2) \):
+\[ P(2) = a(2)^2 + b(2) + c = 4a + 2b + c. \]
+
+Substitute these into the equation \( P(x) = P(0) + P(1) x + P(2) x^2 \):
+\[ a x^2 + b x + c = c + (a + b + c) x + (4a + 2b + c) x^2. \]
+
+By comparing the coefficients of like terms on both sides of the equation, we get:
+\[ a = 4a + 2b + c, \]
+\[ b = a + b + c, \]
+\[ c = c. \]
+
+From the third equation, the constant terms match, so it doesn't provide a new independent equation. We focus on the first two equations:
+
+1. From \( a = 4a + 2b + c \):
+\[ a - 4a = 2b + c, \]
+\[ -3a = 2b + c, \]
+\[ c = -3a - 2b. \]
+
+2. From \( b = a + b + c \):
+\[ b - b = a + c, \]
+\[ 0 = a + c, \]
+\[ c = -a. \]
+
+Now, we have two expressions for \( c \):
+\[ c = -3a - 2b, \]
+\[ c = -a. \]
+
+By equating these two expressions for \( c \):
+\[ -3a - 2b = -a, \]
+\[ -3a + a = 2b, \]
+\[ -2a = 2b, \]
+\[ -a = b, \]
+\[ b = -a. \]
+
+Now substitute \( b = -a \) and \( c = -a \) back into the polynomial:
+\[ P(x) = a x^2 - a x - a. \]
+
+We can factor out \( a \):
+\[ P(x) = a (x^2 - x - 1). \]
+
+To determine the value of \( a \), we use the condition \( P(-1) = 1 \):
+\[ P(-1) = a ((-1)^2 - (-1) - 1) = a (1 + 1 - 1) = a (1) = a. \]
+So, we have:
+\[ a = 1. \]
+
+Therefore, the polynomial \( P(x) \) is:
+\[ P(x) = 1 \cdot (x^2 - x - 1) = x^2 - x - 1. \]
+
+We can use Python to verify this solution by substituting back into the original conditions and checking if they hold true.
+```python
+import sympy as sp
+
+# Define the polynomial P(x) = x^2 - x - 1
+x = sp.symbols('x')
+P = x**2 - x - 1
+
+# Calculate P(0), P(1), P(2)
+P0 = P.subs(x, 0)
+P1 = P.subs(x, 1)
+P2 = P.subs(x, 2)
+
+# Check if P(x) = P(0) + P(1) * x + P(2) * x^2
+lhs = P
+rhs = P0 + P1 * x + P2 * x**2
+
+# Check if both sides are equal
+check_poly_identity = sp.simplify(lhs - rhs) == 0
+
+# Check if P(-1) = 1
+check_P_minus_1 = P.subs(x, -1) == 1
+
+print(((check_poly_identity, check_P_minus_1, P)))
+```
+Code execution result: (True, True, x**2 - x - 1)
+
+The code confirms that our solution \( P(x) = x^2 - x - 1 \) satisfies both conditions:
+
+1. \( P(x) = P(0) + P(1) x + P(2) x^2 \)
+2. \( P(-1) = 1 \)
+
+Thus, the final answer is:
+\[
+\boxed{x^2 - x - 1}
+\]
+

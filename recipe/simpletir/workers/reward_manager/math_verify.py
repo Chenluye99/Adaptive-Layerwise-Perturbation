@@ -227,6 +227,11 @@ class MathRewardManager:
             score = scores[i]
 
             sample_extra_info = {}
+            # Add index from extra_infos if available
+            if extra_infos[i] is not None and isinstance(extra_infos[i], dict):
+                if "index" in extra_infos[i]:
+                    sample_extra_info["index"] = extra_infos[i]["index"]
+            
             for key, value_list in extra_info_dict.items():
                 if i < len(value_list):
                     sample_extra_info[key] = value_list[i]

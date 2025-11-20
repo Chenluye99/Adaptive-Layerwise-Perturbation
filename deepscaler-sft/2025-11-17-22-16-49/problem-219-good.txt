@@ -1,0 +1,59 @@
+Score: 1.0
+
+### Step-by-Step Solution:
+
+First, we need to implement the sequence generation based on the given recursion formula:
+
+\[ a_{n+1} = a_{n} + 2 \left\lfloor \sqrt{a_{n}} \right\rfloor. \]
+
+#### Part (1): If \(a = 8\)
+
+1. **Initialize**: Set \( a_1 = 8 \).
+2. **Recursion Step**: For each subsequent term, compute \( a_{n+1} \) using the formula above until we get a perfect square.
+3. **Check for Perfect Square**: For each computed \( a_{n+1} \), check if it is a perfect square by verifying if \( \sqrt{a_{n+1}} \) is an integer.
+
+We will write code to iterate this process and find the smallest positive integer \( n \) such that \( a_n \) is a perfect square.
+
+#### Part (2): If \( a = 2017 \)
+
+1. **Initialize**: Set \( a_1 = 2017 \).
+2. **Recursion Step**: For each subsequent term, compute \( a_{n+1} \) using the formula above until we get a perfect square.
+3. **Check for Perfect Square**: For each computed \( a_{n+1} \), check if it is a perfect square by verifying if \( \sqrt{a_{n+1}} \) is an integer.
+
+We will write code to iterate this process and find the smallest positive integer \( n \) such that \( a_n \) is a perfect square.
+
+Let's implement this step-by-step in Python.
+```python
+import math
+
+def find_smallest_n_for_perfect_square(a):
+    a_n = a
+    n = 1
+    
+    while True:
+        sqrt_a_n = math.isqrt(a_n)
+        a_n_plus_1 = a_n + 2 * sqrt_a_n
+        
+        if math.isqrt(a_n_plus_1) ** 2 == a_n_plus_1:
+            return n + 1
+        
+        a_n = a_n_plus_1
+        n += 1
+
+# Part (1): a = 8
+result_a_8 = find_smallest_n_for_perfect_square(8)
+
+# Part (2): a = 2017
+result_a_2017 = find_smallest_n_for_perfect_square(2017)
+
+print(f"Result for a = 8: {result_a_8}")
+print(f"Result for a = 2017: {result_a_2017}")
+```
+Code execution result: Result for a = 8: 5
+Result for a = 2017: 82
+
+Thus, the smallest positive integer \( n \) such that \( a_n \) is a perfect square for the given sequences are:
+
+1. When \( a = 8 \), the answer is \(\boxed{5}\).
+2. When \( a = 2017 \), the answer is \(\boxed{82}\).
+

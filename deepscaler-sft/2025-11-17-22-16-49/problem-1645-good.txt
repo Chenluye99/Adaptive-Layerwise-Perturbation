@@ -1,0 +1,37 @@
+Score: 1.0
+
+To solve this problem, we'll follow these steps:
+
+1. **Define a Function to Check if a Number is a Lucky Integer:**
+    - For a given number, calculate the sum of its digits.
+    - Check if the number is divisible by the sum of its digits. If it is, then the number is a lucky integer.
+
+2. **Find the Least Positive Multiple of 9 that is Not a Lucky Integer:**
+    - Start from 9 and check each multiple of 9 to see if it is a lucky integer.
+    - For each multiple of 9, use the function defined in step 1 to check if it is a lucky integer.
+    - If a multiple of 9 is not a lucky integer, that is our answer.
+
+Let's implement this step-by-step plan in Python.
+```python
+def sum_of_digits(n):
+    return sum(int(digit) for digit in str(n))
+
+def is_lucky_integer(n):
+    digit_sum = sum_of_digits(n)
+    return n % digit_sum == 0 if digit_sum != 0 else n == 0
+
+multiple_of_9 = 9
+while True:
+    if not is_lucky_integer(multiple_of_9):
+        result = multiple_of_9
+        break
+    multiple_of_9 += 9
+
+print(result)
+```
+Code execution result: 99
+
+Thus, the least positive multiple of 9 that is not a lucky integer is \(\boxed{99}\). 
+
+This result is achieved by iterating through multiples of 9 and checking each one to see if it is a lucky integer using our defined `is_lucky_integer` function. The code found that 99 is the first multiple of 9 that does not meet the condition of being a lucky integer.
+

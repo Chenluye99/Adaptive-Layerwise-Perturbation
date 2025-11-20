@@ -1,0 +1,65 @@
+Score: 1.0
+
+First, let's start by defining the random variables and their properties.
+
+1. **Random Variable ξ:**
+   - ξ follows a binomial distribution \( B(5, 0.5) \).
+   - For a binomial distribution \( B(n, p) \), the expected value (mean) \( E(\xi) \) and the variance \( D(\xi) \) are given by:
+     \[
+     E(\xi) = n \cdot p
+     \]
+     \[
+     D(\xi) = n \cdot p \cdot (1 - p)
+     \]
+   - For our specific case where \( n = 5 \) and \( p = 0.5 \):
+     \[
+     E(\xi) = 5 \cdot 0.5 = 2.5
+     \]
+     \[
+     D(\xi) = 5 \cdot 0.5 \cdot (1 - 0.5) = 5 \cdot 0.5 \cdot 0.5 = 1.25
+     \]
+
+2. **Random Variable η:**
+   - η is defined as \( \eta = 5 \cdot \xi \).
+   - The expected value (mean) of η, \( E(\eta) \), can be computed using the property of expected values:
+     \[
+     E(\eta) = E(5 \cdot \xi) = 5 \cdot E(\xi) = 5 \cdot 2.5 = 12.5
+     \]
+   - The variance of η, \( D(\eta) \), can be computed using the property of variances:
+     \[
+     D(\eta) = D(5 \cdot \xi) = 5^2 \cdot D(\xi) = 25 \cdot 1.25 = 31.25
+     \]
+
+Let's confirm these results by implementing this in Python using `sympy`.
+
+```python
+import sympy as sp
+
+# Parameters for the binomial distribution B(5, 0.5)
+n = 5
+p = 0.5
+
+# Calculate E(ξ) and D(ξ)
+E_xi = n * p
+D_xi = n * p * (1 - p)
+
+# Define η = 5 * ξ and calculate E(η) and D(η)
+E_eta = 5 * E_xi
+D_eta = 5**2 * D_xi
+
+print(f"E(η) = {E_eta}")
+print(f"D(η) = {D_eta}")
+```
+Code execution result: E(η) = 12.5
+D(η) = 31.25
+
+Thus, the values of \( E(\eta) \) and \( D(\eta) \) are:
+\[
+\boxed{12.5}
+\]
+\[
+\boxed{31.25}
+\]
+
+These are the final answers.
+

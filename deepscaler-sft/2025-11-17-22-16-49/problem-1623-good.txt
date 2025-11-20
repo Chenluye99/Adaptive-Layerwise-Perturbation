@@ -1,0 +1,116 @@
+Score: 1.0
+
+To solve this problem, let's start by understanding the properties of a hyperbola and its asymptotes.
+
+The given hyperbola is:
+
+\[
+\frac{x^2}{a^2} - \frac{y^2}{b^2} = 1
+\]
+
+The equations of the asymptotes of this hyperbola are given by:
+
+\[
+y = \pm \frac{b}{a} x
+\]
+
+The slopes of the asymptotes are $\frac{b}{a}$ and $-\frac{b}{a}$. The angle between the asymptotes can be determined using the formula for the angle between two lines. Let's say the angle between the lines with slopes $m_1$ and $m_2$ is $\theta$, then:
+
+\[
+\tan \theta = \left| \frac{m_1 - m_2}{1 + m_1 m_2} \right|
+\]
+
+In our case, the slopes of the asymptotes are $\frac{b}{a}$ and $-\frac{b}{a}$. So, we substitute these into the formula:
+
+\[
+\tan \theta = \left| \frac{\frac{b}{a} - \left( -\frac{b}{a} \right)}{1 + \left( \frac{b}{a} \right) \left( -\frac{b}{a} \right)} \right| = \left| \frac{\frac{2b}{a}}{1 - \frac{b^2}{a^2}} \right| = \left| \frac{\frac{2b}{a}}{\frac{a^2 - b^2}{a^2}} \right| = \left| \frac{2ba^2}{a (a^2 - b^2)} \right| = \left| \frac{2b a}{a^2 - b^2} \right|
+\]
+
+Since the angle between the asymptotes is given as $60^\circ$, we know that $\theta = 60^\circ$, and thus $\tan 60^\circ = \sqrt{3}$. Therefore, we have:
+
+\[
+\left| \frac{2b a}{a^2 - b^2} \right| = \sqrt{3}
+\]
+
+Without loss of generality, we can drop the absolute value because the relationship will hold either way. So we have:
+
+\[
+\frac{2ba}{a^2 - b^2} = \sqrt{3}
+\]
+
+Rearrange this equation to solve for $\frac{a}{b}$:
+
+\[
+2ba = \sqrt{3} (a^2 - b^2)
+\]
+
+Divide through by $b^2$ and introduce the variable $k = \frac{a}{b}$:
+
+\[
+2k = \sqrt{3} \left( k^2 - 1 \right)
+\]
+
+This is a quadratic equation in terms of $k$:
+
+\[
+2k = \sqrt{3} (k^2 - 1)
+\]
+
+\[
+2k = \sqrt{3} k^2 - \sqrt{3}
+\]
+
+\[
+\sqrt{3} k^2 - 2k - \sqrt{3} = 0
+\]
+
+We can solve this quadratic equation using the quadratic formula $k = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$, where $a = \sqrt{3}$, $b = -2$, and $c = -\sqrt{3}$:
+
+\[
+k = \frac{-(-2) \pm \sqrt{(-2)^2 - 4 (\sqrt{3}) (-\sqrt{3})}}{2 (\sqrt{3})} = \frac{2 \pm \sqrt{4 + 12}}{2 \sqrt{3}} = \frac{2 \pm \sqrt{16}}{2 \sqrt{3}} = \frac{2 \pm 4}{2 \sqrt{3}}
+\]
+
+This gives us two solutions:
+
+\[
+k = \frac{2 + 4}{2 \sqrt{3}} = \frac{6}{2 \sqrt{3}} = \frac{3}{\sqrt{3}} = \sqrt{3}
+\]
+
+and
+
+\[
+k = \frac{2 - 4}{2 \sqrt{3}} = \frac{-2}{2 \sqrt{3}} = \frac{-1}{\sqrt{3}} = -\frac{\sqrt{3}}{3}
+\]
+
+Since $a > b$, we must have $\frac{a}{b} > 1$, so we discard the negative solution. Thus, the solution is:
+
+\[
+\frac{a}{b} = \sqrt{3}
+\]
+
+We can use Python to verify this solution.
+```python
+import sympy as sp
+
+# Define the variables
+k = sp.symbols('k', positive=True)
+
+# Define the equation
+eq = sp.Eq(sp.sqrt(3) * k**2 - 2 * k - sp.sqrt(3), 0)
+
+# Solve the equation
+solution = sp.solve(eq, k)
+print(solution)
+```
+Code execution result: [sqrt(3)]
+
+This confirms that the solution to the equation is:
+
+\[
+\frac{a}{b} = \sqrt{3}
+\]
+
+Thus, the final answer is:
+
+\(\boxed{\sqrt{3}}\)
+

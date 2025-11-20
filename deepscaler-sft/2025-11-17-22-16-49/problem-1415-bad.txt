@@ -1,0 +1,42 @@
+Score: 1.0
+
+First, let's start by outlining the plan for solving this problem:
+
+1. **Define the Function to Calculate the Number of Divisors:**
+   We need a function that computes the number of positive divisors of a given number \( n \). We denote this function as \(\tau(n)\).
+
+2. **Find Numbers that Satisfy the Condition \(\tau(n) + \tau(n+1) = 7\):**
+   We will iterate through the positive integers, compute \(\tau(n)\) and \(\tau(n+1)\) for each, and check if their sum is 7. If it is, we will add \( n \) to a list of solutions.
+
+3. **Find the Six Least Positive Integers that Satisfy the Condition:**
+   We continue the iteration until we find the six integers that meet the condition.
+
+4. **Compute the Sum of These Six Integers:**
+   Once we have the six integers, we compute their sum.
+
+Let's implement this step-by-step in Python.
+```python
+import sympy
+
+def find_special_numbers():
+    solutions = []
+    n = 1
+    
+    while len(solutions) < 6:
+        tau_n = sympy.divisor_count(n)
+        tau_n_plus_1 = sympy.divisor_count(n + 1)
+        
+        if tau_n + tau_n_plus_1 == 7:
+            solutions.append(n)
+            
+        n += 1
+    
+    return solutions
+
+special_numbers = find_special_numbers()
+print((special_numbers, sum(special_numbers)))
+```
+Code execution result: ([8, 9, 16, 25, 121, 361], 540)
+
+Thus, the six least positive integers \( n \) that are solutions to \(\tau(n) + \tau(n+1) = 7\) are \([8, 9, 16, 25, 121, 361]\), and their sum is \(\boxed{540}\). This is our final answer.
+

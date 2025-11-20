@@ -1,0 +1,39 @@
+Score: 1.0
+
+To solve the given problem, we need to compute the sum of \(\sin^2 4^\circ + \sin^2 8^\circ + \sin^2 12^\circ + \dots + \sin^2 176^\circ\).
+
+First, let's analyze the sequence of the angles. The angles in the sequence are 4°, 8°, 12°, ..., 176°. This is an arithmetic sequence where the first term \(a = 4^\circ\) and the common difference \(d = 4^\circ\).
+
+We can determine the number of terms in this sequence by using the formula for the nth term of an arithmetic sequence, which is:
+\[ a_n = a + (n-1) \cdot d \]
+
+For our sequence, the last term is 176°, so we can substitute to find \( n \):
+\[ 176 = 4 + (n-1) \cdot 4 \]
+\[ 176 = 4 + 4(n-1) \]
+\[ 172 = 4(n-1) \]
+\[ 43 = n-1 \]
+\[ n = 44 \]
+
+So, there are 44 terms in this sequence. Now, we need to compute \(\sin^2 4^\circ + \sin^2 8^\circ + \sin^2 12^\circ + \dots + \sin^2 176^\circ\).
+
+We can use Python to compute this sum accurately. We'll use the `math` module to get the sine values and then square them, and sum them all up.
+```python
+import math
+
+# Initialize the sum
+sum_of_squares = 0
+
+# Iterate through the angles and compute the sum of their squared sines
+for i in range(4, 177, 4):
+    angle = i
+    sin_squared = math.sin(math.radians(angle)) ** 2
+    sum_of_squares += sin_squared
+
+print(sum_of_squares)
+```
+Code execution result: 22.500000000000007
+
+Thus, the computed sum is approximately \( 22.5 \). Therefore, the final answer is:
+
+\(\boxed{22.5}\)
+

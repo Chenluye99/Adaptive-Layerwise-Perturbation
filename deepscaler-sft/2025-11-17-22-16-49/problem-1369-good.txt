@@ -1,0 +1,60 @@
+Score: 1.0
+
+To solve this problem, we need to find all the possible squares that can be drawn with vertices at lattice points of a 5 by 5 grid, and then determine how many of these squares are non-congruent.
+
+First, let's describe the grid. The grid ranges from (0, 0) to (4, 4), so it has 5 rows and 5 columns of lattice points.
+
+To identify squares, we need to consider the different possible side lengths and orientations of the squares that can be formed with these lattice points. We'll use Python to iterate through all possible combinations of four lattice points to check if they form a square.
+
+### Step-by-Step Plan:
+
+1. **Generate all Lattice Points:**
+   The lattice points in a 5 by 5 grid are given by all pairs \((x, y)\) where \(0 \leq x, y \leq 4\).
+
+2. **Check for Squares:**
+   For each combination of four distinct points, check if those points form a square. To do this, we need to check if the distances between pairs of points are equal (i.e., the sides of the square are equal) and if the angles between the sides are right angles (i.e., the dot product conditions for the vectors formed by the sides are satisfied).
+
+3. **Ensure Non-Congruence:**
+   Store each discovered square and then check for non-congruence. Two squares are congruent if they have the same side length, regardless of their orientation or position on the grid.
+
+### Implementation in Python:
+Let's write the Python code to implement this plan.
+```python
+import itertools
+
+# Generate all the lattice points in the 5 by 5 grid
+lattice_points = [(x, y) for x in range(5) for y in range(5)]
+
+# Function to check if four points form a square
+def is_square(p1, p2, p3, p4):
+    # Calculate squared distances between all pairs of points
+    d2 = lambda x, y: (x[0] - y[0]) ** 2 + (x[1] - y[1]) ** 2
+    
+    distances = sorted([d2(p1, p2), d2(p1, p3), d2(p1, p4), d2(p2, p3), d2(p2, p4), d2(p3, p4)])
+    
+    # For 4 points to form a square, there should be 2 distinct distances
+    # 4 sides of a square should be the same length, and the other 2 diagonals should be the same length (and different from the first 4)
+    return distances[0] == distances[1] == distances[2] == distances[3] and distances[4] == distances[5] and distances[4] == 2 * distances[0]
+
+# Find all sets of 4 points that form a square
+square_sets = []
+for comb in itertools.combinations(lattice_points, 4):
+    if is_square(*comb):
+        square_sets.append(comb)
+
+# Get unique squares by considering their side lengths
+unique_squares = set()
+for s in square_sets:
+    # Compute the side length of the square
+    side_length = sorted([((s[0][0] - s[1][0]) ** 2 + (s[0][1] - s[1][1]) ** 2),
+                          ((s[0][0] - s[2][0]) ** 2 + (s[0][1] - s[2][1]) ** 2)])[0] ** 0.5
+    unique_squares.add(side_length)
+
+# The number of non-congruent squares is the size of the set of unique squares
+num_non_congruent_squares = len(unique_squares)
+print(num_non_congruent_squares)
+```
+Code execution result: 8
+
+Thus, the number of non-congruent squares that can be drawn such that their vertices are lattice points on the 5 by 5 grid is \(\boxed{8}\). This is our final answer.
+

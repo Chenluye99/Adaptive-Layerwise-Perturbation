@@ -1,0 +1,29 @@
+Score: 1.0
+
+To solve this problem, we need to find the probability that Joan will solve the problem before her sixth attempt. This means we need to consider all the ways in which she could solve the problem on or before her fifth attempt. In other words, we need to exclude the case where she fails to solve it in her first five attempts.
+
+Here is the step-by-step approach:
+
+1. **Determine Total Probability of Solving the Problem**:
+    - Joan has a \(\frac{1}{4}\) probability of solving the problem on any given day and a \(\frac{3}{4}\) probability of not solving it.
+    
+2. **Calculate the Probability of Not Solving it in 5 Attempts**:
+    - The probability that Joan does not solve the problem in her first five attempts is \(\left(\frac{3}{4}\right)^5\).
+
+3. **Calculate the Probability of Solving it Before Sixth Try**:
+    - If Joan doesn't solve it in the first five attempts, then the probability that she has not solved it at all in her first five attempts and then using the sixth attempt to solve it isn't considered as "before her sixth try." Instead, we want the complement of the probability that she doesn't solve it in her first five attempts.
+    - Therefore, the probability that Joan solves it before her sixth try is \(1 - \left(\frac{3}{4}\right)^5\).
+
+Let's proceed with coding this to get the precise answer.
+```python
+# Calculate (3/4)^5
+prob_fail_five_attempts = (3/4) ** 5
+
+# Calculate the probability that Joan solves the problem before her sixth try
+prob_solve_before_sixth = 1 - prob_fail_five_attempts
+print(prob_solve_before_sixth)
+```
+Code execution result: 0.7626953125
+
+Thus, the probability that Joan will solve the problem before her sixth try is \(\boxed{0.7626953125}\). This is the final answer.
+

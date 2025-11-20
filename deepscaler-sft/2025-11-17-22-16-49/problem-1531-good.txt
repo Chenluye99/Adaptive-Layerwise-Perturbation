@@ -1,0 +1,39 @@
+Score: 1.0
+
+To solve this problem, we need to utilize properties of the divisor function and iterate over possible values of \( n \) until we find a suitable \( n \) that meets the given conditions. Then, we will determine the number of positive divisors of \( 6n \).
+
+### Step-by-Step Solution:
+
+1. **Define the Problem:**
+    - \( 2n \) has 28 divisors.
+    - \( 3n \) has 30 divisors.
+    - We need to find how many positive divisors \( 6n \) has.
+
+2. **Mathematical Background:**
+    - The number of divisors of a number \( m \) with the prime factorization \( m = p_1^{e_1} p_2^{e_2} \cdots p_k^{e_k} \) is given by \((e_1 + 1)(e_2 + 1) \cdots (e_k + 1)\).
+    - We will use this to check for different \( n \) and verify if \( 2n \) has 28 divisors and \( 3n \) has 30 divisors.
+
+3. **Implementation in Python:**
+    - We will write a function to calculate the number of divisors of a given number.
+    - We will iterate through positive integers, compute \( 2n \) and \( 3n \) for each \( n \), and check if they have 28 and 30 divisors, respectively.
+    - Once we find the correct \( n \), we will compute \( 6n \) and determine the number of its divisors.
+
+Let's implement this step-by-step in Python.
+```python
+import sympy
+
+def count_divisors(m):
+    return len(sympy.divisors(m))
+
+# We will iterate over a reasonable range to find the correct n
+for n in range(1, 100000):
+    if count_divisors(2 * n) == 28 and count_divisors(3 * n) == 30:
+        result = count_divisors(6 * n)
+        break
+
+print(result)
+```
+Code execution result: 35
+
+Thus, the number of positive divisors that \( 6n \) has is \(\boxed{35}\). This is the result obtained by iterating over a range of positive integers and checking the conditions provided in the problem statement.
+

@@ -1,0 +1,54 @@
+Score: 1.0
+
+To solve this problem, let's go step-by-step.
+
+1. **Identify the Problem:**
+    - We have 7 cards with numbers 1, 2, 2, 3, 4, 5, 6.
+    - We need to randomly draw 3 cards from these 7 cards and find the probability and the expected value of the minimum value of the numbers on the drawn cards, denoted as \(\xi\).
+
+2. **Find \( P(\xi = 2) \):**
+    - First, we need to find all possible ways to draw 3 cards from the 7 cards.
+    - Then, we need to determine in how many ways we can draw 3 cards such that the minimum number on these 3 cards is 2.
+    - The numbers on the cards are 1, 2, 2, 3, 4, 5, 6. For the minimum value of the numbers on the drawn cards to be 2, at least one of the cards drawn must be a 2, and both 1 and the other 2 must not be among the drawn cards.
+
+3. **Find \( E(\xi) \):**
+    - To find the expected value of \(\xi\), we need to consider all possible outcomes of drawing 3 cards from the 7 cards and find the minimum value for each outcome.
+    - Then, we compute the average of all these minimum values.
+
+Let's implement this step-by-step using Python to ensure accuracy.
+```python
+import itertools
+
+# List of card numbers
+cards = [1, 2, 2, 3, 4, 5, 6]
+
+# Generate all possible ways to draw 3 cards from the 7 cards
+all_draws = list(itertools.combinations(cards, 3))
+
+# Find P(ξ = 2)
+count_xi_2 = 0
+
+for draw in all_draws:
+    if min(draw) == 2:
+        count_xi_2 += 1
+
+P_xi_2 = count_xi_2 / len(all_draws)
+
+# Find E(ξ)
+min_values = []
+
+for draw in all_draws:
+    min_values.append(min(draw))
+
+E_xi = sum(min_values) / len(min_values)
+
+print(f"P(ξ = 2) = {P_xi_2}")
+print(f"E(ξ) = {E_xi}")
+```
+Code execution result: P(ξ = 2) = 0.45714285714285713
+E(ξ) = 1.7142857142857142
+
+Thus, the final answers are:
+\[ P(\xi = 2) = \boxed{0.45714285714285713} \]
+\[ E(\xi) = \boxed{1.7142857142857142} \]
+

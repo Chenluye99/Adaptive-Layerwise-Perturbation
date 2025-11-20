@@ -1,0 +1,99 @@
+Score: 1.0
+
+First, let's define the positions of the car and the storm center as functions of time \( t \).
+
+1. **Car's Position:**
+   - The car travels due east at \(\frac{2}{3}\) mile per minute. So, its position at time \( t \) is \((\frac{2}{3} t, 0)\).
+
+2. **Storm's Position:**
+   - The storm moves southeast at \(\frac{1}{2} \sqrt{2}\) mile per minute, which means it moves \(\frac{1}{2}\) mile south and \(\frac{1}{2}\) mile east each minute. So, its position at time \( t \) is \((\frac{1}{2} t, 110 - \frac{1}{2} t)\).
+
+3. **Distance Between the Car and the Storm's Center:**
+   - The distance \( d \) between the car and the center of the storm at time \( t \) is given by:
+     \[
+     d(t) = \sqrt{\left( \frac{2}{3} t - \frac{1}{2} t \right)^2 + \left( 0 - (110 - \frac{1}{2} t) \right)^2} = \sqrt{\left( \frac{1}{6} t \right)^2 + \left( \frac{1}{2} t - 110 \right)^2}
+     \]
+   - The car is inside the storm circle when the distance \( d(t) \leq 51 \). We need to find the times \( t_1 \) and \( t_2 \) when the car enters and leaves the storm circle, respectively.
+
+4. **Find \( t_1 \) and \( t_2 \):**
+   - Set up the equation for the distance being equal to 51:
+     \[
+     \sqrt{\left( \frac{1}{6} t \right)^2 + \left( \frac{1}{2} t - 110 \right)^2} = 51
+     \]
+   - Square both sides to get rid of the square root:
+     \[
+     \left( \frac{1}{6} t \right)^2 + \left( \frac{1}{2} t - 110 \right)^2 = 51^2
+     \]
+     \[
+     \frac{1}{36} t^2 + \left( \frac{1}{2} t - 110 \right)^2 = 2601
+     \]
+   - Expand and simplify:
+     \[
+     \frac{1}{36} t^2 + \frac{1}{4} t^2 - 110 t + 12100 = 2601
+     \]
+     \[
+     \frac{1}{36} t^2 + \frac{9}{36} t^2 - 110 t + 12100 = 2601
+     \]
+     \[
+     \frac{10}{36} t^2 - 110 t + 12100 = 2601
+     \]
+     \[
+     \frac{5}{18} t^2 - 110 t + 12100 = 2601
+     \]
+     \[
+     \frac{5}{18} t^2 - 110 t + 9499 = 0
+     \]
+     \[
+     5 t^2 - 1980 t + 170982 = 0
+     \]
+
+5. **Solve the Quadratic Equation:**
+   - Use the quadratic formula \( t = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} \) to solve for \( t \), where \( a = 5 \), \( b = -1980 \), and \( c = 170982 \):
+     \[
+     t = \frac{1980 \pm \sqrt{1980^2 - 4 \cdot 5 \cdot 170982}}{2 \cdot 5}
+     \]
+     \[
+     t = \frac{1980 \pm \sqrt{3920400 - 3419640}}{10}
+     \]
+     \[
+     t = \frac{1980 \pm \sqrt{500760}}{10}
+     \]
+     \[
+     t = \frac{1980 \pm 707.64}{10}
+     \]
+   - This gives us two solutions:
+     \[
+     t_1 = \frac{1980 - 707.64}{10} \quad \text{and} \quad t_2 = \frac{1980 + 707.64}{10}
+     \]
+     \[
+     t_1 \approx \frac{1272.36}{10} \approx 127.236 \quad \text{and} \quad t_2 \approx \frac{2687.64}{10} \approx 268.764
+     \]
+   - We can use these approximate values to get the final answer for \(\frac{1}{2} (t_1 + t_2)\):
+     \[
+     \frac{1}{2} (t_1 + t_2) \approx \frac{1}{2} (127.236 + 268.764) = \frac{1}{2} \cdot 396 = 198
+     \]
+
+Let's confirm this by implementing it in Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variables
+t = sp.symbols('t', real=True, positive=True)
+
+# Define the equation based on the distance condition
+distance_eq = (1/6 * t)**2 + (1/2 * t - 110)**2 - 51**2
+
+# Solve the equation for t
+solutions = sp.solve(distance_eq, t)
+
+# Get t1 and t2 from the solutions
+t1, t2 = min(solutions), max(solutions)
+
+# Calculate the final answer
+result = 0.5 * (t1 + t2)
+print(result)
+```
+Code execution result: 198.000000000000
+
+Thus, the final answer is \(\boxed{198}\). This result is confirmed to be accurate by solving the equation using Python.
+

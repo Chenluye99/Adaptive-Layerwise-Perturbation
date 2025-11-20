@@ -1,0 +1,63 @@
+Score: 1.0
+
+To solve this problem, let's simulate the movements of both the snail and the person step-by-step using Python.
+
+1. **Initial Setup:**
+    - Initially, the snail is 1 meter (100 cm) away from the starting pole.
+    - The snail moves away from the pole at a speed of \(1 \text{ cm/s}\).
+
+2. **Movement Simulation:**
+    - For each round \( n \):
+        - The person will start a round at the beginning of round \( n+1 \).
+        - During round \( n \), first, the person moves directly toward the snail at a speed of \( n+1 \text{ cm/s} \).
+        - Let's say it takes time \( t_1 \) for the person to reach the snail. The distance between the person and the snail decreases at a rate of \( (n+1) - 1 = n \text{ cm/s} \) while the snail is moving at 1 cm/s away. Therefore, the relative speed at which the person approaches the snail is \( n - 1 \text{ cm/s} \).
+        - So, the time \( t_1 \) it takes for the person to reach the snail is given by:
+          \[
+          t_1 = \frac{\text{distance between person and snail at start of round } n}{n}
+          \]
+          Initially, this distance is the distance covered by the snail since the start.
+        - Once the person reaches the snail, they immediately turn around and move back to the starting pole at the same speed \( n+1 \text{ cm/s} \). Let's say it takes time \( t_2 \) for the person to reach the pole again. The distance covered by the snail in the time it takes the person to move back is \( 1 \cdot t_2 = t_2 \text{ cm} \).
+        - The person then moves back to the starting point at \( n+1 \text{ cm/s} \), so the time it takes for the person to reach the starting pole is:
+          \[
+          t_2 = \frac{\text{the distance traveled by snail during } t_1 + t_2}{n+1}
+          \]
+        - When the person reaches the pole, they immediately start the next round.
+
+3. **Iterative Calculation:**
+    - We need to repeat this process for each round, incrementing the round number and updating the distance between the person and the snail until we reach round 100.
+
+Let's implement this step-by-step simulation in Python to determine the distance of the snail from the pole at the start of round 100.
+```python
+import sympy as sp
+
+# Initialize variables
+distance_snail_from_pole = 100  # Initial distance of the snail from the pole in cm
+current_round = 1
+
+while current_round < 100:
+    # Move towards the snail at speed (current_round + 1) until we catch up with the snail
+    # The snail is moving away from the pole at 1 cm/s, so its position after time t is distance_snail_from_pole + t
+    # We are moving towards the snail at (current_round + 1) cm/s, so we need to solve for t such that we meet the snail
+    
+    # Let's denote the time taken to catch up as t1. During this time, the snail travels an additional t1 cm.
+    # The distance between person and snail will reduce at a rate of (current_round + 1 - 1) = current_round cm/s.
+    t1 = distance_snail_from_pole / current_round
+    
+    # After meeting, we move back to the pole at the same speed, and while the person is moving back, the snail continues to move away.
+    # The distance covered by the snail while the person is moving back to the pole is 1 * t2
+    # The person's speed back is the same as current_round + 1, so the distance the person covers while moving back in time t2 is (current_round + 1) * t2.
+    # After time t2, the distance between the person and the pole is 0, which means the person reached back to the starting pole, and it's time for the next round.
+    t2 = distance_snail_from_pole / (current_round + 1)
+    
+    # After reaching the starting pole, the snail would have moved an additional t2 cm further.
+    distance_snail_from_pole += t2
+
+    # Move to the next round
+    current_round += 1
+
+print(distance_snail_from_pole)
+```
+Code execution result: 5050.0
+
+So, at the start of Round 100, the snail is \(\boxed{5050}\) meters away from the starting pole.
+

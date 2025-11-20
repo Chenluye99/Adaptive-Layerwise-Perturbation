@@ -1,0 +1,55 @@
+Score: 1.0
+
+To solve this problem, we need to follow a systematic approach:
+
+1. **Understanding the problem:**
+    - We are given that \( f^{-1}(g(x)) = 5x + 3 \).
+    - We want to find \( g^{-1}(f(-7)) \).
+
+2. **Steps to solve the problem:**
+    - First, let's denote \( y = g(x) \). Then, by definition of the inverse function, \( f^{-1}(y) = 5x + 3 \).
+    - To find \( g^{-1}(f(-7)) \), we need to determine what value of \( x \) makes \( f(-7) = g(x) \), and then find the corresponding \( y \) such that \( g^{-1}(f(-7)) = y \).
+
+3. **Formulating it mathematically:**
+    - If we set \( y = f(-7) \), then we have \( f^{-1}(y) = 5x + 3 \).
+    - To get \( y = f(-7) \), we need to figure out what \( x \) makes this equation true when substituting back into \( g(x) \).
+
+4. **Detailed Solution:**
+    - Substitute \( y = f(-7) \) into the equation \( f^{-1}(y) = 5x + 3 \).
+    - This gives us \( f^{-1}(f(-7)) = 5x + 3 \).
+    - Since \( f^{-1}(f(-7)) = -7 \) (because \( f^{-1}(f(a)) = a \) for any function \( f \) and its inverse \( f^{-1} \)), we get:
+      \[
+      -7 = 5x + 3
+      \]
+    - Solving for \( x \):
+      \[
+      -7 = 5x + 3 \implies -7 - 3 = 5x \implies -10 = 5x \implies x = -2
+      \]
+    - This means that \( g(-2) = f(-7) \), because \( f^{-1}(f(-7)) = 5(-2) + 3 = -7 \).
+    - To find \( g^{-1}(f(-7)) \), we need to determine what input \( g^{-1} \) should take to get \( f(-7) \). Since we have established that \( g(-2) = f(-7) \), it follows that:
+      \[
+      g^{-1}(f(-7)) = -2
+      \]
+
+Let's confirm this step-by-step process with Python to be sure the solution is accurate.
+```python
+from sympy import symbols, Eq, solve
+
+# Define the variables
+x = symbols('x')
+
+# Set up the equation based on the provided relationship f^(-1)(g(x)) = 5x + 3
+# We want to find the value of x such that f(-7) = g(x), and then we need g^(-1)(f(-7)) which should be the x we just found
+
+# Equation setup: f^(-1)(f(-7)) = 5 * some_x + 3, and we know f^(-1)(f(-7)) = -7
+lhs = -7  # because f^(-1)(f(-7)) = -7
+rhs = 5 * x + 3
+
+# Solve the equation lhs = rhs for x
+solution_for_x = solve(lhs - rhs, x)[0]
+print(solution_for_x)
+```
+Code execution result: -2
+
+This confirms our solution. Therefore, the value of \( g^{-1}(f(-7)) \) is \(\boxed{-2}\). This is our final answer.
+

@@ -1,0 +1,44 @@
+Score: 1.0
+
+To solve this problem, we need to find the points of intersection of the graphs of \( y = x^4 \) and \( y = 7x^2 - 10 \). To find the points of intersection, we set the equations equal to each other:
+\[ x^4 = 7x^2 - 10. \]
+Rearrange the equation to:
+\[ x^4 - 7x^2 + 10 = 0. \]
+This is a quadratic equation in terms of \( x^2 \). Let's make a substitution \( z = x^2 \). Then, the equation becomes:
+\[ z^2 - 7z + 10 = 0. \]
+We solve this quadratic equation for \( z \) using the quadratic formula \( z = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} \), where \( a = 1 \), \( b = -7 \), and \( c = 10 \):
+\[ z = \frac{-(-7) \pm \sqrt{(-7)^2 - 4 \cdot 1 \cdot 10}}{2 \cdot 1} = \frac{7 \pm \sqrt{49 - 40}}{2} = \frac{7 \pm \sqrt{9}}{2} = \frac{7 \pm 3}{2}. \]
+This gives two solutions:
+\[ z = \frac{7 + 3}{2} = 5, \]
+\[ z = \frac{7 - 3}{2} = 2. \]
+So, we have:
+\[ x^2 = 5 \quad \text{or} \quad x^2 = 2. \]
+This means the \( x \)-coordinates of the points of intersection are \( \pm \sqrt{5} \) and \( \pm \sqrt{2} \). Thus, we identify that \( m = 5 \) and \( n = 2 \). We need to find the value of \( m - n \):
+\[ m - n = 5 - 2 = 3. \]
+Let's confirm this by coding the solution to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variables and equations
+x = sp.symbols('x')
+eq1 = x**4
+eq2 = 7 * x**2 - 10
+
+# Find the intersection points
+intersection_points = sp.solve(eq1 - eq2, x)
+
+# Get the distinct positive x-coordinates of the intersection points
+positive_x_coords = [pt.evalf() for pt in intersection_points if pt > 0]
+
+# Extract m and n based on the form ±√m and ±√n
+m = max(positive_x_coords) ** 2
+n = min(positive_x_coords) ** 2
+
+# Calculate m - n
+result = m - n
+print(result)
+```
+Code execution result: 3.00000000000000
+
+Thus, the value of \( m - n \) is \(\boxed{3}\). This confirms that our solution is accurate.
+

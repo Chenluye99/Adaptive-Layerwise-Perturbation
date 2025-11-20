@@ -1,0 +1,50 @@
+Score: 1.0
+
+First, let's start by expressing the vector \(\overrightarrow{u}\):
+
+\[
+\overrightarrow{u} = \sqrt{3} \overrightarrow{a} + \lambda \overrightarrow{b} = \sqrt{3} (\cos 40^\circ, \sin 40^\circ) + \lambda (\sin 20^\circ, \cos 20^\circ)
+\]
+
+So, \(\overrightarrow{u}\) can be written as:
+
+\[
+\overrightarrow{u} = \left( \sqrt{3} \cos 40^\circ + \lambda \sin 20^\circ, \sqrt{3} \sin 40^\circ + \lambda \cos 20^\circ \right)
+\]
+
+The magnitude of \(\overrightarrow{u}\) is given by:
+
+\[
+|\overrightarrow{u}| = \sqrt{ \left( \sqrt{3} \cos 40^\circ + \lambda \sin 20^\circ \right)^2 + \left( \sqrt{3} \sin 40^\circ + \lambda \cos 20^\circ \right)^2 }
+\]
+
+To find the minimum value of \(|\overrightarrow{u}|\), we can define this as a function of \(\lambda\) and then find its minimum value by taking the derivative and setting it to zero, or by using numerical methods if needed. Let's implement this step-by-step using Python.
+```python
+import sympy as sp
+
+# Define variables
+lambda_var = sp.symbols('lambda', real=True)
+cos_40 = sp.cos(sp.rad(40))
+sin_40 = sp.sin(sp.rad(40))
+sin_20 = sp.sin(sp.rad(20))
+cos_20 = sp.cos(sp.rad(20))
+
+# Define the components of the vector u
+u_x = sp.sqrt(3) * cos_40 + lambda_var * sin_20
+u_y = sp.sqrt(3) * sin_40 + lambda_var * cos_20
+
+# Define the magnitude of u
+magnitude_u = sp.sqrt(u_x**2 + u_y**2)
+
+# Take the derivative of the magnitude with respect to lambda and solve for lambda
+magnitude_u_derivative = sp.diff(magnitude_u, lambda_var)
+lambda_min = sp.solve(magnitude_u_derivative, lambda_var)[0]
+
+# Substitute lambda_min back into the magnitude_u to get the minimum value of |u|
+min_magnitude_u = magnitude_u.subs(lambda_var, lambda_min)
+print(min_magnitude_u.evalf())
+```
+Code execution result: 0.866025403784439
+
+Thus, the minimum value of \(|\overrightarrow{u}|\) is \(\boxed{0.866025403784439}\). This value is recognizable as \(\frac{\sqrt{3}}{2}\).
+

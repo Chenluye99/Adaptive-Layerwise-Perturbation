@@ -1,0 +1,87 @@
+Score: 1.0
+
+Let's solve this step-by-step:
+
+1. **Setup the Triangle:**
+    - Place the triangle \(ABC\) in the coordinate system for simplicity.
+    - Let \(A = (0, 0)\), \(B = (4, 0)\), and \(C = (0, 3)\).
+    - The length of the hypotenuse \(BC\) is calculated as:
+      \[
+      BC = \sqrt{(4-0)^2 + (0-3)^2} = \sqrt{4^2 + 3^2} = \sqrt{16 + 9} = \sqrt{25} = 5
+      \]
+
+2. **Find Coordinates of Point \(D\):**
+    - Point \(D\) is the midpoint of \(BC\). The coordinates of \(D\) are:
+      \[
+      D = \left( \frac{4+0}{2}, \frac{0+3}{2} \right) = \left( 2, \frac{3}{2} \right)
+      \]
+
+3. **Find the Incircle Centers:**
+    - To find the centers of the incircles of triangles \(ADC\) and \(ABD\), we need to use the formula for the incenter of a triangle. The incenter of a triangle with vertices \((x_1, y_1)\), \((x_2, y_2)\), and \((x_3, y_3)\) is given by:
+      \[
+      I = \left( \frac{ax_1 + bx_2 + cx_3}{a + b + c}, \frac{ay_1 + by_2 + cy_3}{a + b + c} \right)
+      \]
+      where \(a, b, c\) are the lengths of the sides opposite to the vertices \((x_1, y_1)\), \((x_2, y_2)\), and \((x_3, y_3)\) respectively.
+    - For triangle \(ADC\), the vertices are \(A = (0, 0)\), \(D = \left( 2, \frac{3}{2} \right)\), and \(C = (0, 3)\).
+    - For triangle \(ABD\), the vertices are \(A = (0, 0)\), \(B = (4, 0)\), and \(D = \left( 2, \frac{3}{2} \right)\).
+
+4. **Calculate the Lengths of Sides of \(ADC\) and \(ABD\):**
+    - Length of \(AD\):
+      \[
+      AD = \sqrt{(2 - 0)^2 + \left(\frac{3}{2} - 0\right)^2} = \sqrt{2^2 + \left(\frac{3}{2}\right)^2} = \sqrt{4 + \frac{9}{4}} = \sqrt{\frac{16}{4} + \frac{9}{4}} = \sqrt{\frac{25}{4}} = \frac{5}{2}
+      \]
+    - Length of \(DC\):
+      \[
+      DC = \sqrt{\left(0 - 2\right)^2 + \left(3 - \frac{3}{2}\right)^2} = \sqrt{(-2)^2 + \left(\frac{3}{2}\right)^2} = \sqrt{4 + \frac{9}{4}} = \sqrt{\frac{16}{4} + \frac{9}{4}} = \sqrt{\frac{25}{4}} = \frac{5}{2}
+      \]
+    - Length of \(AC = 3\).
+    - Length of \(BD = \sqrt{\left(4 - 2\right)^2 + \left(0 - \frac{3}{2}\right)^2} = \sqrt{2^2 + \left(-\frac{3}{2}\right)^2} = \sqrt{4 + \frac{9}{4}} = \sqrt{\frac{16}{4} + \frac{9}{4}} = \sqrt{\frac{25}{4}} = \frac{5}{2} \)
+    - Length of \(AB = 4 \).
+    - Length of \(AD\) and \(BD\) are calculated as above, and we know \(DC = \frac{5}{2}\).
+
+5. **Find the Incenter of Triangles \(ADC\) and \(ABD\):**
+    - For triangle \(ADC\):
+      - Side lengths: \(AD = \frac{5}{2}\), \(DC = \frac{5}{2}\), and \(AC = 3\)
+      - Semiperimeter \(s_{ADC} = \frac{AD + DC + AC}{2} = \frac{\frac{5}{2} + \frac{5}{2} + 3}{2} = \frac{5 + 3}{2} = 4 \)
+      - Incenter is given by \( I_{ADC} = \left( \frac{a \cdot x_1 + b \cdot x_2 + c \cdot x_3}{a + b + c}, \frac{a \cdot y_1 + b \cdot y_2 + c \cdot y_3}{a + b + c} \right) \) where \(a = 3\), \(b = \frac{5}{2}\), and \(c = \frac{5}{2}\).
+    - For triangle \(ABD\):
+      - Side lengths: \(AB = 4\), \(BD = \frac{5}{2}\), and \(AD = \frac{5}{2}\)
+      - Semiperimeter \(s_{ABD} = \frac{AB + BD + AD}{2} = \frac{4 + \frac{5}{2} + \frac{5}{2}}{2} = \frac{4 + 5}{2} = \frac{9}{2} \)
+      - Incenter is given by \( I_{ABD} = \left( \frac{a \cdot x_1 + b \cdot x_2 + c \cdot x_3}{a + b + c}, \frac{a \cdot y_1 + b \cdot y_2 + c \cdot y_3}{a + b + c} \right) \) where \(a = \frac{5}{2}\), \(b = \frac{5}{2}\), and \(c = 4\).
+
+Let's calculate this step-by-step with Python for accuracy.
+```python
+import sympy as sp
+
+# Coordinates of the vertices
+A = (0, 0)
+B = (4, 0)
+C = (0, 3)
+
+# Coordinates of D, the midpoint of BC
+D = ((B[0] + C[0]) / 2, (B[1] + C[1]) / 2)
+
+# Function to calculate the incenter of a triangle given its vertices
+def incenter(x1, y1, x2, y2, x3, y3):
+    a = sp.sqrt((x2 - x3)**2 + (y2 - y3)**2)
+    b = sp.sqrt((x1 - x3)**2 + (y1 - y3)**2)
+    c = sp.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+    
+    Ix = (a * x1 + b * x2 + c * x3) / (a + b + c)
+    Iy = (a * y1 + b * y2 + c * y3) / (a + b + c)
+    return (Ix, Iy)
+
+# Calculate the incenter of triangle ADC
+Ix_ADC, Iy_ADC = incenter(A[0], A[1], D[0], D[1], C[0], C[1])
+
+# Calculate the incenter of triangle ABD
+Ix_ABD, Iy_ABD = incenter(A[0], A[1], B[0], B[1], D[0], D[1])
+
+# Calculate the distance between the incenter of triangles ADC and ABD
+distance = sp.sqrt((Ix_ADC - Ix_ABD)**2 + (Iy_ADC - Iy_ABD)**2)
+print(distance)
+```
+Code execution result: 1.50231303144333
+
+Thus, the distance between the centers of the incircles of triangles \(ADC\) and \(ABD\) is \(\boxed{1.50231303144333}\). This is the final answer.
+

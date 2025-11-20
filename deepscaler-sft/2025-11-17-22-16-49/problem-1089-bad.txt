@@ -1,0 +1,37 @@
+Score: 0.0
+
+First, let's generate all possible two-digit numbers that can be formed by choosing two different digits from the set $\{2, 3, 5, 7, 9\}$. Then, we need to check how many of these numbers are divisible by 3. A number is divisible by 3 if the sum of its digits is divisible by 3.
+
+1. Generate all possible two-digit numbers from the set.
+2. Check each number to see if it is divisible by 3.
+3. Count how many of these numbers meet the condition.
+
+We'll implement this step-by-step in Python to ensure accuracy.
+```python
+from itertools import permutations
+
+# Given set of numbers
+numbers = [2, 3, 5, 7, 9]
+
+# Find all possible pairs of different digits from the set
+pairs = list(permutations(numbers, 2))
+
+# Create all possible two-digit numbers from these pairs and check for divisibility by 3
+two_digit_numbers = []
+
+for a, b in pairs:
+    num1 = 10 * a + b
+    num2 = 10 * b + a
+    two_digit_numbers.extend([num1, num2])
+
+# Filter numbers that are divisible by 3
+divisible_by_3 = [num for num in two_digit_numbers if num % 3 == 0]
+
+# Get the count of numbers that are divisible by 3
+count_divisible_by_3 = len(divisible_by_3)
+print(count_divisible_by_3)
+```
+Code execution result: 12
+
+Thus, the number of two-digit numbers that Alice can construct from the set $\{2, 3, 5, 7, 9\}$, using different digits each time, that are divisible by 3, is \(\boxed{12}\).
+

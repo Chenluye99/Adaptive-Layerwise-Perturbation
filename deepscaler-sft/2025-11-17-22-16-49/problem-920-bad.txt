@@ -1,0 +1,207 @@
+Score: 0.0
+
+First, let's outline the problem using geometric properties and then implement it with Python.
+
+Given:
+- $\triangle ABC$ is a right triangle with $\angle B = 90^\circ$.
+- A circle with diameter $BC$ intersects side $AC$ at $D$.
+- $AD = 1$ and $BD = 4$.
+
+We need to find the length of $CD$.
+
+### Step-by-Step Solution:
+
+1. **Geometric Properties and Relationships:**
+    - Since $BC$ is the diameter of the circle, $\angle BDC = 90^\circ$ (a well-known property of the circle, where an angle subtended by a diameter in a semicircle is a right angle).
+    - This makes $\triangle ADB$ and $\triangle BDC$ right triangles.
+    - Given that $AD = 1$ and $BD = 4$, we can use these relationships in conjunction with the Pythagorean theorem and properties of similar triangles (since $\angle ADB = \angle BDC = 90^\circ$).
+
+2. **Applying Properties:**
+    - Since $D$ lies on $AC$ and considering the properties of similar triangles, or using the property of harmonic division (since $D$ is a point on $AC$ such that the circle with diameter $BC$ intersects $AC$ at $D$), we have a relationship involving ratios.
+    - By properties of cyclic quadrilaterals and the fact that $\angle BDC = 90^\circ$, we can use properties concerning the power of the point $D$ with respect to the circle, but let's use a more direct trigonometric or algebraic approach here.
+
+3. **Formulating an Equation Using Coordinates:**
+    - Place $B$ at the origin, so \( B = (0, 0) \).
+    - Place \( C \) at \( (c, 0) \) and \( A \) at \( (0, a) \).
+    - Then, the coordinates for \( D \) would be such that it lies on both the circle with diameter \( BC \) and the line \( AC \).
+    - The parametric form of the circle with diameter \( BC \) is centered at \( \left(\frac{c}{2}, 0 \right) \) with radius \( \frac{c}{2} \), so its equation is \( (x - \frac{c}{2})^2 + y^2 = \left( \frac{c}{2} \right)^2 \).
+
+    - The line \( AC \) has the equation \( y = -\frac{a}{c} x + a \).
+
+    - Substitute this equation into the circle's equation to get the coordinates for \( D \):
+      \[
+      \left( x - \frac{c}{2} \right)^2 + \left( -\frac{a}{c} x + a \right)^2 = \left( \frac{c}{2} \right)^2
+      \]
+      Considering this would be too complex manually, we can directly use the lengths of the segments and properties of right triangles and intersecting chords.
+
+4. **Utilizing Properties of Right Triangles and Intersection:**
+    - Using properties of intersecting chords in a circle, we know that for two intersecting chords \(AD\) and \(DC\) of a circle such that they intersect at point \(D\) on the chord \(AC\), the following relationship holds:
+      \[
+      AD \cdot DC = BD^2
+      \]
+      Substituting the known values:
+      \[
+      1 \cdot CD = 4^2 \implies CD = 16
+      \]
+
+Thus, \( CD = 16 \). To confirm this, we can implement this step-by-step using Python to ensure accuracy by exploring potential intersection and solving for the coordinates and lengths involved.
+
+Let's use a more direct approach using symbolic computation with `sympy` in Python to confirm our answer.
+```python
+import sympy as sp
+
+# Defining the variables
+a, c, x, y = sp.symbols('a c x y')
+
+# Coordinates for points A, B, C
+A = (0, a)
+B = (0, 0)
+C = (c, 0)
+
+# Equation of the circle with diameter BC: center is (c/2, 0) and radius is c/2
+circle_eq = (x - c / 2)**2 + y**2 - (c / 2)**2
+
+# Equation of the line AC: y = -a/c * x + a
+line_AC = y + (a / c) * x - a
+
+# Find intersection of the circle and line AC
+intersection = sp.solve([circle_eq, line_AC], (x, y))
+
+# Filter to get the intersection point that lies on AC and not at B or C
+D = [pt for pt in intersection if 0 < pt[0] < c][0]
+
+# Extract x and y values for D
+D_x, D_y = D
+
+# Given AD = 1 and BD = 4, we know D should satisfy these lengths:
+# AD = sqrt((0 - D_x)^2 + (a - D_y)^2) = 1
+# BD = sqrt((0 - D_x)^2 + (0 - D_y)^2) = 4
+AD_length = sp.sqrt((0 - D_x)**2 + (a - D_y)**2) - 1
+BD_length = sp.sqrt((0 - D_x)**2 + (0 - D_y)**2) - 4
+
+# Solve for 'a' and 'c'
+solution = sp.solve([AD_length, BD_length], (a, c))
+
+a_val, c_val = solution[0]
+
+# Get the coordinates for D using these values of a and c
+D_x_val = D_x.subs({a: a_val, c: c_val})
+D_y_val = D_y.subs({a: a_val, c: c_val})
+
+# Now, get the distance CD, which is the distance from D to C:
+CD = sp.sqrt((D_x_val - c_val)**2 + (D_y_val - 0)**2)
+print(CD)
+```
+Code execution result: TypeError: cannot determine truth value of Relational: c > 0
+It appears there is an error in the code due to the symbolic nature of the code attempting to evaluate conditions that involve purely relational checks between symbolic variables. To proceed, we can take another approach by using directly solving the relation of lengths, as outlined in Step 3, but let's ensure we can compute this more efficiently with direct length calculations.
+
+Let's go ahead and use numerical methods in Python to verify that our solution of \(CD = 16\) is accurate by validating the geometric properties and constraints of the problem in a straightforward manner. We can check if these values satisfy both given conditions \(AD = 1\) and \(BD = 4\).
+```python
+import sympy as sp
+
+# Define variables
+a, c = sp.symbols('a c', positive=True)
+
+# Set up the system of equations based on the relationships of lengths and defining points on the circle and line AC
+x, y = sp.symbols('x y')
+
+# Equation for the circle with diameter BC: centered at (c/2, 0) with radius c/2
+circle_eq = (x - c / 2)**2 + y**2 - (c / 2)**2
+
+# Equation for the line AC: y= -(a/c)*x + a
+line_eq = y + (a / c) * x - a
+
+# Find intersection of circle and line AC
+intersection = sp.solve([circle_eq, line_eq], (x, y))
+
+# Select the intersection point that is not at B or C (we know it should be on AC)
+point_D = [pt for pt in intersection if 0 < pt[0] < c][0]
+
+# Assign the coordinates of D
+D_x, D_y = point_D
+
+# We know that D needs to satisfy the lengths AD = 1 and BD = 4
+# So, we substitute the expression of D back into these length equations
+AD_length_eq = sp.Eq(sp.sqrt((0 - D_x)**2 + (a - D_y)**2), 1)
+BD_length_eq = sp.Eq(sp.sqrt((0 - D_x)**2 + (0 - D_y)**2), 4)
+
+# Solve this system of equations
+solution = sp.solve((AD_length_eq, BD_length_eq), (a, c))
+
+# Obtain the appropriate solution which returns values for 'a' and 'c'
+a_sol, c_sol = solution[1]  # We choose solution which make both 'a' and 'c' positive, as they're lengths.
+
+# Calculate CD using the formula for distance between points C(c, 0) and D(D_x, D_y)
+D_x_val = D_x.subs({a: a_sol, c: c_sol})
+D_y_val = D_y.subs({a: a_sol, c: c_sol})
+
+CD = sp.sqrt((D_x_val - c_sol)**2 + (D_y_val - 0)**2)
+
+print(CD)
+```
+Code execution result: TypeError: cannot determine truth value of Relational: -c*(a*c**2/(a**2 + c**2) - a)/a > 0
+It appears that the symbolic solving approach is encountering difficulties in directly determining a solution for the intersection point due to its complexity. We can resolve this by numerically solving for lengths `a` and `c` by ensuring they satisfy the conditions given: \( AD = 1 \) and \( BD = 4 \).
+
+We'll then use these values to compute \( CD \) directly. By substituting the relations into numerical solvers, we can get an accurate numerical value for \( CD \).
+
+Let's do that next.
+```python
+import sympy as sp
+
+# Define the variables
+a, c = sp.symbols('a c', positive=True, real=True)
+
+# Set up the system of equations based on the problem statement
+eq1 = sp.Eq(sp.sqrt((0 - (c * a / (a**2 + c**2)))**2 + (a - (a * c / (a**2 + c**2)))) , 1)
+eq2 = sp.Eq(sp.sqrt((0 - (c * a / (a**2 + c**2)))**2 + (0 - (a * c / (a**2 + c**2)))) , 4)
+
+# Solve the system of equations
+solution = sp.solve((eq1, eq2), (a, c))
+
+print(solution)
+```
+Code execution result: Timeout
+It looks like solving the system symbolically is taking too long or is not feasible within a reasonable time frame for this computation. So, let's proceed differently. We will resolve this numerically by defining functions for the lengths and then use numerical solvers to find \( a \) and \( c \) that satisfy the constraints directly.
+
+Let's implement this approach:
+
+1. Define functions for \( AD \) and \( BD \) in terms of \( a \) and \( c \).
+2. Use a numerical solver to find the values of \( a \) and \( c \) that make \( AD = 1 \) and \( BD = 4 \).
+3. Once we have the values for \( a \) and \( c \), calculate \( CD \) using the distance formula.
+
+Let's implement this step-by-step numerically.
+```python
+import sympy as sp
+
+# Variables
+a, c = sp.symbols('a c', positive=True, real=True)
+
+# Define the expressions for AD and BD
+D_x = c * a / (a**2 + c**2)
+D_y = a * c / (a**2 + c**2)
+
+AD = sp.sqrt((0 - D_x)**2 + (a - D_y)**2)
+BD = sp.sqrt((0 - D_x)**2 + (0 - D_y)**2)
+
+# Define the equations to solve based on the problem constraints
+eq_AD = sp.Eq(AD, 1)
+eq_BD = sp.Eq(BD, 4)
+
+# Solve the system of equations numerically
+solution = sp.nsolve((eq_AD, eq_BD), (a, c), (1, 1))  # Using initial guess (1, 1)
+
+# Extract the solutions for 'a' and 'c'
+a_val, c_val = solution
+
+# Calculate CD using the distance formula
+D_x_val = D_x.subs({a: a_val, c: c_val})
+D_y_val = D_y.subs({a: a_val, c: c_val})
+CD = sp.sqrt((D_x_val - c_val)**2 + (D_y_val - 0)**2)
+
+print(CD.evalf())
+```
+Code execution result: ZeroDivisionError: matrix is numerically singular
+
+Reach max function call limit.
+
+

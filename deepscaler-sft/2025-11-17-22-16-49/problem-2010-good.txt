@@ -1,0 +1,76 @@
+Score: 1.0
+
+To solve this problem, let's start by understanding the geometric configuration and then use Python to compute the result accurately.
+
+1. **Understand the Problem:**
+    - Consider a square with side length 2 for simplicity (we can choose any length but a side length of 2 is common and easy to manipulate).
+    - The coordinates of the vertices of the square are \((0, 0)\), \((2, 0)\), \((2, 2)\), and \((0, 2)\).
+    - Point \(P\) is the midpoint of one of the sides of the square. Let's take it to be the midpoint of the side from \((0, 0)\) to \((0, 2)\). So, \(P = (0, 1)\).
+    - Point \(Q\) is the midpoint of another side of the square. Let's take it to be the midpoint of the side from \((0, 0)\) to \((2, 0)\). So, \(Q = (1, 0)\), but since \(Q\) is given as the midpoint of a different side, let's consider \(Q = (1, 2)\) as mentioned in the problem.
+    - We need to find the area of the region that is not shaded and then use that to find the fraction of the square's interior that is shaded.
+
+2. **Determine the Shapes:**
+    - The full square has an area of \(2 \times 2 = 4\).
+    - The unshaded region is formed by the triangle with vertices \((0, 1)\), \((1, 2)\), and \((2, 2)\).
+
+3. **Compute the Area of the Unshaded Triangle:**
+    - The vertices of the triangle are \((0, 1)\), \((1, 2)\), and \((2, 2)\).
+    - We can use the shoelace formula (or Heron's formula) to find the area of this triangle, but it is simpler here to use the standard formula for the area of a triangle with vertices \((x_1, y_1)\), \((x_2, y_2)\), \((x_3, y_3)\):
+      \[
+      \text{Area} = \frac{1}{2} \left| x_1(y_2 - y_3) + x_2(y_3 - y_1) + x_3(y_1 - y_2) \right|
+      \]
+      Substituting \((x_1, y_1) = (0, 1)\), \((x_2, y_2) = (1, 2)\), \((x_3, y_3) = (2, 2)\):
+      \[
+      \text{Area} = \frac{1}{2} \left| 0(2 - 2) + 1(2 - 1) + 2(1 - 2) \right| = \frac{1}{2} \left| 0 + 1 - 2 \right| = \frac{1}{2} \left| -1 \right| = \frac{1}{2}
+      \]
+    - So, the area of the unshaded triangle is \(\frac{1}{2}\).
+    - The shaded area is the area of the square minus the area of the unshaded triangle:
+      \[
+      \text{Shaded Area} = 4 - \frac{1}{2} = \frac{8}{2} - \frac{1}{2} = \frac{7}{2}
+      \]
+    - The fraction of the interior of the square that is shaded is the shaded area divided by the total area of the square:
+      \[
+      \text{Fraction Shaded} = \frac{\frac{7}{2}}{4} = \frac{7}{2} \cdot \frac{1}{4} = \frac{7}{8}
+      \]
+
+Let's confirm this by coding the solution in Python for accuracy.
+```python
+import sympy as sp
+
+# Coordinates of the vertices of the square
+square_vertices = [(0, 0), (2, 0), (2, 2), (0, 2)]
+
+# Coordinates of points P and Q
+P = (0, 1)
+Q = (1, 2)
+
+# Function to calculate the area of a polygon using the shoelace formula
+def polygon_area(vertices):
+    n = len(vertices)
+    sum1 = sum(vertices[i][0] * vertices[(i + 1) % n][1] for i in range(n))
+    sum2 = sum(vertices[i][1] * vertices[(i + 1) % n][0] for i in range(n))
+    area = (sum1 - sum2) / 2
+    return abs(area)
+
+# Full square's area
+full_square_area = 2 * 2
+
+# Vertices of the unshaded triangle
+triangle_vertices = [P, Q, (2, 2)]
+
+# Calculate the area of the unshaded triangle
+unshaded_triangle_area = polygon_area(triangle_vertices)
+
+# Calculate the shaded area
+shaded_area = full_square_area - unshaded_triangle_area
+
+# Calculate the fraction of the square that is shaded
+fraction_shaded = shaded_area / full_square_area
+print(fraction_shaded)
+```
+Code execution result: 0.875
+
+This value, 0.875, corresponds to the fraction \(\frac{7}{8}\) when expressed as a common fraction. Therefore, the fraction of the interior of the square that is shaded is:
+
+\(\boxed{\frac{7}{8}}\)
+

@@ -1,0 +1,40 @@
+Score: 1.0
+
+To find the number of solutions in positive integers for the equation \(2x + 3y = 763\), we need to iterate through possible values of \(x\) and check if the corresponding value of \(y\) is a positive integer.
+
+1. **Set Up the Equation:**
+   - For a given \(x\), we can solve for \(y\) as follows:
+     \[
+     3y = 763 - 2x \implies y = \frac{763 - 2x}{3}
+     \]
+   - For \(y\) to be an integer, \(763 - 2x\) must be divisible by 3.
+   - Additionally, both \(x\) and \(y\) must be positive integers, so:
+     \[
+     763 - 2x > 0 \implies 2x < 763 \implies x < \frac{763}{2} \implies x < 381.5
+     \]
+     Therefore, \(1 \leq x \leq 381\).
+
+2. **Check for Valid Solutions:**
+   - For each \(x\) in the range from 1 to 381, we check if \((763 - 2x) \mod 3 == 0\).
+   - If it is, then we check if the resulting \(y = \frac{763 - 2x}{3}\) is a positive integer.
+
+We will implement this step-by-step process in Python to get the accurate count of such solutions.
+```python
+# Initialize a counter for the number of solutions
+num_solutions = 0
+
+# Iterate through all possible values of x from 1 to 381
+for x in range(1, 382):
+    # Calculate the corresponding y
+    if (763 - 2 * x) % 3 == 0:
+        y = (763 - 2 * x) // 3
+        # Check if y is a positive integer
+        if y > 0:
+            num_solutions += 1
+
+print(num_solutions)
+```
+Code execution result: 127
+
+Thus, the number of solutions in positive integers of the equation \(2x + 3y = 763\) is \(\boxed{127}\). This is the final answer.
+

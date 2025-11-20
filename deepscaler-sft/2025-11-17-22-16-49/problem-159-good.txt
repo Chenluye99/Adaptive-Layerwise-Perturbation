@@ -1,0 +1,47 @@
+Score: 1.0
+
+To solve this problem, we need to check for each possible combination of digits replacing the stars in the number "2016*****02*" to see if the resulting 11-digit number is divisible by 15. A number is divisible by 15 if and only if it is divisible by both 3 and 5.
+
+### Steps to solve this:
+
+1. **Generate All Possible Digits Combinations:**
+   Each of the 5 stars can be replaced by any of the digits \{0, 2, 4, 5, 7, 9\}. So, we need to generate all possible combinations of length 5 from this set.
+
+2. **Form the Number for Each Combination:**
+   For each combination, replace the stars with the corresponding digits and form the complete 11-digit number.
+
+3. **Check Divisibility by 15:**
+   Check if the formed number is divisible by both 3 and 5:
+   - **Divisibility by 5:** The last digit of the number must be 0 or 5.
+   - **Divisibility by 3:** The sum of the digits of the number must be divisible by 3.
+
+4. **Count Valid Combinations:**
+   Count how many of these combinations result in a number that is divisible by 15.
+
+Let's implement this step-by-step plan in Python.
+```python
+import itertools
+
+# Digits that each star can be replaced with
+digits = [0, 2, 4, 5, 7, 9]
+
+# Initialize counter for valid numbers
+count = 0
+
+# Generate all possible combinations of the 5 stars being replaced by any of the digits
+for combo in itertools.product(digits, repeat=5):
+    num_str = "2016{}{}{}{}02{}".format(combo[0], combo[1], combo[2], combo[3], combo[4])
+    
+    # Convert the string to an integer
+    num = int(num_str)
+    
+    # Check if the number is divisible by 15
+    if num % 15 == 0:
+        count += 1
+
+print(count)
+```
+Code execution result: 864
+
+Thus, the number of ways to replace the stars such that the resulting 11-digit number is divisible by 15 is \(\boxed{864}\). This concludes our solution.
+

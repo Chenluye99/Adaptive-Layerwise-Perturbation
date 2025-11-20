@@ -1,0 +1,57 @@
+Score: 1.0
+
+To solve this problem, let's start by analyzing what it takes to form a two-digit number that is between 10 and 20, inclusive, when using the results of rolling two six-sided dice.
+
+1. **Formulate the Problem:**
+    - When rolling two six-sided dice, each roll can result in a number from 1 to 6.
+    - We will form a two-digit number by combining the results of the two rolls.
+    - To be between 10 and 20 (inclusive), the first digit of this two-digit number must be 1, and the second digit can be any number from 0 to 9, but in our case, it can only be from 1 to 6 because the dice can only roll numbers 1 through 6.
+
+2. **Enumerate All Possible Outcomes:**
+    - We need to consider all possible pairs \((a, b)\) where \(a\) and \(b\) are the results of the two dice rolls (both ranging from 1 to 6).
+    - For each pair, we can form two two-digit numbers: \(10a + b\) and \(10b + a\).
+    - We need to check if either of these two-digit numbers is in the range from 10 to 20, inclusive.
+
+3. **Check Conditions:**
+    - Check if \(10 \leq 10a + b \leq 20\), or
+    - Check if \(10 \leq 10b + a \leq 20\).
+
+4. **Count the Successful Outcomes:**
+    - Count how many of these conditions are satisfied.
+    - There are a total of 36 possible outcomes when rolling two six-sided dice (since each die has 6 faces, and the outcomes are independent).
+
+5. **Calculate the Probability:**
+    - The probability is the number of successful outcomes divided by the total number of outcomes (36).
+
+Let's use Python to implement this step-by-step.
+```python
+import itertools
+
+# Initialize a counter for successful outcomes
+successful_outcomes = 0
+
+# Generate all possible outcomes of rolling two six-sided dice
+for a, b in itertools.product(range(1, 7), repeat=2):
+    num1 = 10 * a + b
+    num2 = 10 * b + a
+    
+    # Check if either of the formed numbers is between 10 and 20 inclusive
+    if 10 <= num1 <= 20 or 10 <= num2 <= 20:
+        successful_outcomes += 1
+
+# Total possible outcomes when rolling two six-sided dice
+total_outcomes = 6 * 6
+
+# Calculate the probability
+probability = successful_outcomes / total_outcomes
+
+# Represent the probability as a fraction
+from fractions import Fraction
+probability_fraction = Fraction(successful_outcomes, total_outcomes)
+
+print(probability_fraction)
+```
+Code execution result: 11/36
+
+Thus, the probability that Melinda will be able to make an integer between 10 and 20, inclusive, by forming a two-digit number with the numbers she rolls on two standard six-sided dice is \(\boxed{\frac{11}{36}}\). This is our final answer.
+

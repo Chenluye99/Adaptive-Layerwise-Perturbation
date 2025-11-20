@@ -1,0 +1,75 @@
+Score: 0.0
+
+To solve this problem, we need to use a combination of combinatorial enumeration and probability calculations.
+
+1. **Understand the Problem:**
+    - We have an octahedron with 8 triangular faces, and we need to assign the numbers 1 through 8 to these faces such that no two consecutive numbers (where 1 and 8 are also considered consecutive) are on adjacent faces.
+    - We need to calculate the probability that this condition holds and express it as a fraction \( \frac{m}{n} \) in its simplest form.
+    - Finally, we need to return the sum \( m + n \).
+
+2. **Set Up the Octahedron and its Faces:**
+    - An octahedron has 8 faces and 12 edges. Each face shares an edge with 3 other faces.
+    - We can represent the adjacency relationships of the faces of the octahedron. For simplicity, we can use a standard labeling of the faces of the octahedron, and then determine which pairs of faces are adjacent.
+
+3. **Generate All Permutations and Check the Condition:**
+    - Generate all permutations of the list [1, 2, 3, 4, 5, 6, 7, 8].
+    - For each permutation, assign the numbers to the faces of the octahedron.
+    - Check if any two consecutive numbers (including 8 and 1) are on adjacent faces.
+    - Count the number of valid assignments where no two consecutive numbers are on adjacent faces.
+
+4. **Calculate the Probability:**
+    - The total number of ways to assign the numbers 1 through 8 to the faces of the octahedron is \( 8! \).
+    - The probability is the number of valid assignments divided by \( 8! \).
+    - Simplify the resulting fraction to its lowest terms and extract \( m \) and \( n \).
+
+5. **Implement in Python:**
+    - Use Python to perform the above steps and get the accurate result.
+
+Let's start by coding this solution step by step.
+```python
+import itertools
+from fractions import Fraction
+
+# Adjacency relationships for the faces of an octahedron (indexed from 0 to 7)
+adjacency_list = [
+    [1, 4, 5],  # Face 0 is adjacent to faces 1, 4, 5
+    [0, 2, 4],  # Face 1 is adjacent to faces 0, 2, 4
+    [1, 3, 5],  # Face 2 is adjacent to faces 1, 3, 5
+    [2, 4, 6],  # Face 3 is adjacent to faces 2, 4, 6
+    [0, 1, 2],  # Face 4 is adjacent to faces 0, 1, 2
+    [0, 2, 6],  # Face 5 is adjacent to faces 0, 2, 6
+    [1, 3, 7],  # Face 6 is adjacent to faces 1, 3, 7
+    [2, 3, 7]   # Face 7 is adjacent to faces 2, 3, 7
+]
+
+# Check if a given assignment of numbers to faces of the octahedron is valid
+def is_valid_assignment(assignment):
+    for i in range(8):
+        for adj_i in adjacency_list[i]:
+            num_i = assignment[i]
+            num_adj_i = assignment[adj_i]
+            if (abs(num_i - num_adj_i) == 1 or (num_i == 1 and num_adj_i == 8) or (num_i == 8 and num_adj_i == 1)):
+                return False
+    return True
+
+# Count the number of valid assignments
+valid_count = 0
+total_permutations = 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1
+
+for perm in itertools.permutations(range(1, 9)):
+    if is_valid_assignment(perm):
+        valid_count += 1
+
+# Calculate the probability
+probability = Fraction(valid_count, total_permutations)
+
+# Get m and n from the fraction in simplest form
+m, n = probability.numerator, probability.denominator
+
+# Return the sum m + n
+print(m + n)
+```
+Code execution result: 631
+
+Thus, the probability that no two consecutive numbers (considering 1 and 8 as consecutive) are written on faces that share an edge is \(\frac{m}{n}\), where \(m\) and \(n\) are relatively prime, and the sum \(m + n\) is \(\boxed{631}\). This completes our solution.
+

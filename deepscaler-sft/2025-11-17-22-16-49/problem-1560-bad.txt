@@ -1,0 +1,85 @@
+Score: 1.0
+
+First, let's denote the roots of the cubic equation \( ax^3 + bx^2 + cx + d = 0 \) as \( \alpha, \beta, \gamma \). We are given that two of the roots are \( 3 \) and \( -2 \), so we can let \( \alpha = 3 \) and \( \beta = -2 \). This means that the third root is \( \gamma \).
+
+By Vieta's formulas, for a cubic equation \( ax^3 + bx^2 + cx + d = 0 \) with roots \( \alpha, \beta, \gamma \):
+
+1. The sum of the roots is given by:
+   \[
+   \alpha + \beta + \gamma = -\frac{b}{a}
+   \]
+   Substituting the known roots:
+   \[
+   3 + (-2) + \gamma = -\frac{b}{a} \implies 1 + \gamma = -\frac{b}{a}
+   \]
+   So,
+   \[
+   \gamma = -\frac{b}{a} - 1 \tag{1}
+   \]
+
+2. The sum of the product of the roots taken two at a time is given by:
+   \[
+   \alpha \beta + \beta \gamma + \gamma \alpha = \frac{c}{a}
+   \]
+   Substituting the known roots:
+   \[
+   3 \cdot (-2) + (-2) \cdot \gamma + \gamma \cdot 3 = \frac{c}{a} \implies -6 - 2 \gamma + 3 \gamma = \frac{c}{a} \implies -6 + \gamma = \frac{c}{a} \tag{2}
+   \]
+
+3. The product of the roots is given by:
+   \[
+   \alpha \beta \gamma = -\frac{d}{a}
+   \]
+   Substituting the known roots:
+   \[
+   3 \cdot (-2) \cdot \gamma = -\frac{d}{a} \implies -6 \gamma = -\frac{d}{a} \implies 6 \gamma = \frac{d}{a}
+   \]
+
+We are asked to find \(\frac{b + c}{a}\).
+
+To proceed, we plug \(\gamma\) from equation (1) into equation (2):
+
+\[
+-6 + \left( -\frac{b}{a} - 1 \right) = \frac{c}{a} \implies -7 - \frac{b}{a} = \frac{c}{a} \implies -7a - b = c \implies c = -7a - b \tag{3}
+\]
+
+Now, we want to find \(\frac{b + c}{a}\). Substituting equation (3) into this expression, we get:
+
+\[
+\frac{b + c}{a} = \frac{b + (-7a - b)}{a} = \frac{-7a}{a} = -7
+\]
+
+So, the value of \(\frac{b + c}{a}\) is \(-7\). We can confirm this with Python to ensure our solution is accurate by coding a check.
+```python
+from sympy import symbols, Eq, solve
+
+# Define the variables
+a, b, c, d, gamma = symbols('a b c d gamma')
+
+# Equation 1: From Vieta's formulas, 1 + gamma = -b/a
+eq1 = Eq(1 + gamma, -b / a)
+
+# Equation 2: -6 + gamma = c/a
+eq2 = Eq(-6 + gamma, c / a)
+
+# Solve these equations for gamma, b, and c in terms of a
+solution = solve((eq1, eq2), (b, c, gamma))
+
+print(solution)
+```
+Code execution result: {b: -a*gamma - a, c: a*gamma - 6*a}
+
+This result from solving the equations gives us:
+\[ b = -a \gamma - a \]
+\[ c = a \gamma - 6a \]
+
+Substituting these into \(\frac{b + c}{a}\):
+
+\[
+\frac{b + c}{a} = \frac{(-a \gamma - a) + (a \gamma - 6a)}{a} = \frac{-a \gamma - a + a \gamma - 6a}{a} = \frac{-7a}{a} = -7
+\]
+
+This confirms that our solution is accurate. Therefore, the final answer is:
+
+\(\boxed{-7}\)
+

@@ -1,0 +1,89 @@
+Score: 0.0
+
+To solve this problem, we need to:
+
+1. Identify all numbers from 1 to 150 that are perfect powers.
+2. Count these perfect powers.
+3. Subtract the count of perfect powers from 150 to get the count of numbers that are not perfect powers.
+4. Calculate the probability as the ratio of the count of numbers that are not perfect powers to the total count of numbers (150).
+5. Express the probability as a common fraction.
+
+### Step 1: Identify Perfect Powers
+A perfect power is a number that can be expressed as \( x^y \) where \( x \) and \( y \) are integers, and \( y > 1 \). We need to check for all numbers from 1 to 150 if they can be written in such a form.
+
+### Step 2: Count Perfect Powers
+We'll iterate through all numbers from 1 to 150 and check if each number can be written as a perfect power. If it can, we'll add it to our list of perfect powers.
+
+### Step 3: Count Non-Perfect Powers
+Once we have the count of perfect powers, we can find the count of numbers that are not perfect powers by subtracting this count from 150.
+
+### Step 4: Calculate Probability
+The probability that a randomly selected number from 1 to 150 is not a perfect power is given by the ratio of the count of non-perfect powers to 150. We'll then express this probability as a common fraction.
+
+Let's start by implementing this step-by-step in Python:
+```python
+import sympy
+
+# Step 1 & 2: Identify and count perfect powers from 1 to 150
+perfect_powers = []
+
+for num in range(1, 151):
+    is Perfect_power = False
+    for x in range(2, int(num**0.5) + 1):
+        for y in range(2, 10):  # Reasonable range for y to ensure we cover possible higher powers
+            if x**y == num:
+                perfect_powers.append(num)
+                is_perfect_power = True
+                break
+        if is_perfect_power:
+            break
+
+# Get the count of perfect powers
+count_of_perfect_powers = len(set(perfect_powers))  # Use set to avoid duplicates
+
+# Step 3: Count non-perfect powers
+total_numbers = 150
+count_of_non_perfect_powers = total_numbers - count_of_perfect_powers
+
+# Step 4: Calculate probability as a common fraction
+from fractions import Fraction
+probability = Fraction(count_of_non_perfect_powers, total_numbers)
+
+print(probability)
+```
+Code execution result: SyntaxError: invalid syntax
+It looks like there was a typo in the code - `is Perfect_power` should be spelled correctly as `is_perfect_power`. Let's correct this and implement the solution properly in Python.
+```python
+import sympy
+
+# Step 1 & 2: Identify and count perfect powers from 1 to 150
+perfect_powers = []
+
+for num in range(1, 151):
+    is_perfect_power = False
+    for x in range(2, int(num**0.5) + 1):
+        for y in range(2, 10):  # Reasonable range for y to ensure we cover possible higher powers
+            if x**y == num:
+                perfect_powers.append(num)
+                is_perfect_power = True
+                break
+        if is_perfect_power:
+            break
+
+# Get the count of perfect powers, ensuring no duplicates
+count_of_perfect_powers = len(set(perfect_powers))
+
+# Step 3: Count non-perfect powers
+total_numbers = 150
+count_of_non_perfect_powers = total_numbers - count_of_perfect_powers
+
+# Step 4: Calculate probability as a common fraction
+from fractions import Fraction
+probability = Fraction(count_of_non_perfect_powers, total_numbers)
+
+print(probability)
+```
+Code execution result: 67/75
+
+Thus, the probability that a randomly selected number from 1 to 150 is not a perfect power is \(\boxed{\frac{67}{75}}\). This is our final answer.
+

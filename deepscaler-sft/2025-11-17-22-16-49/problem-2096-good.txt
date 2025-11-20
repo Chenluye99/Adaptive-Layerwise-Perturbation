@@ -1,0 +1,60 @@
+Score: 1.0
+
+To solve the problem, we need to determine the coordinates of the relevant points and then use those coordinates to find the area of triangle \(KDC\).
+
+1. **Setup the Coordinate System:**
+    - Place circle \(O\) centered at the origin \((0, 0)\) with a radius of 6 units.
+    - Point \(A\) is at \((-6, 0)\) and point \(B\) is at \((6, 0)\).
+    - Point \(K\) is at \((-18, 0)\) because \(KA = 12\) units and points \(K, A, O, B\) are collinear.
+    - Chord \(CD\) is parallel to \(KB\) and has a length of 8 units. The height of chord \(CD\) above (or below) the x-axis can be calculated using the properties of a circle and the Pythagorean theorem.
+
+2. **Find the Coordinates of Points \(C\) and \(D\):**
+    - The length of chord \(CD\) is 8 units and it is parallel to \(KB\) (which is along the x-axis). This means \(C\) and \(D\) have the same y-coordinate.
+    - Let the coordinates of \(C\) and \(D\) be \((-4, y)\) and \((4, y)\) respectively because the midpoint of \(CD\) is the center of the circle, \((0, 0)\), and the distance between \((-4, y)\) and \((4, y)\) is 8 units (so \((-4 - 4) = -8\) and distance is 8 units confirming that y is the height of the chord).
+    - The distance from the center of the circle to the chord \(CD\) can be found using the Pythagorean theorem. The radius of the circle is 6 units and half the length of the chord is 4 units. So, if we call the y-coordinate of \(C\) and \(D\) as \(y\), then:
+      \[
+      6^2 = 4^2 + y^2 \implies 36 = 16 + y^2 \implies y^2 = 20 \implies y = \sqrt{20} = 2 \sqrt{5}
+      \]
+    - So, the coordinates of \(C\) and \(D\) are \((-4, 2\sqrt{5})\) and \((4, 2\sqrt{5})\), respectively.
+
+3. **Find the Area of Triangle \(KDC\):**
+    - The vertices of triangle \(KDC\) are \(K(-18, 0)\), \(D(4, 2\sqrt{5})\), and \(C(-4, 2\sqrt{5})\).
+    - The area of a triangle with vertices \((x_1, y_1)\), \((x_2, y_2)\), and \((x_3, y_3)\) is given by:
+      \[
+      \text{Area} = \frac{1}{2} \left| x_1(y_2 - y_3) + x_2(y_3 - y_1) + x_3(y_1 - y_2) \right|
+      \]
+    - Substituting the coordinates of \(K, D, C\):
+      \[
+      \text{Area} = \frac{1}{2} \left| -18 (2 \sqrt{5} - 2 \sqrt{5}) + 4 (2 \sqrt{5} - 0) + (-4) (0 - 2 \sqrt{5}) \right|
+      \]
+      \[
+      \text{Area} = \frac{1}{2} \left| -18 \cdot 0 + 4 \cdot 2 \sqrt{5} + (-4) \cdot (-2 \sqrt{5}) \right|
+      \]
+      \[
+      \text{Area} = \frac{1}{2} \left| 0 + 8 \sqrt{5} + 8 \sqrt{5} \right|
+      \]
+      \[
+      \text{Area} = \frac{1}{2} \left| 16 \sqrt{5} \right| = \frac{1}{2} \cdot 16 \sqrt{5} = 8 \sqrt{5}
+      \]
+
+Let's confirm this by implementing it in Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Coordinates of points K, D, C
+K = (-18, 0)
+D = (4, 2 * sp.sqrt(5))
+C = (-4, 2 * sp.sqrt(5))
+
+# Function to compute the area of a triangle given its vertices
+def triangle_area(x1, y1, x2, y2, x3, y3):
+    return sp.Rational(1, 2) * abs(x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2))
+
+# Compute the area
+area = triangle_area(K[0], K[1], D[0], D[1], C[0], C[1])
+print(area)
+```
+Code execution result: 8*sqrt(5)
+
+Thus, the area of triangle \(KDC\) is \(\boxed{8 \sqrt{5}}\). This confirms our solution is accurate.
+

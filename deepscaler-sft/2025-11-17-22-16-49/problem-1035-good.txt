@@ -1,0 +1,48 @@
+Score: 1.0
+
+To solve this problem, let's begin by breaking down the steps:
+
+1. **Understand the Problem:**
+    - We have a standard 52-card deck, which has 4 suits: hearts, diamonds, clubs, and spades.
+    - When Max picks two different cards without replacement, we need to find the probability that these two cards are of different suits.
+
+2. **Formulate the Solution:**
+    - There are 52 cards in total.
+    - When the first card is drawn, it can be of any suit, and there are 51 cards left after the first card is drawn.
+    - The second card can be of any of the 3 suits that are different from the suit of the first card, so there will be 39 such cards (since each suit has 13 cards, and there are 3 suits left after removing the suit of the first card).
+    - Therefore, the probability that the second card is of a different suit than the first card is the ratio of the number of suitable choices for the second card over the total remaining cards.
+
+3. **Calculate the Probability:**
+    - The number of favorable outcomes is the number of ways to pick the second card such that it is of a different suit from the first card, which is 39.
+    - The total number of ways to pick the second card from the remaining 51 cards is 51.
+    - So, the probability \(P\) that the two cards are of different suits is:
+      \[
+      P = \frac{39}{51} = \frac{13}{17}
+      \]
+
+Let's confirm this by coding it in Python. We'll simulate drawing the cards many times to estimate this probability.
+```python
+import itertools
+
+# Create a deck of 52 cards with 4 suits and 13 ranks each
+suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
+ranks = list(range(1, 14))
+deck = [{'suit': suit, 'rank': rank} for suit in suits for rank in ranks]
+
+# Generate all possible ways to pick 2 different cards from the 52 card deck without replacement
+card_pairs = list(itertools.combinations(deck, 2))
+
+# Count the number of pairs that are of different suits
+diff_suit_pairs = [pair for pair in card_pairs if pair[0]['suit'] != pair[1]['suit']]
+
+# Calculate the probability
+prob_diff_suits = len(diff_suit_pairs) / len(card_pairs)
+print(prob_diff_suits)
+```
+Code execution result: 0.7647058823529411
+
+This means that the probability that the two cards are of different suits is \(\frac{13}{17}\), as this fraction is approximately equal to 0.7647058823529411.
+
+So, the final answer is:
+\(\boxed{\frac{13}{17}}\)
+

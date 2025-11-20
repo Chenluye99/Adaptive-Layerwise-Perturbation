@@ -1,0 +1,78 @@
+Score: 1.0
+
+To solve this problem, we will place the trapezoid \(ABCD\) in the coordinate plane and then use geometric properties and algebra to find the value of \(AP\).
+
+1. **Place the Trapezoid in the Coordinate Plane:**
+    - Place point \(A\) at the origin, so \(A = (0, 0)\).
+    - Place point \(B\) at \((20, 0)\).
+    - Place point \(D\) at \((0, 21)\) because \(AD = 21\) and it is perpendicular to \(AB\).
+    - Place point \(C\) at \((x, 21)\) because \(CD = 28\) and it is also perpendicular to \(AD\). To find \(x\), use the distance formula between \(C\) and \(D\):
+      \[
+      \sqrt{(x - 0)^2 + (21 - 21)^2} = 28 \implies |x| = 28 \implies x = 28 \text{ or } x = -28.
+      \]
+      Since \(ABCD\) is a trapezoid with \(AB \parallel CD\) and considering that \(C\) should be horizontally to the right of \(D\) or beyond \(A\) along the y-axis if the trapezoid is in the standard orientation, we take \(C = (28, 21)\).
+
+2. **Find the Coordinates of Point \(P\):**
+    - Point \(P\) lies on the line segment \(AC\), and we need to find its coordinates in terms of a parameter \(t\) such that \(P = (t \cdot \frac{28}{1}, t \cdot \frac{21}{1}) = (28t, 21t)\) where \(0 \le t \le 1\).
+    - Point \(P\) is chosen such that \(\angle BPD = 90^\circ\), which means the dot product of vectors \(\overrightarrow{BP}\) and \(\overrightarrow{DP}\) is zero.
+
+3. **Set Up the Equations:**
+    - Vector \(\overrightarrow{B P} = (28t - 20, 21t)\).
+    - Vector \(\overrightarrow{D P} = (28t, 21t - 21)\).
+    - The dot product of \(\overrightarrow{B P}\) and \(\overrightarrow{D P}\) is:
+      \[
+      (28t - 20) \cdot 28t + 21t \cdot (21t - 21) = 0.
+      \]
+    - Simplify and solve this equation for \(t\):
+      \[
+      (28t - 20) \cdot 28t + 21t \cdot 21(t - 1) = 0,
+      \]
+      \[
+      784t^2 - 560t + 441t^2 - 441t = 0,
+      \]
+      \[
+      1225t^2 - 1001t = 0,
+      \]
+      \[
+      t(1225t - 1001) = 0.
+      \]
+    - This gives us two solutions: \( t = 0 \) or \( 1225t = 1001 \). Since \( t = 0 \) would place \( P \) at \( A \), which is not allowed, we take:
+      \[
+      t = \frac{1001}{1225} = \frac{143}{175}.
+      \]
+    - So, \( P = \left(28 \cdot \frac{143}{175}, 21 \cdot \frac{143}{175}\right) = \left(\frac{4004}{175}, \frac{3003}{175}\right) \).
+
+4. **Find the Length of \( AP \):**
+    - To find \( AP \), calculate the distance between \( A = (0, 0) \) and \( P = \left(\frac{4004}{175}, \frac{3003}{175}\right) \):
+      \[
+      AP = \sqrt{\left(\frac{4004}{175}\right)^2 + \left(\frac{3003}{175}\right)^2}.
+      \]
+
+Let's implement this calculation in Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variables
+t = sp.symbols('t', real=True, positive=True)
+
+# Set up the equation based on the dot product condition
+eq = (28 * t - 20) * 28 * t + 21 * t * (21 * t - 21)
+
+# Solve the equation for t
+solution = sp.solve(eq, t)
+
+# Select the appropriate solution (the one that keeps P on segment AC)
+t_value = [sol for sol in solution if 0 < sol <= 1][0]
+
+# Find the coordinates of P
+P_x = 28 * t_value
+P_y = 21 * t_value
+
+# Calculate the length of AP
+AP = sp.sqrt(P_x**2 + P_y**2)
+print(AP)
+```
+Code execution result: 143/5
+
+So, the length of \( AP \) is \(\boxed{\frac{143}{5}}\). This is the final answer.
+

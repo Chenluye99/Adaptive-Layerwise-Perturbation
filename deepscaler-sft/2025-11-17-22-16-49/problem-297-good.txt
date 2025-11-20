@@ -1,0 +1,57 @@
+Score: 1.0
+
+To solve this problem, we need to find the number of 6-digit numbers whose digits are in non-decreasing order, and where 0 cannot be the leading digit. This is equivalent to finding the number of ways to choose 6 digits from the multiset {1, 2, 3, 4, 5, 6, 7, 8, 9} (since 0 is not allowed in the leading position and we need 6 digits).
+
+One efficient way to solve this is by using the "stars and bars" theorem from combinatorics, but it's more straightforward here to use Python to generate and count all valid 6-digit numbers that meet the criteria.
+
+### Steps:
+
+1. **Generate 6-digit numbers**: We will generate all 6-digit numbers, from 100000 to 999999.
+2. **Check if digits are in non-decreasing order**: For each number, we will check if its digits, when sorted, remain the same as the original number's digits. This means the digits are in non-decreasing order.
+3. **Count valid numbers**: We will count how many such numbers satisfy the condition.
+
+Let's write the Python code to solve this step-by-step.
+```python
+count = 0
+
+# Loop through all 6-digit numbers
+for num in range(100000, 1000000):
+    num_str = str(num)
+    digits = [int(d) for d in num_str]
+    
+    # Check if the digits are in non-decreasing order
+    if all(digits[i] <= digits[i + 1] for i in range(len(digits) - 1)):
+        count += 1
+
+print(count)
+```
+Code execution result: Timeout
+It looks like it is taking too long to compute directly by checking each 6-digit number individually. We can optimize this by generating combinations of 6 digits chosen from {1, 2, 3, 4, 5, 6, 7, 8, 9} and then forming numbers from those combinations, but it is still a valid approach to count how many such 6-digit numbers exist where digits are in non-decreasing order.
+
+### Optimized Approach:
+
+1. We generate all possible ways to choose 6 digits (with repetition allowed) from the set {1, 2, 3, 4, 5, 6, 7, 8, 9}.
+2. For each such combination, we form a number and check if the digits are in non-decreasing order.
+3. We count how many such combinations exist.
+
+We can use `itertools` to help generate and check these combinations efficiently.
+```python
+import itertools
+
+count = 0
+
+# Generate all possible 6-combinations with replacement from the set {1, 2, 3, 4, 5, 6, 7, 8, 9}
+for comb in itertools.product(range(1, 10), repeat=6):
+    num_str = ''.join(map(str, comb))
+    num = int(num_str)
+    
+    # Check if the digits are in non-decreasing order
+    if all(num_str[i] <= num_str[i + 1] for i in range(len(num_str) - 1)):
+        count += 1
+
+print(count)
+```
+Code execution result: 3003
+
+Thus, the number of 6-digit positive integers that have their digits in nondecreasing order from left to right, with 0 not being a leading digit, is \(\boxed{3003}\). This is our final answer.
+

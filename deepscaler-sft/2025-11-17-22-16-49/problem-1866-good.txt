@@ -1,0 +1,52 @@
+Score: 1.0
+
+To solve the problem, we need to use the formula for the volume of a tetrahedron given the areas of two adjacent faces, the angle between them, and the common edge joining them.
+
+The formula for the volume \( V \) of a tetrahedron when the areas of two faces, the common edge, and the angle between the faces are known is:
+\[ V = \frac{abc}{6} \cdot \frac{\sin \theta}{1} = \frac{1}{6} \cdot a \cdot b \cdot c \cdot \sin \theta \]
+where \( a, b, c \) are the lengths of the edges of the tetrahedron forming the two faces, and \( \theta \) is the angle between those faces.
+
+However, it is more convenient to use the following formula that directly involves the areas of the faces and the angle between them:
+\[ V = \frac{1}{6} \cdot BC \cdot h_{ABC} \cdot h_{BCD} \cdot \sin \theta \]
+
+Where:
+- \( BC \) is the common edge of faces \( ABC \) and \( BCD \).
+- \( h_{ABC} \) and \( h_{BCD} \) are the heights of faces \( ABC \) and \( BCD \) corresponding to edge \( BC \).
+
+First, we need to compute the heights \( h_{ABC} \) and \( h_{BCD} \). The area of a triangle can be given by the formula:
+\[ \text{Area} = \frac{1}{2} \cdot \text{base} \cdot \text{height} \]
+
+For face \( ABC \):
+\[ 120 = \frac{1}{2} \cdot BC \cdot h_{ABC} \implies 120 = \frac{1}{2} \cdot 10 \cdot h_{ABC} \implies 120 = 5 \cdot h_{ABC} \implies h_{ABC} = \frac{120}{5} = 24 \]
+
+For face \( BCD \):
+\[ 80 = \frac{1}{2} \cdot BC \cdot h_{BCD} \implies 80 = \frac{1}{2} \cdot 10 \cdot h_{BCD} \implies 80 = 5 \cdot h_{BCD} \implies h_{BCD} = \frac{80}{5} = 16 \]
+
+Now we can substitute \( BC = 10 \), \( h_{ABC} = 24 \), \( h_{BCD} = 16 \), and \( \sin(30^\circ) = \frac{1}{2} \) into the volume formula:
+\[ V = \frac{1}{6} \cdot BC \cdot h_{ABC} \cdot h_{BCD} \cdot \sin(30^\circ) = \frac{1}{6} \cdot 10 \cdot 24 \cdot 16 \cdot \frac{1}{2} \]
+
+Let's compute this step-by-step using Python for accuracy.
+```python
+import sympy as sp
+
+# Given values
+area_ABC = 120
+area_BCD = 80
+BC = 10
+theta = 30  # in degrees
+
+# Calculate heights h_ABC and h_BCD
+h_ABC = (2 * area_ABC) / BC
+h_BCD = (2 * area_BCD) / BC
+
+# Calculate sin(30 degrees)
+sin_theta = sp.sin(sp.rad(30))
+
+# Calculate the volume using the formula
+volume = (1/6) * BC * h_ABC * h_BCD * sin_theta
+print(volume)
+```
+Code execution result: 320.000000000000
+
+Thus, the volume of the tetrahedron is \(\boxed{320}\). This is our final answer.
+

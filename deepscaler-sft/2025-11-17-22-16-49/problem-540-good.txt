@@ -1,0 +1,66 @@
+Score: 1.0
+
+Let's solve this step-by-step.
+
+1. **Problem Understanding:**
+    - Clever Cat sleeps from noon till midnight (12 PM to 12 AM).
+    - Clever Cat is awake from midnight till noon (12 AM to 12 PM).
+    - A poster says, "Two hours ago, Clever Cat was doing the same thing as he will be doing in one hour's time."
+
+2. **Setting Up the Problem:**
+    - We need to determine when two hours ago and one hour from now Clever Cat is doing the same thing (either sleeping or being awake).
+
+3. **Formulating the Solution:**
+    - Let's define a function that will iterate through all hours of the day and check the condition mentioned in the problem for each hour.
+    - We need to check from noon to midnight and from midnight to noon because Clever Cat's actions (sleeping or being awake) change at midnight.
+
+4. **Checking Conditions:**
+    - If it is currently \( t \) o'clock (ranging from 0 to 23 hours of a day if we model 0 = midnight and 12 = noon), then:
+        - Two hours ago would be \( (t - 2) \% 24 \).
+        - One hour from now would be \( (t + 1) \% 24 \).
+    - We need to check if the action Clever Cat is taking at \( t - 2 \) is the same as the action he will be taking at \( t + 1 \).
+
+5. **Determining Clever Cat's Actions:**
+    - If it's currently a time between 0 and 11 (i.e., midnight to noon), Clever Cat is sleeping.
+    - If it's currently a time between 12 and 23 (i.e., noon to midnight), Clever Cat is awake.
+    - We need to handle transition times correctly, so we consider how times wrap around from 12 to 0 and from 0 to 12.
+
+Let's write the code to check this and count the number of hours during which the poster's statement is true.
+```python
+def check_poster_truth():
+    count_hours = 0
+    
+    for t in range(24):  # Iterating through all hours of a day (0 to 23, where 0 is midnight and 12 is noon)
+        # Determine Clever Cat's actions based on current time t
+        if 0 <= t <= 11:
+            current_action = "sleeping"
+        else:
+            current_action = "awake"
+        
+        # Determine Clever Cat's actions two hours ago
+        two_hours_ago = (t - 2) % 24
+        if 0 <= two_hours_ago <= 11:
+            two_hours_ago_action = "sleeping"
+        else:
+            two_hours_ago_action = "awake"
+        
+        # Determine Clever Cat's actions one hour from now
+        one_hour_from_now = (t + 1) % 24
+        if 0 <= one_hour_from_now <= 11:
+            one_hour_from_now_action = "sleeping"
+        else:
+            one_hour_from_now_action = "awake"
+        
+        # Check if the condition of the poster is true
+        if two_hours_ago_action == one_hour_from_now_action:
+            count_hours += 1
+    
+    return count_hours
+
+truthful_hours = check_poster_truth()
+print(truthful_hours)
+```
+Code execution result: 18
+
+Thus, the poster tells the truth for \(\boxed{18}\) hours a day. This is our final answer.
+

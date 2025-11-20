@@ -57,8 +57,8 @@ class RunCodeRequest(BaseModel):
     code: str
     stdin: str = ""
     language: str = "python"
-    compile_timeout: float = 10.0  # kept for sdk compatibility, unused here
-    run_timeout: float = 30.0
+    compile_timeout: float = 1.0  # kept for sdk compatibility, unused here
+    run_timeout: float = 3.0
 
 
 class RunResult(BaseModel):
@@ -80,12 +80,17 @@ async def _run_in_firejail(code: str, timeout: float, stdin_data: str = "") -> d
     src.write_text(code)
 
     # 2) Build Firejail command line
+    # Resource limits tailored for 192-core host
     cmd = [
         "firejail",
         "--quiet",
         "--profile=/etc/firejail/default.profile",
         f"--private={workdir}",
         "--net=none",              # disable network
+        # Hard limits to prevent freezing/OOM
+        "--rlimit-as=8192m",       # 8GB max RAM per sandbox (Safe for ~200 concurrent tasks on 2TB host)
+        f"--rlimit-cpu={int(timeout) + 2}", # CPU limit (seconds) with larger buffer
+        "--rlimit-nproc=256",      # Max processes inside sandbox
         "--",
         "python3",
         src.name,
@@ -136,7 +141,7 @@ async def _run_in_firejail(code: str, timeout: float, stdin_data: str = "") -> d
 # ---------------- FastAPI wiring ----------------
 
 app = FastAPI()
-POOL = asyncio.Semaphore(200)  # gate per-process concurrency; tune to your CPU
+POOL = asyncio.Semaphore(30)  # 20 per worker * 8 workers = 160 total concurrent sandboxes
 
 
 @app.post("/faas/sandbox/", response_model=RunResult)

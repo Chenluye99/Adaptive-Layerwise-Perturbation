@@ -1,0 +1,106 @@
+Score: 0.0
+
+First, let's analyze the problem.
+
+1. **Initial Configuration:**
+   - We have two cylindrical vessels of identical cross-sectional area, let's call it \( A \).
+   - Each vessel is filled such that the liquid levels are equal and at a height of 40 cm.
+   - Let's denote the height of water in the first vessel as \( h_w \) and the height of oil in the second vessel as \( h_o \).
+   - Initially, both \( h_w = 40 \) cm and \( h_o = 40 \) cm.
+
+2. **Properties of the Fluids:**
+   - The density of water is \( \rho_{\text{water}} = 1000 \) kg/m³.
+   - The density of oil is \( \rho_{\text{oil}} = 700 \) kg/m³.
+   - The volume of water in the first vessel is \( V_{\text{water}} = A \cdot h_w \).
+   - The volume of oil in the second vessel is \( V_{\text{oil}} = A \cdot h_o \).
+
+3. **Total Mass of Each Vessel Before Opening the Valve:**
+   - The mass of water in the first vessel is \( m_{\text{water}} = \rho_{\text{water}} \cdot V_{\text{water}} = \rho_{\text{water}} \cdot A \cdot h_w \).
+   - The mass of oil in the second vessel is \( m_{\text{oil}} = \rho_{\text{oil}} \cdot V_{\text{oil}} = \rho_{\text{oil}} \cdot A \cdot h_o \).
+
+4. **Opening the Valve:**
+   - When the valve is opened, fluid will flow between the two vessels until the pressures at the bottom of both vessels are equal.
+   - The pressures at the bottom of the vessels are due to the weight of the columns of water and oil, and they will balance when the heights of the columns of the equivalent fluid density are equal.
+
+5. **Finding the Final Height:**
+   - To find the final height of water in the first vessel, we can use the fact that the pressure at the bottom of both vessels will be equal when equilibrium is reached.
+   - Let's denote the final height of water in the first vessel as \( h_w' \) and the final height of oil in the second vessel as \( h_o' \).
+   - The pressure at the bottom of the first vessel after the valve is opened will be given by:
+     \[
+     P_{\text{water}} = \rho_{\text{water}} \cdot g \cdot h_w'
+     \]
+   - The pressure at the bottom of the second vessel after the valve is opened will be given by:
+     \[
+     P_{\text{oil}} = \rho_{\text{oil}} \cdot g \cdot h_o'
+     \]
+   - At equilibrium, these pressures will be equal, so:
+     \[
+     \rho_{\text{water}} \cdot g \cdot h_w' = \rho_{\text{oil}} \cdot g \cdot h_o'
+     \]
+   - Simplifying this, we get:
+     \[
+     \rho_{\text{water}} \cdot h_w' = \rho_{\text{oil}} \cdot h_o'
+     \]
+     \[
+     1000 \cdot h_w' = 700 \cdot h_o'
+     \]
+     \[
+     h_w' = \frac{700}{1000} \cdot h_o' = \frac{7}{10} \cdot h_o'
+     \]
+
+6. **Conservation of Volume:**
+   - The total volume of water and oil remains the same before and after the valve is opened. So, the total volume initially is:
+     \[
+     V_{\text{total}} = A \cdot h_w + A \cdot h_o = A \cdot 40 + A \cdot 40 = 80A
+     \]
+   - After the valve is opened, the total volume is still \( 80A \), but now it is distributed as:
+     \[
+     V_{\text{water}}' + V_{\text{oil}}' = A \cdot h_w' + A \cdot h_o' = 80A
+     \]
+   - So, we have:
+     \[
+     A \cdot h_w' + A \cdot h_o' = 80A \implies h_w' + h_o' = 80
+     \]
+
+7. **Solving the Equations:**
+   - We substitute \( h_w' = \frac{7}{10} \cdot h_o' \) into the equation \( h_w' + h_o' = 80 \):
+     \[
+     \frac{7}{10} \cdot h_o' + h_o' = 80
+     \]
+     \[
+     \frac{7}{10} \cdot h_o' + \frac{10}{10} \cdot h_o' = 80
+     \]
+     \[
+     \frac{17}{10} \cdot h_o' = 80
+     \]
+     \[
+     h_o' = 80 \cdot \frac{10}{17} = \frac{800}{17}
+     \]
+   - Now we can find \( h_w' \):
+     \[
+     h_w' = \frac{7}{10} \cdot h_o' = \frac{7}{10} \cdot \frac{800}{17} = \frac{7 \cdot 800}{10 \cdot 17} = \frac{5600}{170} = \frac{560}{17} \approx 32.94117647058824
+     \]
+
+Let's verify this by coding it to ensure accuracy.
+```python
+from sympy import symbols, Eq, solve
+
+# Define variables
+hw, ho = symbols('hw ho')
+
+# Set up the equations based on the problem statement
+eq1 = Eq(1000 * hw, 700 * ho)
+eq2 = Eq(hw + ho, 80)
+
+# Solve the system of equations
+solution = solve((eq1, eq2), (hw, ho))
+
+print(solution)
+```
+Code execution result: {ho: 800/17, hw: 560/17}
+
+This result confirms our previous calculations, giving us:
+\[ h_w' = \frac{560}{17} \approx 32.94117647058824 \]
+
+So, the level of water in the first vessel after the valve is opened is \(\boxed{\frac{560}{17}}\) centimeters. This is the final answer.
+

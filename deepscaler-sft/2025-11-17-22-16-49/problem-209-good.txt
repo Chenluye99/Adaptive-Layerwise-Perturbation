@@ -1,0 +1,82 @@
+Score: 1.0
+
+Let's define the variables first. Suppose Monsieur Dupont initially took \( f \) francs and \( c \) centimes with him to the restaurant. The total amount of money he initially had is \( 100f + c \) centimes (since 1 franc = 100 centimes).
+
+After his dinner, the amount of money he has left is \(\frac{1}{5} \times (100f + c)\) of the initial amount, which is \(\frac{100f + c}{5}\).
+
+Let's call the amount of money he has left \( n \) francs and \( m \) centimes. Therefore, the total amount of money he has left in centimes is \( 100n + m \).
+
+According to the problem, the centimes he has left are equal to the francs he initially had, so we get:
+\[ m = f. \]
+
+And the francs he has left are five times less than the initial centimes he had, so we get:
+\[ n = \frac{c}{5}. \]
+
+Also, the money he has left (\( 100n + m \)) should be equal to \(\frac{100f + c}{5}\). Substituting \( m = f \) and \( n = \frac{c}{5} \) into the equation, we get:
+\[ 100 \cdot \frac{c}{5} + f = \frac{100f + c}{5}. \]
+
+Simplifying this, we obtain:
+\[ 20c + f = \frac{100f + c}{5}. \]
+
+Multiplying both sides by 5, we get:
+\[ 100c + 5f = 100f + c. \]
+
+Rearranging terms, we get:
+\[ 100c - c = 100f - 5f, \]
+\[ 99c = 95f, \]
+\[ 99c = 95f. \]
+
+This equation tells us that \( 99c \) is a multiple of 95 and \( 95f \) is a multiple of 99. To solve this, we can find integer solutions by iterating possible values for \( c \) and solving for \( f \):
+
+\[ f = \frac{99c}{95}. \]
+
+Since \( f \) and \( c \) are integers, \( \frac{99c}{95} \) must also be an integer, meaning \( 99c \) must be divisible by 95. The smallest positive integer value for \( c \) that makes \( \frac{99c}{95} \) an integer is 95 (because 95 is a prime factor of 99 * 95). Substituting \( c = 95 \), we get:
+\[ f = \frac{99 \cdot 95}{95} = 99. \]
+
+So, the solution is \( f = 99 \) and \( c = 95 \). Now let's verify this solution by substituting these values back into the original problem constraints.
+
+If \( f = 99 \) and \( c = 95 \):
+- Initial amount in centimes is \( 100f + c = 100 \cdot 99 + 95 = 9995 \).
+- After dinner, he has \(\frac{9995}{5} = 1999 \) centimes left.
+- From the problem, we know he has \( n \) francs and \( m \) centimes left, such that \( m = f = 99 \) and \( n = \frac{c}{5} = \frac{95}{5} = 19 \).
+- The amount he has left is \( 100 \cdot 19 + 99 = 1999 \) centimes, which matches our previous calculation.
+
+This verifies that our solution is correct. Now, let's calculate how much Monsieur Dupont spent at the restaurant. The initial amount was 99 francs and 95 centimes, and the amount left is 19 francs and 99 centimes. Therefore, the amount spent is:
+\[ (100 \cdot 99 + 95) - (100 \cdot 19 + 99) = 9995 - 1999 = 7996 \text{ centimes}. \]
+
+To confirm, let's write the Python code to ensure our result is accurate by iterating over possible values of \( f \) and \( c \) until we find a valid pair that satisfies all constraints.
+```python
+# We will write a function to check for valid (f, c) pairs that satisfy all the conditions given in the problem.
+def find_initial_f_c():
+    for f in range(1, 1000):
+        for c in range(100):
+            total_initial_amount = 100 * f + c
+            if 0 <= total_initial_amount <= 5 * total_initial_amount:  # Ensures the condition that the left amount is 1/5 of the initial amount
+                left_amount = total_initial_amount // 5
+                left_francs = left_amount // 100
+                left_centimes = left_amount % 100
+                
+                if left_centimes == f and left_francs == c / 5:
+                    return f, c
+    return None, None
+
+# Get the values of f and c
+f, c = find_initial_f_c()
+
+# Calculate the initial amount in francs and centimes
+initial_amount = 100 * f + c
+
+# Calculate the left amount after the dinner
+left_amount = initial_amount // 5
+
+# Calculate how much was spent
+spent_amount = initial_amount - left_amount
+
+print((f, c, spent_amount))
+```
+Code execution result: (99, 95, 7996)
+
+Thus, Monsieur Dupont initially had 99 francs and 95 centimes, and he spent 7996 centimes at the restaurant. So, the final answer is:
+
+\(\boxed{7996}\)
+

@@ -1,0 +1,140 @@
+Score: 1.0
+
+First, let's start by finding the value of \(x\) using the Pythagorean theorem in triangle \(ABC\), where \(\angle ABC = 90^\circ\).
+
+The sides of the triangle are:
+- \(AB = 90\)
+- \(BC = x\)
+- \(AC = 2x - 6\)
+
+By the Pythagorean theorem:
+\[ AB^2 + BC^2 = AC^2 \]
+\[ 90^2 + x^2 = (2x - 6)^2 \]
+\[ 8100 + x^2 = 4x^2 - 24x + 36 \]
+Rearrange the equation to form a standard quadratic equation:
+\[ 8100 + x^2 = 4x^2 - 24x + 36 \]
+\[ 0 = 3x^2 - 24x - 8064 \]
+\[ 3x^2 - 24x - 8064 = 0 \]
+
+Divide the entire equation by 3 to simplify:
+\[ x^2 - 8x - 2688 = 0 \]
+
+We can solve this quadratic equation using the quadratic formula:
+\[ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} \]
+For our equation \( x^2 - 8x - 2688 = 0 \):
+\[ a = 1, \, b = -8, \, c = -2688 \]
+\[ x = \frac{-(-8) \pm \sqrt{(-8)^2 - 4 \cdot 1 \cdot (-2688)}}{2 \cdot 1} \]
+\[ x = \frac{8 \pm \sqrt{64 + 10752}}{2} \]
+\[ x = \frac{8 \pm \sqrt{10816}}{2} \]
+\[ x = \frac{8 \pm 104}{2} \]
+
+This gives us two potential solutions:
+\[ x = \frac{112}{2} = 56 \]
+\[ x = \frac{-96}{2} = -48 \]
+
+Since \(x\) represents a length, it must be positive, so we select:
+\[ x = 56 \]
+
+Now that we have the value of \(x\), we can find the lengths of the sides of the triangle:
+\[ BC = x = 56 \]
+\[ AC = 2x - 6 = 2(56) - 6 = 112 - 6 = 106 \]
+
+Next, we need to find the length of \(AD\), where \(AD\) is the angle bisector of \(\angle BAC\). By the Angle Bisector Theorem, the angle bisector divides the opposite side in the ratio of the adjacent sides:
+
+\[
+\frac{BD}{DC} = \frac{AB}{AC} = \frac{90}{106} = \frac{45}{53}
+\]
+
+Let \(BD = 45k\) and \(DC = 53k\) for some \(k\). Since \(BD + DC = BC = 56\):
+
+\[
+45k + 53k = 56 \implies 98k = 56 \implies k = \frac{56}{98} = \frac{4}{7}
+\]
+
+So, we can find \(DC\):
+
+\[
+DC = 53k = 53 \cdot \frac{4}{7} = \frac{212}{7} \approx 30.2857
+\]
+
+To find the area of \(\triangle ADC\), we can use the formula for the area of a triangle given its vertices. However, an alternative and easier method is to use the fact that the ratio of the areas of \(\triangle ABD\) and \(\triangle ACD\) is the same as the ratio of \(BD\) to \(DC\):
+
+\[
+\frac{[ \triangle ABD ]}{[ \triangle ACD ]} = \frac{BD}{DC} = \frac{45}{53}
+\]
+
+Let the area of \(\triangle ACD = [ \triangle ACD ] = y\), then the area of \(\triangle ABD = [ \triangle ABD ] = \frac{45}{53} y \).
+
+Since \(\triangle ABC\) is a right triangle with base \( AB = 90 \) and height \( BC = 56 \), its area is:
+
+\[
+[ \triangle ABC ] = \frac{1}{2} \times AB \times BC = \frac{1}{2} \times 90 \times 56 = 2520
+\]
+
+And:
+
+\[
+[ \triangle ABD ] + [ \triangle ACD ] = 2520
+\]
+
+Substitute \([ \triangle ABD ] = \frac{45}{53} y \) into the equation:
+
+\[
+\frac{45}{53} y + y = 2520 \implies \frac{98}{53} y = 2520 \implies y = 2520 \cdot \frac{53}{98} = 2520 \cdot \frac{53}{98} = 2520 \cdot \frac{53}{98} = 1365
+\]
+
+So, the area of \(\triangle ADC\) is \( 1365 \). To ensure accuracy, let's confirm this by coding the complete solution.
+```python
+import sympy as sp
+
+# Define variables
+x = sp.symbols('x', positive=True)
+
+# Set up the equation based on the Pythagorean theorem
+eq = 90**2 + x**2 - (2*x - 6)**2
+
+# Solve the equation for x
+solution = sp.solve(eq, x)
+
+# Filter out the positive solution
+x_value = [sol for sol in solution if sol > 0][0]
+
+# Find the corresponding lengths
+BC = x_value
+AC = 2 * x_value - 6
+AB = 90
+
+# Now, let's get the coordinates for points A, B, and C
+A = (0, 0)
+B = (90, 0)
+C = (0, 56)
+
+# Find the coordinates of D using the angle bisector theorem formula
+Dx = (90 * 0 + 56 * 0) / (90 + 56)
+Dy = (90 * 0 + 56 * 0) / (90 + 56)
+
+# Correct formula to find D based on angle bisector properties
+k = 56 / (90 + 56)
+Dx = (90 * 0 + 56 * 0) / (90 + 56) + 90 * k
+Dy = (90 * 0 + 56 * 0) / (90 + 56) + 0 * k
+
+# Coordinates of D should be calculated properly using section formula
+Dx = ( 90 * 53 / 98 + 0 * 45 / 98 )
+Dy = ( 0 * 53 / 98 + 56 * 45 / 98 )
+
+# Get D's correct coordinates:
+D = ( Dx, Dy )
+
+# Now, calculate the area of triangle ADC using the shoelace formula
+def triangle_area(x1, y1, x2, y2, x3, y3):
+    return sp.Abs(0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)))
+
+# Find area of triangle ADC
+area_ADC = triangle_area(D[0], D[1], A[0], A[1], C[0], C[1])
+
+print(round(area_ADC))
+```
+Code execution result: 1363
+
+Thus, the area of \(\triangle ADC\) is \(\boxed{1363}\). This is our final answer, rounded to the nearest integer.
+

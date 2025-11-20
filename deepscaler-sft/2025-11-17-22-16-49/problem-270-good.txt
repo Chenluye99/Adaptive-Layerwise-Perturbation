@@ -1,0 +1,53 @@
+Score: 1.0
+
+To solve this problem, we need to distribute 5 distinct students into 3 groups (Group A, Group B, and Group C) with the given constraints:
+
+1. Group A must have at least 2 people.
+2. Groups B and C must each have at least 1 person.
+
+We will use Python to iterate through all possible ways of distributing the 5 students into the 3 groups and then check which of these distributions meet the constraints.
+
+First, let's outline the steps needed to solve the problem:
+
+1. Generate all possible ways to distribute 5 students into 3 groups.
+2. For each distribution, check if Group A has at least 2 students.
+3. Check if Groups B and C each have at least 1 student.
+4. Count how many such distributions meet both conditions.
+
+Let's implement this step-by-step in Python.
+```python
+import itertools
+
+students = ['S1', 'S2', 'S3', 'S4', 'S5']
+num_students = len(students)
+
+# We will generate all possible ways to assign 5 students to 3 groups (Group A, Group B, Group C)
+# Each assignment will be a tuple of length 3, where each element of the tuple represents the group to which the corresponding student is assigned.
+# For example, (0, 1, 0, 2, 1) means Group A gets students 0 and 2, Group B gets students 1 and 4, and Group C gets student 3.
+
+count = 0
+
+# Iterate through all possible ways of distributing 5 students into 3 groups
+for comb in itertools.product(range(3), repeat=num_students):
+    group_A = []
+    group_B = []
+    group_C = []
+    
+    for i, group_index in enumerate(comb):
+        if group_index == 0:
+            group_A.append(students[i])
+        elif group_index == 1:
+            group_B.append(students[i])
+        else:
+            group_C.append(students[i])
+    
+    # Check constraints
+    if len(group_A) >= 2 and len(group_B) >= 1 and len(group_C) >= 1:
+        count += 1
+
+print(count)
+```
+Code execution result: 80
+
+Thus, the number of different distribution schemes that meet the conditions is \(\boxed{80}\). This is our final answer.
+

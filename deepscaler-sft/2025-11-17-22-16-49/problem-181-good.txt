@@ -1,0 +1,37 @@
+Score: 1.0
+
+To solve this problem, we need to determine the probability that Hannah gets fewer than 4 heads when she flips 12 coins. This involves calculating the probabilities of getting 0, 1, 2, or 3 heads out of 12 flips.
+
+The probability of getting exactly \( k \) heads in 12 coin flips can be calculated using the binomial probability formula:
+\[
+P(X = k) = \binom{12}{k} \left(\frac{1}{2}\right)^k \left(\frac{1}{2}\right)^{12-k} = \binom{12}{k} \left(\frac{1}{2}\right)^{12}
+\]
+where \(\binom{12}{k}\) is the binomial coefficient, which is given by:
+\[
+\binom{12}{k} = \frac{12!}{k!(12-k)!}
+\]
+
+We need to sum the probabilities for \( k = 0, 1, 2, 3 \).
+
+Let's write this step-by-step in Python to ensure accuracy.
+```python
+import scipy.stats as stats
+
+# Number of coin flips
+n = 12
+
+# Calculate probabilities for getting 0, 1, 2, or 3 heads
+probabilities = []
+
+for k in range(4):
+    probability = stats.binom.pmf(k, n, 0.5)
+    probabilities.append(probability)
+
+# Sum the probabilities to get the final answer
+probability_sum = sum(probabilities)
+print(probability_sum)
+```
+Code execution result: 0.07299804687500001
+
+Thus, the probability that Hannah gets fewer than 4 heads if she flips 12 coins is \(\boxed{0.072998046875}\). This is our final answer.
+

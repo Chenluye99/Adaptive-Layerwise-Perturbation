@@ -1,0 +1,40 @@
+Score: 1.0
+
+First, let's outline our solution step-by-step.
+
+1. **Determine Total Outcomes:**
+    - When two six-sided dice are tossed, there are \(6 \times 6 = 36\) total possible outcomes.
+
+2. **Determine Favorable Outcomes:**
+    - We need to find the number of outcomes where at least one of the dice shows a 5.
+    - To do this, it is often easier to use the complementary counting method. We first count the number of outcomes where no die shows a 5, and then subtract that from the total number of outcomes.
+    - If a six-sided die does not show a 5, it can show 1, 2, 3, 4, or 6 (i.e., 5 possible outcomes for each die). So, there are \(5 \times 5 = 25\) outcomes where neither die shows a 5.
+    - Therefore, the number of outcomes where at least one die shows a 5 is \(36 - 25 = 11\).
+
+3. **Calculate the Probability:**
+    - The probability is the number of favorable outcomes divided by the total number of outcomes, i.e., \(\frac{11}{36}\).
+
+Let's confirm this step-by-step process using Python code to ensure accuracy.
+```python
+import itertools
+
+# Get all outcomes when two six-sided dice are tossed
+outcomes = list(itertools.product(range(1, 7), repeat=2))
+
+# Count the number of outcomes where at least one of the dice shows a 5
+favorable_outcomes = [outcome for outcome in outcomes if 5 in outcome]
+
+num_favorable_outcomes = len(favorable_outcomes)
+num_total_outcomes = len(outcomes)
+
+# Calculate the probability
+probability = num_favorable_outcomes / num_total_outcomes
+
+print(((num_favorable_outcomes, num_total_outcomes, probability)))
+```
+Code execution result: (11, 36, 0.3055555555555556)
+
+This confirms our reasoning; there are 11 favorable outcomes out of 36 total outcomes, giving a probability of \(\frac{11}{36}\).
+
+Thus, the probability that a 5 is rolled on at least one of the two dice is \(\boxed{\frac{11}{36}}\). This is our final answer.
+

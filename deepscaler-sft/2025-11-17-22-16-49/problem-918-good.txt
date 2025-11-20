@@ -1,0 +1,45 @@
+Score: 1.0
+
+To solve the problem, we need to evaluate the infinite series \(\sum_{k=1}^{\infty} \frac{k}{2^k}\).
+
+Let's denote the sum of this infinite series by \( S \):
+\[ S = \sum_{k=1}^{\infty} \frac{k}{2^k} = \frac{1}{2^1} + \frac{2}{2^2} + \frac{3}{2^3} + \frac{4}{2^4} + \cdots \]
+
+First, we can multiply \( S \) by \(\frac{1}{2}\):
+\[ \frac{S}{2} = \sum_{k=1}^{\infty} \frac{k}{2^{k+1}} = \frac{1}{2^2} + \frac{2}{2^3} + \frac{3}{2^4} + \frac{4}{2^5} + \cdots \]
+
+Now, if we subtract \(\frac{S}{2}\) from \( S \), we get:
+\[ S - \frac{S}{2} = \left( \frac{1}{2^1} + \frac{2}{2^2} + \frac{3}{2^3} + \frac{4}{2^4} + \cdots \right) - \left( \frac{1}{2^2} + \frac{2}{2^3} + \frac{3}{2^4} + \frac{4}{2^5} + \cdots \right) \]
+
+This simplifies to:
+\[ S - \frac{S}{2} = \frac{1}{2} + \left( \frac{2}{2^2} - \frac{1}{2^2} \right) + \left( \frac{3}{2^3} - \frac{2}{2^3} \right) + \left( \frac{4}{2^4} - \frac{3}{2^4} \right) + \cdots \]
+\[ S - \frac{S}{2} = \frac{1}{2} + \frac{1}{2^2} + \frac{1}{2^3} + \frac{1}{2^4} + \cdots \]
+
+The right-hand side is an infinite geometric series with the first term \( a = \frac{1}{2} \) and common ratio \( r = \frac{1}{2} \). The sum of an infinite geometric series is given by \(\frac{a}{1 - r}\):
+\[ \frac{1}{2} + \frac{1}{2^2} + \frac{1}{2^3} + \frac{1}{2^4} + \cdots = \frac{\frac{1}{2}}{1 - \frac{1}{2}} = \frac{\frac{1}{2}}{\frac{1}{2}} = 1 \]
+
+So, we have:
+\[ S - \frac{S}{2} = 1 \]
+\[ \frac{S}{2} = 1 \]
+\[ S = 2 \]
+
+Thus, the sum of the series is \( \boxed{2} \). 
+
+To ensure the accuracy, we can verify this by implementing it in Python and summing the series up to a large number of terms to approximate the result.
+```python
+# We'll approximate the sum by taking the first n terms of the series and check if it converges to 2.
+
+def approximate_series_sum(terms):
+    total_sum = 0
+    for k in range(1, terms + 1):
+        total_sum += k / (2 ** k)
+    return total_sum
+
+# Let's take a sufficiently large number of terms, say 1000, to approximate the sum accurately.
+approximated_sum = approximate_series_sum(1000)
+print(approximated_sum)
+```
+Code execution result: 1.9999999999999998
+
+
+

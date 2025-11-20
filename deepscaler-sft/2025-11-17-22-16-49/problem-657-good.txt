@@ -1,0 +1,35 @@
+Score: 1.0
+
+To solve this problem, we need to find the number of ways to seat 5 Democrats and 5 Republicans around a circular table such that each member sits next to two members of the other party. This means that the seating arrangement must alternate between Democrats and Republicans.
+
+### Step-by-Step Solution:
+
+1. **Initial Arrangement:**
+   - Since it is a circular arrangement, we can fix one seat to avoid counting rotational permutations multiple times. So, we can fix one person (say, a Democrat) in one position.
+   - After fixing one Democrat in one position, we need to place the remaining 4 Democrats and 5 Republicans in alternating positions.
+
+2. **Arranging the Remaining Members:**
+   - With the first Democrat placed, the next seat must be taken by a Republican, the next by a Democrat, and so on.
+   - So, we have 4 remaining Democrats to place in the 4 remaining Democrat slots and 5 Republicans to place in the 5 Republican slots.
+   - The number of ways to arrange 4 Democrats in 4 positions is \(4!\) (4 factorial), and the number of ways to arrange 5 Republicans in 5 positions is \(5!\) (5 factorial).
+
+3. **Calculating the Permutations:**
+   - Fix one Democrat in one position, then we have 4! ways to arrange the remaining 4 Democrats and 5! ways to arrange the 5 Republicans in their designated places.
+   - Therefore, the total number of ways to seat them in such a pattern is \(4! \times 5!\).
+
+Let's implement this in Python to get the accurate result.
+```python
+import math
+
+# Calculate the factorials
+factorial_4 = math.factorial(4)
+factorial_5 = math.factorial(5)
+
+# Total number of ways to arrange the remaining members in an alternating pattern around the table
+total_ways = factorial_4 * factorial_5
+print(total_ways)
+```
+Code execution result: 2880
+
+Thus, the number of ways to seat 5 Democrats and 5 Republicans around a circular table such that each member sits next to two members of the other party is \(\boxed{2880}\). This is our final answer.
+

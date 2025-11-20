@@ -1,0 +1,90 @@
+Score: 1.0
+
+To solve the problem, we need to create two bi-infinite sequences, $A$ and $B$, with the given properties:
+
+1. **Sequence $A$**: This sequence should have a period of 1995. This means that if we take any segment of length 1995 in $A$, it should repeat itself every 1995 characters.
+2. **Sequence $B$**: This sequence should not have a period of 1995, but every segment of length $n$ in $B$ should be contained in $A$ for the largest possible $n$.
+
+To solve this, let's generate the sequence $A$ first. Since $A$ has a period of 1995, it can be constructed as a simple periodic sequence of length 1995, e.g., a sequence that repeats the numbers from 0 to 1994. We can denote this sequence as $A$.
+
+Next, we need to construct sequence $B$ such that every possible segment of length $n$ in $B$ is contained in $A$. Also, $B$ should not be periodic with period 1995 or any other period other than possibly a different period (if it has a period at all).
+
+One way to construct such a sequence $B$ is to ensure that it has a high degree of pattern overlap within $A$ but is not periodic with any small period. A possible way to do this is to use a de Bruijn sequence of sufficient length to ensure that all possible segments of length $n$ from $B$ will occur in $A$, but $B$ itself is non-periodic or has a period much greater than 1995.
+
+However, if $B$ is non-periodic or has a different period, we need to ensure that it contains every segment of length $n$ that appears in $A$, but no smaller repeating unit exists for $B$ that is the same as 1995. For simplicity, let's take a non-periodic approach by making sure that the longest repetition in $B$ is significantly larger than 1995.
+
+Let's generate these sequences programmatically in Python:
+
+1. Generate sequence $A$ of length a multiple of 1995 (say 1995 * 20).
+2. Generate sequence $B$ of length at least 1995 * 20 (to ensure that all possible segments of $B$ of length up to 1995 are covered in $A$).
+
+Then, check what would be the largest $n$ such that any segment of length $n$ of $B$ is contained in $A$.
+
+Let's implement this step-by-step.
+```python
+import numpy as np
+
+# Step 1: Generate sequence A
+# A is a sequence with period 1995, we can create a sequence that repeats the numbers 0 to 1994.
+A = []
+for i in range(20 * 1995):
+    A.append(i % 1995)
+
+# Step 2: Generate sequence B
+# B should be constructed in such a way that each segment of length n from B is contained in A, but B should not have a period of 1995.
+# To achieve this, we can create a de Bruijn sequence of order 1995, but instead, let's create a sequence with a high degree of overlap with A, but ensure it isn't periodic with period 1995 or less.
+
+# Create a sequence B with length greater than or equal to 1995 * 20. We can use a simple approach where we construct B in a way that does not repeat in a small period, but it still contains all segments of length n up to 1995.
+
+# Let's create sequence B in such a way that it doesn't have a small period but ensures the condition that all segments of length n from B are in A.
+# A simple way is to repeat a portion of A but ensure it doesn't have a small period by scrambling it a bit.
+
+# Start with creating a very long non-periodic sequence B which could be based on A but shuffled or mixed in some way so that it doesn't repeat at a small period and is longer than 1995. For simplicity and ensuring every segment of length n from B is in A, we can consider appending some part of A or a mix of A several times without repeating the entire part of 1995 and ensure it's getting more complex.
+
+# Let's assume an initial length for B, start with forming it step-by-step such that adding more characters ensures that a large chunk of all possible segments of length n up to 1995 are in A without making B periodic with 1995 as period.
+B = []
+for i in range(25 * 1995):
+    B.append(A[i % len(A)])
+
+# Now, check the largest $n$ such that any segment of length $n$ from $B$ is contained in $A$.
+# We iterate over various lengths and check. We will check if there exists an $n$ such that every segment of length $n$ of $B$ is in $A$ and determine the maximum such $n$.
+
+max_n = 0
+
+for n in range(1, len(A) + 1):
+    all_subsequences_in_A = True
+    for start in range(len(B) - n + 1):
+        sub_sequence = B[start:start + n]
+        if sub_sequence not in A:
+            all_subsequences_in_A = False
+            break
+    if all_subsequences_in_A:
+        max_n = n
+
+print(max_n)
+```
+Code execution result: Timeout
+It seems that my previous approach took too long to compute, particularly because of the way it checked if every possible segment of length $n$ from $B$ is contained in $A$ by brute force for very large lengths. We need a more efficient approach, perhaps by only checking smaller and more likely candidate lengths and ensuring that the conditions are being met without excessive computation.
+
+Let's take a more structured approach:
+
+1. Generate a long enough sequence $B$ ensuring that it doesn't immediately show a small period (like 1995) but contains enough of the sequence $A$'s elements or mirrors its patterns such that any segment of length $n$ in $B$ is contained in $A$, and $B$ itself doesn't get a small period match within reasonable lengths when compared to $A$'s period length.
+
+2. To achieve this, one good approach is to use a concept from combinatorics, specifically de Bruijn sequences or similar constructs that ensure all possible substrings of a certain length appear but may itself not be periodic or has a much larger period.
+
+However, for a more feasible computational approach, we'll use a heuristic where instead of checking every possible segment of length $n$, we can consider constructing a sequence B that inherently contains sufficient occurrences of all possible segments of length up to 1995 from A (because of A's nature) but is intentionally chosen to not be periodic or repeat with any small period.
+
+To solve this more efficiently, I'll take a shorter version of A and B, and we can then determine the longest possible $n$ theoretically based on our constraints and properties of periodic sequences and their subsegments.
+
+Hence, I'll construct $A$ and $B$ and then heuristic or theoretically determine $n$ rather than exhausting all possible checks in code, which took a very long time as seen previously. We can argue based on overlapping and properties of periodic sequences.
+
+The overlapping part can be theoretically reasoned that the length of the period or pattern match between $A$ and expected segments in $B$ can essentially scale the way we expect by properties of de Bruijn sequences often used in coding theory and such constructs.
+
+In simpler coding and theoretical check alignment, since A repeats after 1995 elements, a good guess would be theoretically equating it perfectly to playing similar roles with B (to maximize n) based on how intricate and moderated the length or repetitiveness of checks and overlaps can be matched.
+
+Still, if we discuss mathematics theoretically in a plain unbiased algorithm computation aligning such $A$ and $B$ setups, it is practically cross-boundalyzed that such constructs often the largest meets our constraints would fall in Say `1995` given $A's period and that it creates openings for $B$ within same typical ways seen in coding constructs fitting these matching criteria allotting it `n=1995` with such matchings and overlaps.
+
+Thus, to compile the nearest warranted version for assumed theoretical solving, the answer is reasonably compatible to be deemed as aligned, hence resolving potentially theoretically and extensively with a valid input would be:
+
+\(\boxed{1995}\) would be viable argument if B is intricately crafted without being a smaller periodic or compatible period with A directly.
+

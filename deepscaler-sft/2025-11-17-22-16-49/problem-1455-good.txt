@@ -1,0 +1,49 @@
+Score: 1.0
+
+To solve the problem of subtracting the base 7 numbers \(3210_7 - 2401_7\) and expressing the result in base 7, we can follow these steps:
+
+1. **Convert Base 7 Numbers to Base 10:**
+    - Convert \(3210_7\) to its base 10 equivalent.
+    - Convert \(2401_7\) to its base 10 equivalent.
+
+2. **Perform the Subtraction in Base 10:**
+    - Subtract the base 10 equivalent of \(2401_7\) from the base 10 equivalent of \(3210_7\).
+
+3. **Convert the Result Back to Base 7:**
+    - Convert the result of the subtraction back to base 7.
+
+Let's implement this step-by-step in Python to ensure accuracy.
+```python
+def base7_to_base10(n: str) -> int:
+    """Convert a base 7 number (given as a string) to its base 10 equivalent."""
+    return int(n, 7)
+
+def base10_to_base7(n: int) -> str:
+    """Convert a base 10 number to its base 7 equivalent (as a string)."""
+    if n == 0:
+        return "0"
+    digits = []
+    while n:
+        digits.append(int(n % 7))
+        n //= 7
+    return ''.join(str(x) for x in digits[::-1])
+
+# Given base 7 numbers
+num1_base7 = "3210"
+num2_base7 = "2401"
+
+# Convert base 7 numbers to base 10
+num1_base10 = base7_to_base10(num1_base7)
+num2_base10 = base7_to_base10(num2_base7)
+
+# Perform the subtraction in base 10
+result_base10 = num1_base10 - num2_base10
+
+# Convert the result back to base 7
+result_base7 = base10_to_base7(result_base10)
+print(result_base7)
+```
+Code execution result: 506
+
+Thus, the result of \(3210_7 - 2401_7\) in base 7 is \(\boxed{506_7}\). This is our final answer.
+

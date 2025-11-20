@@ -1,0 +1,54 @@
+Score: 0.0
+
+To solve this problem, we need to determine how many hours a day the statement on the poster aligns with Clever Cat's actual activities.
+
+Clever Cat's schedule is as follows:
+- From noon till midnight (12 PM to 12 AM), he is sleeping.
+- From midnight till noon (12 AM to 12 PM), he is awake and telling stories.
+
+Now, let's interpret the statement on the poster:
+- The statement says, "Two hours ago, Clever Cat was doing the same thing as he will be doing in one hour's time."
+  
+To solve this problem, we need to check for each hour of the day whether the statement on the poster is true. We can write a Python script to iterate through each hour of the day (from 12 AM to 11 PM) and check the condition for each hour. 
+
+Let's implement this step-by-step procedure in Python.
+```python
+# We'll simulate Clever Cat's schedule and check the condition for each hour in a day (24 hours)
+
+# Initialize a list to keep track of whether the statement on the poster is true for each hour
+truth_table = []
+
+# Loop through each hour of the day (from 0 to 23, where 0 represents 12 AM, 1 represents 1 AM, and so on)
+for hour in range(24):
+    # Determine what Clever Cat was doing two hours ago
+    two_hours_ago = (hour - 2) % 24
+    
+    # Determine what Clever Cat will be doing in one hour's time
+    one_hour_later = (hour + 1) % 24
+    
+    # Determine Clever Cat's activity based on the hour (from 0 to 23)
+    if 0 <= hour < 12:  # From 12 AM to 11 AM
+        activity_now = "telling stories"
+    else:  # From 12 PM to 11 PM
+        activity_now = "sleeping"
+    
+    # Check if two hours ago Clever Cat was doing the same thing as he will be doing in one hour's time
+    if activity_now == "telling stories":
+        activity_two_hours_ago = "telling stories"
+        activity_one_hour_later = "telling stories" if 0 <= one_hour_later < 12 else "sleeping"
+    else:  # Clever Cat is sleeping
+        activity_two_hours_ago = "sleeping"
+        activity_one_hour_later = "sleeping" if 0 <= one_hour_later < 12 else "telling stories"
+    
+    # Check the condition
+    condition_met = (activity_two_hours_ago == activity_one_hour_later)
+    truth_table.append(condition_met)
+
+# Count how many hours the statement on the poster is true
+hours_poster_tells_truth = sum(truth_table)
+print(hours_poster_tells_truth)
+```
+Code execution result: 12
+
+Thus, the poster tells the truth for \(\boxed{12}\) hours a day. This is our final answer.
+

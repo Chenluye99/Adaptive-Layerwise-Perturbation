@@ -1,0 +1,91 @@
+Score: 1.0
+
+Firstly, let's solve the problem step-by-step.
+
+1. **Find the Normal Vector of the Given Plane:**
+   The equation of the given plane is \(x + 2y + 3z = 5\). The normal vector to this plane is \(\mathbf{n_1} = (1, 2, 3)\).
+
+2. **Find the Direction Vector of the Desired Plane:**
+   The desired plane passes through the points \((-1, 1, 1)\) and \((1, -1, 1)\). The direction vector between these points is:
+   \[
+   \mathbf{v} = (1 - (-1), -1 - 1, 1 - 1) = (2, -2, 0)
+   \]
+   
+3. **Find the Normal Vector of the Desired Plane:**
+   The normal vector to the desired plane, \(\mathbf{n_2}\), must be perpendicular to both \(\mathbf{n_1} = (1, 2, 3)\) and \(\mathbf{v} = (2, -2, 0)\). Therefore, \(\mathbf{n_2}\) is the cross product of \(\mathbf{n_1}\) and \(\mathbf{v}\):
+   \[
+   \mathbf{n_2} = \mathbf{n_1} \times \mathbf{v} = \begin{vmatrix}
+   \mathbf{i} & \mathbf{j} & \mathbf{k} \\
+   1 & 2 & 3 \\
+   2 & -2 & 0
+   \end{vmatrix} = \mathbf{i}(2 \cdot 0 - 3 \cdot (-2)) - \mathbf{j}(1 \cdot 0 - 3 \cdot 2) + \mathbf{k}(1 \cdot (-2) - 2 \cdot 2)
+   = \mathbf{i}(6) - \mathbf{j}(-6) + \mathbf{k}(-6)
+   = (6, 6, -6)
+   \]
+   We can simplify this normal vector by dividing by 6, obtaining \((1, 1, -1)\).
+
+4. **Form the Equation of the Desired Plane:**
+   The general equation of a plane is given by \(Ax + By + Cz + D = 0\), where \((A, B, C)\) is the normal vector of the plane. Using the normal vector \((1, 1, -1)\), the equation of our plane is:
+   \[
+   1 \cdot x + 1 \cdot y - 1 \cdot z + D = 0 \implies x + y - z + D = 0
+   \]
+   To find \(D\), we substitute one of the given points into this equation. Let's use the point \((-1, 1, 1)\):
+   \[
+   -1 + 1 - 1 + D = 0 \implies -1 + D = 0 \implies D = 1
+   \]
+   So, the equation of the plane is:
+   \[
+   x + y - z + 1 = 0
+   \]
+
+5. **Check GCD Condition:**
+   We need to ensure that \(\gcd(|1|, |1|, |-1|, |1|) = 1\). The greatest common divisor of 1, 1, 1, and 1 is 1, so the equation already meets this condition.
+
+Let's confirm this by coding the above steps to ensure the result is accurate.
+```python
+import math
+from sympy import symbols, Eq, solve
+
+# Step 1: Define the points and the normal vector of the given plane
+point1 = (-1, 1, 1)
+point2 = (1, -1, 1)
+n1 = (1, 2, 3)
+
+# Step 2: Find the direction vector between the points
+v = (point2[0] - point1[0], point2[1] - point1[1], point2[2] - point1[2])
+
+# Step 3: Find the normal vector of the desired plane using the cross product
+n2 = (n1[1] * v[2] - n1[2] * v[1], n1[2] * v[0] - n1[0] * v[2], n1[0] * v[1] - n1[1] * v[0])
+
+# Step 4: Form the equation of the desired plane and find D
+x, y, z, D = symbols('x y z D')
+normal_vector = tuple(n2)
+plane_equation = normal_vector[0] * x + normal_vector[1] * y + normal_vector[2] * z + D
+
+# Use one of the points to find D
+eq = Eq(plane_equation.subs({x: point1[0], y: point1[1], z: point1[2]}), 0)
+D_value = solve(eq, D)[0]
+
+# Get the final equation of the plane
+plane_equation_final = normal_vector[0] * x + normal_vector[1] * y + normal_vector[2] * z + D_value
+
+print(f"Normal Vector: {normal_vector}")
+print(f"Equation of the Plane: {normal_vector[0]}x + {normal_vector[1]}y + {normal_vector[2]}z + {D_value} = 0")
+```
+Code execution result: Normal Vector: (6, 6, -6)
+Equation of the Plane: 6x + 6y + -6z + 6 = 0
+
+We obtained the equation \(6x + 6y - 6z + 6 = 0\). To satisfy the condition that \(A > 0\) and \(\gcd(|A|, |B|, |C|, |D|) = 1\), we can divide the entire equation by 6:
+
+\[
+x + y - z + 1 = 0
+\]
+
+We have already checked and confirmed that \(\gcd(|1|, |1|, |-1|, |1|) = 1\), so this equation is in the desired form.
+
+Thus, the final answer is:
+
+\[
+\boxed{x + y - z + 1 = 0}
+\]
+

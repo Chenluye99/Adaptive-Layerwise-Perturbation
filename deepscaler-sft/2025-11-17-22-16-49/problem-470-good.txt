@@ -1,0 +1,90 @@
+Score: 1.0
+
+Let's start by breaking the problem into manageable steps and solve each part using Python.
+
+### Part (Ⅰ)
+1. **Problem Description:**
+   - There are 3 black balls, 2 red balls, and 1 white ball in the box.
+   - The reward for drawing a black ball is 1 yuan, for a red ball is 2 yuan, and for a white ball is 3 yuan.
+   - We need to calculate the probability that the total reward money is at least 4 yuan when a customer draws 2 balls at once.
+
+2. **Possible Outcomes When Drawing 2 Balls:**
+   - Total balls = 3 (black) + 2 (red) + 1 (white) = 6 balls.
+   - The possible outcomes when drawing 2 balls from 6 balls include all combinations of the three types of balls.
+   - We need to consider all possible outcomes and their corresponding rewards and then check if they meet the condition that the total reward is at least 4 yuan.
+
+### Part (Ⅱ)
+1. **Problem Description:**
+   - If the purchase amount exceeds 500 yuan, the customer can draw twice with replacement from the same box of balls.
+   - The reward for drawing a black or white ball is 5 yuan, and for a red ball is 10 yuan.
+   - We need to calculate the probability that the total reward money is less than 20 yuan when the customer draws twice.
+
+2. **Possible Outcomes When Drawing Twice:**
+   - Each draw is independent, and we need to consider all possible outcomes of drawing a ball twice.
+   - For each draw, there are 6 possible outcomes (3 black, 2 red, 1 white), so there are \(6 \times 6 = 36\) possible outcomes for two draws.
+   - We need to consider all possible outcomes and their corresponding rewards and then check if they meet the condition that the total reward is less than 20 yuan.
+
+Let's implement this step-by-step in Python to get the accurate results.
+```python
+import itertools
+
+# Part (Ⅰ)
+# Define the balls
+balls_part_I = ['B'] * 3 + ['R'] * 2 + ['W']
+
+# Get all possible outcomes when 2 balls are drawn at once
+outcomes_part_I = list(itertools.combinations(balls_part_I, 2))
+
+# Calculate the reward for each outcome and check if it is at least 4 yuan
+def calculate_reward_2_balls(outcome):
+    reward = 0
+    for ball in outcome:
+        if ball == 'B':
+            reward += 1
+        elif ball == 'R':
+            reward += 2
+        elif ball == 'W':
+            reward += 3
+    return reward
+
+# Get rewards for all outcomes and check if they are at least 4 yuan
+at_least_4_yuan_rewards = [outcome for outcome in outcomes_part_I if calculate_reward_2_balls(outcome) >= 4]
+
+# Calculate the probability
+prob_part_I = len(at_least_4_yuan_rewards) / len(outcomes_part_I)
+
+# Part (Ⅱ)
+# Get all possible outcomes when drawing twice with replacement
+outcomes_part_II = []
+for first_draw in balls_part_I:
+    for second_draw in balls_part_I:
+        outcomes_part_II.append((first_draw, second_draw))
+
+# Calculate the reward for each outcome pair and check if it is less than 20 yuan
+def calculate_reward_2_draws(outcome_pair):
+    reward = 0
+    for ball in outcome_pair:
+        if ball == 'B' or ball == 'W':
+            reward += 5
+        elif ball == 'R':
+            reward += 10
+    return reward
+
+# Get rewards for all outcome pairs and check if they are less than 20 yuan
+less_than_20_yuan_rewards = [outcome for outcome in outcomes_part_II if calculate_reward_2_draws(outcome) < 20]
+
+# Calculate the probability
+prob_part_II = len(less_than_20_yuan_rewards) / len(outcomes_part_II)
+
+print(prob_part_I, prob_part_II)
+```
+Code execution result: 0.4 0.8888888888888888
+
+Thus, we have the following results:
+
+1. **Part (Ⅰ):**
+   The probability that the total reward money is at least 4 yuan when a customer draws 2 balls at once is \(\boxed{0.4}\).
+
+2. **Part (Ⅱ):**
+   The probability that the total reward money is less than 20 yuan when a customer draws twice with replacement is \(\boxed{0.8888888888888888}\). This can also be written as \(\boxed{\frac{8}{9}}\) when expressed as a fraction.
+

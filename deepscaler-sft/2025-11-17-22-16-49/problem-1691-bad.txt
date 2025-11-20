@@ -1,0 +1,65 @@
+Score: 0.0
+
+First, let's extract the data from the histogram. The histogram provides the frequency of the number of days missed by Mr. Clark's students, and it also shows the range of days missed for each bar. We can interpret the histogram as follows:
+
+- 0 days: 3 students
+- 1 day: 1 student
+- 2 days: 4 students
+- 3 days: 1 student
+- 4 days: 1 student
+- 5 days: 5 students
+
+So, we can create a list representing the number of days missed by each of the 15 students:
+
+\[ [0, 0, 0, 1, 2, 2, 2, 2, 3, 4, 5, 5, 5, 5, 5] \]
+
+Next, we need to calculate both the mean and median of this list.
+
+### Step 1: Calculate the Mean
+The mean is calculated by summing up all the values in the list and then dividing by the number of values.
+
+\[ \text{Mean} = \frac{\sum \text{days missed}}{\text{number of students}} \]
+
+### Step 2: Calculate the Median
+The median is the middle value in a sorted, ascending or descending, list of numbers. Since there are 15 students (an odd number), the median will be the 8th value when the list is ordered (because the median of 15 values is the 8th value).
+
+Let's start by calculating the mean and median using Python.
+```python
+# Creating the list representing the number of days missed by each student
+days_missed = [0, 0, 0, 1, 2, 2, 2, 2, 3, 4, 5, 5, 5, 5, 5]
+
+# Calculate the mean
+mean_days_missed = sum(days_missed) / len(days_missed)
+
+# Calculate the median
+sorted_days_missed = sorted(days_missed)
+n = len(sorted_days_missed)
+median_days_missed = sorted_days_missed[n // 2]
+
+print((mean_days_missed, median_days_missed))
+```
+Code execution result: (2.7333333333333334, 2)
+
+So, the mean number of days missed per student is approximately \( 2.7333 \) and the median number of days missed per student is \( 2 \).
+
+### Step 3: Find the Difference
+We need to find how many days the mean is greater than the median.
+
+\[ \text{Difference} = \text{Mean} - \text{Median} = 2.7333 - 2 = 0.7333 \]
+
+To express this difference as a common fraction, let's convert \( 0.7333 \) to a fraction and find its simplest form. We know that \( 0.7333 \) is a repeating decimal that can be represented as a fraction. We can use Python to get the exact fraction representation.
+```python
+from fractions import Fraction
+
+# Get the fraction representation of 0.7333333333333334
+decimal_value = 2.7333333333333334
+fraction_representation = Fraction(decimal_value).limit_denominator()
+
+print(fraction_representation)
+```
+Code execution result: 41/15
+
+So, the difference between the mean and the median, expressed as a common fraction, is \(\frac{41}{15}\).
+
+Thus, the mean number of days missed per student is greater than the median number of days missed per student by \(\boxed{\frac{41}{15}}\). This is our final answer.
+

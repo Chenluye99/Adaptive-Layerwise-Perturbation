@@ -1,0 +1,47 @@
+Score: 1.0
+
+To solve the problem, we need to find the number of ways to distribute 4 scoops among 3 basic flavors (chocolate, vanilla, and strawberry). Each distribution corresponds to a different flavor when the scoops are blended.
+
+This is a combinatorial problem that can be solved using the "stars and bars" theorem from combinatorics. The "stars and bars" theorem states that the number of ways to distribute \(n\) indistinguishable objects (scoops) into \(k\) distinguishable bins (flavors) is given by:
+
+\[
+\binom{n + k - 1}{k - 1}
+\]
+
+In our case, \(n = 4\) (the scoops) and \(k = 3\) (the flavors: chocolate, vanilla, strawberry). So, we need to compute:
+
+\[
+\binom{4 + 3 - 1}{3 - 1} = \binom{6}{2}
+\]
+
+The formula for the binomial coefficient \(\binom{n}{r}\) is:
+
+\[
+\binom{n}{r} = \frac{n!}{r!(n - r)!}
+\]
+
+So,
+
+\[
+\binom{6}{2} = \frac{6!}{2!(6 - 2)!} = \frac{6!}{2! \cdot 4!} = \frac{6 \times 5}{2 \times 1} = 15
+\]
+
+We can verify this using Python to ensure the accuracy of the result. We can generate all possible combinations of the counts of the scoops of chocolate, vanilla, and strawberry that add up to 4, and then count these combinations.
+```python
+import itertools
+
+# We need to count all combinations of (a, b, c) such that a + b + c = 4, where a, b, c are non-negative integers.
+count = 0
+
+for a in range(5):
+    for b in range(5):
+        c = 4 - (a + b)
+        if c >= 0:
+            count += 1
+
+print(count)
+```
+Code execution result: 15
+
+Thus, the number of total flavors that Ice-cream-o-rama can create by combining four scoops of chocolate, vanilla, and strawberry is \(\boxed{15}\). This confirms our solution is accurate.
+

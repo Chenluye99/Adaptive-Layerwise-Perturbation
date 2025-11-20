@@ -1,0 +1,52 @@
+Score: 1.0
+
+First, we start by substituting the given points \((-1, 7)\), \((5, 7)\), and \((6, 10)\) into the quadratic equation \( y = ax^2 + bx + c \) to form a system of equations.
+
+1. Substituting \((-1, 7)\):
+\[ 7 = a(-1)^2 + b(-1) + c \implies 7 = a - b + c \]
+
+2. Substituting \((5, 7)\):
+\[ 7 = a(5)^2 + b(5) + c \implies 7 = 25a + 5b + c \]
+
+3. Substituting \((6, 10)\):
+\[ 10 = a(6)^2 + b(6) + c \implies 10 = 36a + 6b + c \]
+
+So, we have the following system of equations:
+\[
+\begin{cases}
+a - b + c = 7, \\
+25a + 5b + c = 7, \\
+36a + 6b + c = 10.
+\end{cases}
+\]
+
+We can solve this system of equations to find the coefficients \(a\), \(b\), and \(c\). Once we have these coefficients, we can determine the \(x\)-coordinate of the vertex of the parabola. The \(x\)-coordinate of the vertex of a parabola given by \( y = ax^2 + bx + c \) is found using the formula:
+\[ x = -\frac{b}{2a}. \]
+
+Let's solve the system of equations step-by-step using Python.
+```python
+import sympy as sp
+
+# Define the variables
+a, b, c = sp.symbols('a b c')
+
+# Set up the equations based on the points given
+eq1 = a - b + c - 7
+eq2 = 25 * a + 5 * b + c - 7
+eq3 = 36 * a + 6 * b + c - 10
+
+# Solve the system of equations
+solution = sp.solve((eq1, eq2, eq3), (a, b, c))
+print(solution)
+```
+Code execution result: {a: 3/7, b: -12/7, c: 34/7}
+
+So, we have the coefficients:
+\[ a = \frac{3}{7}, \quad b = -\frac{12}{7}, \quad c = \frac{34}{7}. \]
+
+Next, we find the \(x\)-coordinate of the vertex using the formula \( x = -\frac{b}{2a} \):
+
+\[ x = -\frac{-\frac{12}{7}}{2 \cdot \frac{3}{7}} = \frac{\frac{12}{7}}{\frac{6}{7}} = \frac{12}{7} \cdot \frac{7}{6} = \frac{12}{6} = 2. \]
+
+Thus, the \(x\)-coordinate of the vertex of the parabola is \(\boxed{2}\). This is our final answer.
+

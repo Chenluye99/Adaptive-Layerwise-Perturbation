@@ -1,0 +1,51 @@
+Score: 1.0
+
+First, let's reason through this geometrical problem before coding it. Each triangle in the problem is a 30-60-90 triangle. In a 30-60-90 triangle, the sides have a specific ratio:
+
+- The shorter leg is \( x \).
+- The longer leg is \( x \cdot \sqrt{3} \).
+- The hypotenuse is \( 2x \).
+
+We start with the larger triangle whose hypotenuse is given as 16 cm. For a 30-60-90 triangle, the hypotenuse is \( 2x \), so for the larger triangle:
+\[ 2x = 16 \implies x = 8. \]
+Thus, the longer leg of the larger triangle is:
+\[ x \cdot \sqrt{3} = 8 \cdot \sqrt{3}. \]
+
+The hypotenuse of the larger triangle is the longer leg of the smaller triangle. So, for the smaller triangle, the hypotenuse is \( 8 \cdot \sqrt{3} \). Let's call the corresponding \( x \) for the smaller triangle as \( y \). Since the hypotenuse of the smaller triangle is \( 2y \):
+\[ 2y = 8 \cdot \sqrt{3} \implies y = 4 \cdot \sqrt{3}. \]
+Hence, the longer leg of the smaller triangle would be:
+\[ y \cdot \sqrt{3} = 4 \cdot \sqrt{3} \cdot \sqrt{3} = 4 \cdot 3 = 12. \]
+
+To ensure that this solution is accurate, we will confirm it using Python to iterate and check if our answer matches by constructing and solving through code. We know the proportional relationship and properties of 30-60-90 triangles are consistently applicable.
+
+Let's implement a simple Python code to make sure the result is accurate by iterating if necessary.
+```python
+import sympy as sp
+
+# Given hypotenuse of the larger triangle
+hypotenuse_larger_triangle = 16
+
+# For a 30-60-90 triangle, the ratio of the sides is 1 : √3 : 2
+# Therefore, if the hypotenuse of the larger triangle is 16, then
+# 2 * x = 16, solving for x we get:
+x_larger_triangle = hypotenuse_larger_triangle / 2
+
+# The longer leg of the larger triangle is x * sqrt(3)
+longer_leg_larger_triangle = x_larger_triangle * sp.sqrt(3)
+
+# Now, the hypotenuse of the smaller triangle is the longer leg of the larger triangle, so:
+hypotenuse_smaller_triangle = longer_leg_larger_triangle
+
+# For the smaller triangle, if its hypotenuse is 2 * y, then:
+# 2 * y = hypotenuse_smaller_triangle, solving for y we get:
+y_smaller_triangle = hypotenuse_smaller_triangle / 2
+
+# The longer leg of the smaller triangle is y * sqrt(3)
+longer_leg_smaller_triangle = y_smaller_triangle * sp.sqrt(3)
+
+print(longer_leg_smaller_triangle)
+```
+Code execution result: 12.0000000000000
+
+Thus, the length of the longer leg of the smaller triangle is \(\boxed{12}\) centimeters. The reasoning is confirmed to be accurate by solving it both through logical deduction and computational verification.
+

@@ -1,0 +1,49 @@
+Score: 0.0
+
+First, let's start by outlining the constraints of the problem and then proceed to implement it step-by-step using Python.
+
+1. **Identify the Forbidden Codes:**
+    - The three-digit code for the user is `023`.
+    - Reckha cannot choose a code that matches the user's code in two or more digit-positions. This means codes like `02x`, `0x3`, and `x23` (where `x` is any digit different in only one position) are forbidden.
+    - Reckha also cannot choose a code that is a "two-digit swap" of `023`. For example, `320` and `203` are forbidden, but `302` is fine.
+
+2. **Generate All Possible Three-Digit Codes:**
+    - There are 1000 possible three-digit codes (ranging from 000 to 999).
+
+3. **Check and Eliminate Forbidden Codes:**
+    - We need to check each of these 1000 codes against the user's code `023` to see if it violates either of the two constraints mentioned above.
+    - If a code matches `023` in two or more positions or is a "two-digit swap" of `023`, it is forbidden.
+
+4. **Count the Valid Codes:**
+    - After identifying and excluding all forbidden codes, count the remaining codes that are valid choices for Reckha.
+
+Let's implement this step-by-step in Python to ensure accuracy.
+```python
+# User's three-digit code
+user_code = "023"
+
+# Initialize a list to hold all valid codes for Reckha
+valid_codes = []
+
+# Check all possible three-digit codes (from 000 to 999)
+for code in range(1000):
+    code_str = f"{code:03d}"  # Ensure the code is represented as a three-digit string (e.g., 001, 002, ..., 999)
+    
+    # Check the first constraint: no more than one digit should match in the same position
+    match_count = sum(1 for u, c in zip(user_code, code_str) if u == c)
+    
+    # Check the second constraint: no "two-digit swap" of the user's code should be the same as the code being considered
+    if match_count > 1 or code_str in ["320", "203"]:
+        continue
+    
+    # If the code passes both constraints, add it to the list of valid codes
+    valid_codes.append(code_str)
+
+# The number of valid codes for Reckha
+num_valid_codes = len(valid_codes)
+print(num_valid_codes)
+```
+Code execution result: 970
+
+Thus, the number of codes available for Reckha, after applying the constraints, is \(\boxed{970}\). This is the final answer.
+

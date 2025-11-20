@@ -1,0 +1,173 @@
+Score: 0.0
+
+To solve the problem, let's start with understanding the geometry of the situation.
+
+1. **Understand the Parabolas:**
+    - A parabola is defined by its focus and directrix. The distance from any point on the parabola to the focus is equal to its distance to the directrix.
+    - The first parabola has a focus at $(3, -28)$ and a directrix at the $x$-axis, i.e., the line \(y = 0\).
+    - The second parabola has the same focus at $(3, -28)$ but its directrix is the $y$-axis, i.e., the line \(x = 0\).
+
+2. **Formulate the Equations of the Parabolas:**
+    - For the first parabola, the directrix is the $x$-axis. A point $(x, y)$ on this parabola will be equidistant from the focus $(3, -28)$ and the directrix $y = 0$. The distance from $(x, y)$ to the focus $(3, -28)$ is $\sqrt{(x - 3)^2 + (y + 28)^2}$. The distance from $(x, y)$ to the directrix $y = 0$ is $|y|$. So, we get the equation:
+      \[
+      \sqrt{(x - 3)^2 + (y + 28)^2} = |y|
+      \]
+      Squaring both sides, we get:
+      \[
+      (x - 3)^2 + (y + 28)^2 = y^2
+      \]
+      Simplifying this, we have:
+      \[
+      (x - 3)^2 + y^2 + 56y + 784 = y^2 \implies (x - 3)^2 + 56y + 784 = 0 \implies (x - 3)^2 = -56y - 784
+      \]
+      Rearrange to get the standard form of a parabola equation:
+      \[
+      (x - 3)^2 = -56(y + 14)
+      \]
+    - For the second parabola, the directrix is the $y$-axis. A point $(x, y)$ on this parabola will be equidistant from the focus $(3, -28)$ and the directrix $x = 0$. The distance from $(x, y)$ to the focus $(3, -28)$ is $\sqrt{(x - 3)^2 + (y + 28)^2}$. The distance from $(x, y)$ to the directrix $x = 0$ is $|x|$. So, we get the equation:
+      \[
+      \sqrt{(x - 3)^2 + (y + 28)^2} = |x|
+      \]
+      Squaring both sides, we get:
+      \[
+      (x - 3)^2 + (y + 28)^2 = x^2
+      \]
+      Simplifying this, we have:
+      \[
+      (x - 3)^2 + y^2 + 56y + 784 = x^2 \implies x^2 - 6x + 9 + y^2 + 56y + 784 = x^2 \implies - 6x + 9 + y^2 + 56y + 784 = 0
+      \]
+      Simplify further:
+      \[
+      - 6x + y^2 + 56y + 793 = 0 \implies y^2 + 56y - 6x + 793 = 0
+      \]
+
+3. **Find the Common Chord:**
+    - The common chord of the two parabolas is the line that is the intersection of the two parabolas. To find this, we solve the system of equations formed by the two parabolas:
+      \[
+      (x - 3)^2 = -56(y + 14)
+      \]
+      and
+      \[
+      y^2 + 56y - 6x + 793 = 0.
+      \]
+    - Substitute \( y = -\frac{(x - 3)^2}{56} - 14 \) (from the first equation) into the second equation to get a system that we can solve. However, another approach is to solve these equations simultaneously for \( (x, y) \).
+
+Let's implement this step-by-step in Python to get the accurate and precise result.
+```python
+import sympy as sp
+
+# Define the variables
+x, y = sp.symbols('x y')
+
+# Define the equations of the parabolas
+eq1 = (x - 3)**2 + 56 * (y + 14)
+
+eq2 = y**2 + 56 * y - 6 * x + 793
+
+# Solve the system of equations
+solution = sp.solve([eq1, eq2], (x, y))
+
+print(solution)
+```
+Code execution result: [(-943/6 - 56*sqrt(42)/3 + (-31 - 2*sqrt(42))**2/6, -31 - 2*sqrt(42)), (-943/6 + (-31 + 2*sqrt(42))**2/6 + 56*sqrt(42)/3, -31 + 2*sqrt(42)), (-607/6 - 56*sqrt(42)*I/3 + (-25 - 2*sqrt(42)*I)**2/6, -25 - 2*sqrt(42)*I), (-607/6 + (-25 + 2*sqrt(42)*I)**2/6 + 56*sqrt(42)*I/3, -25 + 2*sqrt(42)*I)]
+
+From the solutions returned by the code, we can discard the solutions involving imaginary numbers because we are dealing with real conic sections. Therefore, we focus on the real solutions:
+
+\[
+\left(-\frac{943}{6} - \frac{56 \sqrt{42}}{3} + \frac{(-31 - 2 \sqrt{42})^2}{6}, -31 - 2 \sqrt{42}\right)
+\]
+and
+\[
+\left(-\frac{943}{6} + \frac{(-31 + 2 \sqrt{42})^2}{6} + \frac{56 \sqrt{42}}{3}, -31 + 2 \sqrt{42}\right)
+\]
+
+These points represent the endpoints of the common chord of the two parabolas. To get the slope of the common chord, we take these points \(\left(x_1, y_1\right)\) and \(\left(x_2, y_2\right)\) and use the formula for the slope of a line passing through two points:
+
+\[
+\text{slope} = \frac{y_2 - y_1}{x_2 - x_1}
+\]
+
+Let's assign these values and compute the slope using Python to ensure accuracy.
+```python
+# Assign values for the points from the solutions
+x1, y1 = (-943 / 6 - 56 * sp.sqrt(42) / 3 + ((-31 - 2 * sp.sqrt(42)) ** 2) / 6, -31 - 2 * sp.sqrt(42))
+x2, y2 = (-943 / 6 + ((-31 + 2 * sp.sqrt(42)) ** 2) / 6 + 56 * sp.sqrt(42) / 3, -31 + 2 * sp.sqrt(42))
+
+# Calculate the slope
+slope = (y2 - y1) / (x2 - x1)
+print(slope.evalf())
+```
+Code execution result: NameError: name 'sp' is not defined
+It looks that there was an issue as `sp` is undefined in this context. I'll recompute and ensure `sympy` is imported correctly, and then proceed to get the slope. Let's make sure and correct this and then compute the final result again.
+```python
+import sympy as sp
+
+# Get the solutions again carefully and calculate the specific points
+solutions = sp.solve([ (x - 3)**2 + 56 * (y + 14), y**2 + 56 * y - 6 * x + 793], (x, y))
+
+# The solutions returned should be in dictionary form; let's convert them to appropriate points
+point1 = solutions[0]
+point2 = solutions[1]
+
+# Now get the slope of the line connecting these two points
+x1, y1 = point1
+x2, y2 = point2
+
+slope = (y2 - y1) / (x2 - x1)
+print(slope)
+```
+Code execution result: NameError: name 'x' is not defined
+It seems there is still an issue, likely due to how the solutions are being handled or interpreted in the current code. Let's take a more straightforward approach by solving and then directly getting the points to calculate the slope manually.
+
+We'll recompute the intersection points and ensure we get real solutions properly evaluated, and then proceed to get the slope of the line joining these points.
+
+Let's start by re-solving for the points that intersect both parabolas, making sure to filter out complex solutions, and then compute the slope between the two intersection points. We will ensure that all computations are correct and accurate.
+```python
+import sympy as sp
+
+# Redefine the variables and equations
+x, y = sp.symbols('x y')
+
+eq1 = (x - 3)**2 + 56 * (y + 14)
+eq2 = y**2 + 56 * y - 6 * x + 793
+
+# Solve the system of equations
+solution = sp.solve([eq1, eq2], (x, y))
+
+# Filter out complex solutions and get only real solutions
+real_solutions = [sol for sol in solution if all(val.is_real for val in sol)]
+
+print(real_solutions)
+```
+Code execution result: [(-943/6 - 56*sqrt(42)/3 + (-31 - 2*sqrt(42))**2/6, -31 - 2*sqrt(42)), (-943/6 + (-31 + 2*sqrt(42))**2/6 + 56*sqrt(42)/3, -31 + 2*sqrt(42))]
+
+
+This confirms that there are two sets of real solutions, as we suspected earlier. We again take these points and compute their slope:
+
+1. First solution: \(\left(-\frac{943}{6} - \frac{56 \sqrt{42}}{3} + \frac{(-31 - 2 \sqrt{42})^2}{6}, -31 - 2 \sqrt{42}\right)\)
+2. Second solution: \(\left(-\frac{943}{6} + \frac{(-31 + 2 \sqrt{42})^2}{6} + \frac{56 \sqrt{42}}{3}, -31 + 2 \sqrt{42}\right)\)
+
+To get the accurate slope, we will substitute and evaluate these expressions numerically. We'll then use these numerical values to compute the slope. Let's proceed to do so in the next step.
+```python
+import sympy as sp
+
+# Define the variables
+x, y = sp.symbols('x y')
+
+# Define the equations of the parabolas
+eq1 = (x - 3)**2 + 56 * (y + 14)
+
+eq2 = y**2 + 56 * y - 6 * x + 793
+
+# Solve the system of equations
+solution = sp.solve([eq1, eq2], (x, y))
+
+# Get numerical values of the solutions
+solution_numeric = [(sp.N(sol[0]), sp.N(sol[1])) for sol in solution]
+
+print(solution_numeric)
+```
+Code execution result: [(43.9614813968157, -43.9614813968157), (18.0385186031843, -18.0385186031843), (-25.0 - 12.9614813968157*I, -25.0 - 12.9614813968157*I), (-25.0 + 12.9614813968157*I, -25.0 + 12.9614813968157*I)]
+
+
+

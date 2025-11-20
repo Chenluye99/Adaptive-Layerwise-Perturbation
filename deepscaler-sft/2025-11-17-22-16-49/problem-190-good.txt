@@ -1,0 +1,50 @@
+Score: 1.0
+
+Let's solve this problem step-by-step.
+
+1. **Define the Fnargs:**
+    - We have two colors (red and blue) and three possible numbers of heads (2, 3, 4).
+    - Therefore, we will have 6 Fnargs, one for each combination of color and number of heads: (R2, B2, R3, B3, R4, B4).
+
+2. **Set Up Constraints:**
+    - No two adjacent Fnargs can be the same color.
+    - No two adjacent Fnargs can have the same number of heads.
+
+3. **Generate All Possible Permutations:**
+    - Generate all permutations of the list [R2, B2, R3, B3, R4, B4].
+    - Check each permutation to see if it satisfies the constraints.
+    - Count how many such permutations exist.
+
+Let's implement this step-by-step plan using Python.
+```python
+import itertools
+
+# Define the Fnargs
+fnargs = ['R2', 'B2', 'R3', 'B3', 'R4', 'B4']
+
+# Function to check if a given permutation is valid
+def is_valid_permutation(perm):
+    for i in range(len(perm) - 1):
+        fnarg1 = perm[i]
+        fnarg2 = perm[i + 1]
+        
+        # Check color and number of heads constraints
+        if fnarg1[0] == fnarg2[0] or int(fnarg1[1:]) == int(fnarg2[1:]):
+            return False
+    return True
+
+# Generate all permutations of the list of Fnargs and then check which ones are valid
+valid_permutations = []
+
+for perm in itertools.permutations(fnargs):
+    if is_valid_permutation(perm):
+        valid_permutations.append(perm)
+
+# Get the count of valid permutations
+num_valid_permutations = len(valid_permutations)
+print(num_valid_permutations)
+```
+Code execution result: 12
+
+Thus, the number of ways to line up the six Fnargs such that no immediate neighbors are the same color nor have the same number of heads is \(\boxed{12}\). This is the final answer.
+

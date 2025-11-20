@@ -1,0 +1,54 @@
+Score: 0.0
+
+Let's solve the problem step-by-step.
+
+1. **Understanding the Problem:**
+    - Each horse $k$ will return to the starting point after every $k$ minutes.
+    - We need to find the smallest time $T$ such that at least 5 of the 10 horses are again at the starting point simultaneously.
+    - Once we find such a $T$, we need to compute the sum of its digits.
+
+2. **Formulating the Solution:**
+    - To find such a $T$, we need to check when the least common multiple (LCM) of the lap times of any 5 of the horses is achieved.
+    - We need to iterate over all combinations of 5 horses out of the 10 and find the smallest $T$ that is a multiple of the LCM of the lap times of each combination.
+    - After finding this $T$, we need to compute the sum of its digits.
+
+3. **Implementation in Python:**
+    - We will use Python to iterate and find the correct $T$.
+    - We will use `math` module to compute LCM and `itertools` module to generate combinations.
+    - Once we have the smallest $T$, we will compute the sum of its digits.
+
+Let's implement this step-by-step in Python.
+```python
+import math
+from itertools import combinations
+
+# Function to compute LCM of a list of numbers
+def lcm(a, b):
+    return abs(a * b) // math.gcd(a, b)
+
+def find_least_T():
+    horses = list(range(1, 11))
+    
+    min_time = float("inf")
+    
+    for comb in combinations(horses, 5):
+        lcm_of_comb = comb[0]
+        for horse in comb[1:]:
+            lcm_of_comb = lcm(lcm_of_comb, horse)
+        
+        if lcm_of_comb < min_time:
+            min_time = lcm_of_comb
+    
+    return min_time
+
+T = find_least_T()
+digit_sum = sum(int(digit) for digit in str(T))
+
+print((T, digit_sum))
+```
+Code execution result: (12, 3)
+
+Thus, the least time \( T > 0 \) such that at least 5 of the horses are again at the starting point is \( T = 12 \). The sum of the digits of \( T \) is \( 1 + 2 = 3 \).
+
+So, the final answer is \(\boxed{3}\).
+

@@ -1,0 +1,55 @@
+Score: 1.0
+
+Let's solve this step by step.
+
+1. **Problem Understanding**:
+    - We have a cylindrical can with a height of 6 inches.
+    - The volume of the cylinder is given by the formula: \( V = \pi r^2 h \), where \( r \) is the radius and \( h \) is the height.
+    - For our cylinder, the volume is: \( V = \pi r^2 \cdot 6 = 6 \pi r^2 \).
+    - The lateral surface area of the cylinder (which is the area of the label that covers the lateral surface) is given by the formula: \( A = 2 \pi r h \), where \( r \) is the radius and \( h \) is the height.
+    - For our cylinder, the lateral surface area is: \( A = 2 \pi r \cdot 6 = 12 \pi r \).
+    - According to the problem, the volume of the cylinder is equal to the lateral surface area of the label: 
+      \[
+      6 \pi r^2 = 12 \pi r
+      \]
+
+2. **Formulate and Solve the Equation**:
+    - We can simplify the equation by dividing both sides by \( 6 \pi \):
+      \[
+      r^2 = 2r
+      \]
+    - Rearrange the equation to:
+      \[
+      r^2 - 2r = 0
+      \]
+    - Factorize the equation:
+      \[
+      r(r - 2) = 0
+      \]
+    - This gives us two solutions:
+      \[
+      r = 0 \quad \text{or} \quad r = 2
+      \]
+    - Since \( r = 0 \) is not a valid solution for a physical cylinder (as the radius must be a positive value), we have:
+      \[
+      r = 2
+      \]
+
+Let's confirm this by implementing it in Python to ensure our solution is accurate.
+```python
+import sympy as sp
+
+# Define the variable
+r = sp.symbols('r', positive=True)
+
+# Set up the equation based on the problem: 6 * π * r^2 = 12 * π * r
+equation = 6 * sp.pi * r**2 - 12 * sp.pi * r
+
+# Solve the equation
+solution = sp.solve(equation, r)
+print(solution)
+```
+Code execution result: [2]
+
+Thus, the radius of the can is \(\boxed{2}\). This confirms that our solution is accurate.
+

@@ -1,0 +1,37 @@
+Score: 0.0
+
+To solve this problem, let's start by understanding the problem constraints:
+
+1. We have 5 Democrats (let's call them D1, D2, D3, D4, D5) and 5 Republicans (let's call them R1, R2, R3, R4, R5).
+2. Each member must sit next to two members of the other party.
+3. The seating arrangement is around a circular table, so we consider rotational symmetry and treat rotations of the same arrangement as identical.
+
+To fulfill the requirement that each member sits next to two members of the other party, an alternating pattern of Democrats and Republicans must be formed. There are only two possible alternating patterns around a circular table when there are equal numbers of Democrats and Republicans:
+
+- Pattern 1: D R D R D R D R D R
+- Pattern 2: R D R D R D R D R D
+
+First, let's fix one person in one position to eliminate the rotational symmetry, because in a circular arrangement fixing one element will help avoid counting rotations of the same arrangement multiple times. We can fix one seat (this is a common technique to convert a circular permutation problem into a linear one) and then arrange the rest of the people in alternating fashion.
+
+Once we fix one person in one position, we have 4! ways to arrange the remaining Democrats and 4! ways to arrange the remaining Republicans.
+
+So, for each pattern, there are \(4! \times 4!\) ways to arrange the seats such that the condition is satisfied. Since there are 2 possible alternating patterns (as described above), we get:
+
+\[ \text{Total Ways} = 2 \times 4! \times 4! \]
+
+Let's calculate this using Python to make sure accuracy.
+```python
+import sympy as sp
+import math
+
+# Calculate 4! (4 factorial)
+factorial_4 = math.factorial(4)
+
+# Calculate the total number of ways
+total_ways = 2 * factorial_4 * factorial_4
+print(total_ways)
+```
+Code execution result: 1152
+
+Thus, the number of ways they can sit around the circular table such that each member sits next to two members of the other party is \(\boxed{1152}\)
+

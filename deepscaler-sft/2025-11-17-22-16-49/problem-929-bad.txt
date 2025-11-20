@@ -1,0 +1,43 @@
+Score: 1.0
+
+To solve this problem, we need to follow these steps:
+
+1. **Convert the Decimal Number to Base 8:**
+    - We need to convert the decimal number 6543 to its base 8 (octal) representation.
+    
+2. **Extract the Digits of the Base 8 Number:**
+    - Once we have the base 8 representation, we extract its digits.
+
+3. **Calculate the Product of the Digits:**
+    - We then compute the product of these digits.
+
+Let's start by implementing this step-by-step in Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Step 1: Convert 6543 from base 10 to base 8
+num = 6543
+base_8_representation = []
+
+while num > 0:
+    base_8_representation.append(num % 8)
+    num = num // 8
+
+# The base 8 representation will be in reverse order, so we reverse it to get the correct format
+base_8_representation = base_8_representation[::-1]
+
+# Step 2 & 3: Calculate the product of the digits of the base 8 number
+product_of_digits = 1
+for digit in base_8_representation:
+    product_of_digits *= digit
+
+print((base_8_representation, product_of_digits))
+```
+Code execution result: ([1, 4, 6, 1, 7], 168)
+
+So, the base 8 representation of $6543_{10}$ is $14617_8$, and the product of its digits is \(1 \cdot 4 \cdot 6 \cdot 1 \cdot 7 = 168\).
+
+Thus, the final answer is:
+
+\(\boxed{168}\)
+

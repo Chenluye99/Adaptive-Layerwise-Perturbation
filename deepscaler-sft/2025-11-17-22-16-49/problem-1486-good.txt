@@ -1,0 +1,64 @@
+Score: 1.0
+
+To determine the number of vertical asymptotes for the function \( y = \frac{x-1}{x^2 + 6x - 7} \), we need to find the values of \( x \) that make the denominator zero, but ensure that these values do not also make the numerator zero (because if they do, the function could have a removable discontinuity rather than a vertical asymptote).
+
+First, let's factor the denominator:
+
+\[ x^2 + 6x - 7 = (x - 1)(x + 7). \]
+
+So, the function becomes:
+
+\[ y = \frac{x-1}{(x-1)(x+7)}. \]
+
+We can see that the factor \( x - 1 \) appears in both the numerator and the denominator. This means that at \( x = 1 \), the function can potentially be simplified, but we need to check if it actually is simplified and if there is a vertical asymptote at \( x = 1 \) or at \( x = -7 \).
+
+To determine if there are vertical asymptotes, we need to check if the factors in the denominator that are not canceled out by the numerator lead to values of \( x \) that make the function approach infinity. Specifically, the function will have vertical asymptotes at the values of \( x \) that make the denominator zero, unless they also make the numerator zero (in which case, we need to check if they are removable discontinuities).
+
+1. Set the denominator equal to zero and solve for \( x \):
+
+\[ (x - 1)(x + 7) = 0. \]
+
+This gives us:
+
+\[ x - 1 = 0 \implies x = 1, \]
+\[ x + 7 = 0 \implies x = -7. \]
+
+2. Check if these values make the numerator zero:
+
+- For \( x = 1 \):
+  \[ \text{Numerator} = 1 - 1 = 0. \]
+  This means that \( x = 1 \) is a removable discontinuity because both the numerator and the denominator are zero at this point.
+
+- For \( x = -7 \):
+  \[ \text{Numerator} = -7 - 1 = -8 \neq 0. \]
+  This means that \( x = -7 \) will make the denominator zero but not the numerator, so it will be a vertical asymptote.
+
+Therefore, the only vertical asymptote is at \( x = -7 \). So, the function has only one vertical asymptote.
+
+Let's confirm this by implementing it in Python.
+```python
+import sympy as sp
+
+# Define the variables and the function
+x = sp.symbols('x')
+numerator = x - 1
+denominator = x**2 + 6*x - 7
+function = numerator / denominator
+
+# Find the vertical asymptotes by solving the equation denominator = 0
+denominator_zeros = sp.solve(denominator, x)
+
+# Check if these zeros are also zeros of the numerator
+numerator_zeros = sp.solve(numerator, x)
+
+# Determine which zeros of the denominator do not also make the numerator zero
+vertical_asymptotes = [zero for zero in denominator_zeros if zero not in numerator_zeros]
+
+# Output the number of vertical asymptotes
+num_vertical_asymptotes = len(vertical_asymptotes)
+print(num_vertical_asymptotes)
+```
+Code execution result: 1
+
+Thus, the number of vertical asymptotes for the equation \( y = \frac{x-1}{x^2 + 6x - 7} \) is \(\boxed{1}\). This confirms our earlier reasoning that the function has only one vertical asymptote at \( x = -7 \).
+

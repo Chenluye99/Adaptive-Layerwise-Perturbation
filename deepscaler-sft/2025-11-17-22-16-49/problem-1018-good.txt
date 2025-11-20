@@ -1,0 +1,75 @@
+Score: 1.0
+
+First, let's start with setting up the equation \(x^2 + ax = -14\). This can be rearranged to:
+
+\[ x^2 + ax + 14 = 0 \]
+
+For this quadratic equation to have integer solutions, its discriminant must be a perfect square. The discriminant \(\Delta\) of the quadratic equation \(x^2 + ax + 14 = 0\) is given by:
+
+\[ \Delta = a^2 - 4 \cdot 1 \cdot 14 = a^2 - 56 \]
+
+For the quadratic equation to have integer solutions, \(\Delta\) must be a perfect square. So, we set:
+
+\[ a^2 - 56 = k^2 \]
+
+for some integer \(k\). Rearrange this equation to:
+
+\[ a^2 - k^2 = 56 \]
+
+This is a difference of squares, so we can write it as:
+
+\[ (a - k)(a + k) = 56 \]
+
+We need to find pairs of integers \((m, n)\) such that \(m \cdot n = 56\) and solve for \(a\) and \(k\) using:
+
+\[ a - k = m \]
+\[ a + k = n \]
+
+Then, we add these two equations to get:
+
+\[ (a - k) + (a + k) = m + n \implies 2a = m + n \implies a = \frac{m + n}{2} \]
+
+And we subtract the first equation from the second to get:
+
+\[ (a + k) - (a - k) = n - m \implies 2k = n - m \implies k = \frac{n - m}{2} \]
+
+Both \(a\) and \(k\) must be integers, so \(m + n\) and \(n - m\) must be even, meaning that \(m\) and \(n\) must either both be even or both be odd. We will iterate through all factor pairs of 56 to find valid solutions for \(a\) and \(k\), and ensure that \(a\) is a positive integer.
+
+The factor pairs of 56 are: \((1, 56)\), \((2, 28)\), \((4, 14)\), and \((7, 8)\). We will consider both the positive and negative pairs of factors:
+
+\((1, 56)\), \((-1, -56)\), \((2, 28)\), \((-2, -28)\), \((4, 14)\), \((-4, -14)\), \((7, 8)\), and \((-7, -8)\).
+
+We can now write a Python code to check each pair and determine the greatest possible value of \(a\).
+```python
+import itertools
+
+max_a = 0
+
+# Check all factor pairs of 56
+factor_pairs = [(1, 56), (-1, -56), (2, 28), (-2, -28), (4, 14), (-4, -14), (7, 8), (-7, -8)]
+
+for m, n in factor_pairs:
+    a = (m + n) / 2
+    k = (n - m) / 2
+    
+    if a.is_integer() and k.is_integer() and a > 0:
+        a = int(a)
+        k = int(k)
+        
+        # Check if the solutions to the quadratic equation are integers
+        discriminant = a**2 - 56
+        if discriminant >= 0 and int(discriminant**0.5) ** 2 == discriminant:
+            # Find the roots of the quadratic equation x^2 + ax + 14 = 0
+            import math
+            root1 = (-a + math.sqrt(discriminant)) / 2
+            root2 = (-a - math.sqrt(discriminant)) / 2
+            
+            if root1 == int(root1) and root2 == int(root2):
+                max_a = max(max_a, a)
+
+print(max_a)
+```
+Code execution result: 15
+
+Thus, the greatest possible value of \(a\) that makes the equation \(x^2 + ax = -14\) have only integer solutions for \(x\) is \(\boxed{15}\). This is the final answer.
+

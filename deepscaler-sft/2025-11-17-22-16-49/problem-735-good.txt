@@ -1,0 +1,51 @@
+Score: 1.0
+
+To solve the inequality \(\frac{(2x-7)(x-3)}{x} \ge 0\), we need to consider the following steps:
+
+1. **Determine the Critical Points:**
+    - Set the numerator and the denominator equal to zero to get the critical points:
+      - The numerator \((2x-7)(x-3) = 0\) gives us \(x = \frac{7}{2}\) and \(x = 3\).
+      - The denominator \(x = 0\) gives us another critical point.
+    - So, the critical points are \(x = 0\), \(x = 3\), and \(x = \frac{7}{2}\).
+
+2. **Analyze the Sign of the Expression:**
+    - The expression \(\frac{(2x-7)(x-3)}{x}\) changes its sign at the critical points. To determine where the expression is non-negative, we need to test the sign of the expression in the intervals defined by these critical points: \((-\infty, 0)\), \((0, 3)\), \((3, \frac{7}{2})\), and \((\frac{7}{2}, \infty)\).
+
+3. **Set Up Sign Intervals:**
+    - We'll choose test points from each interval to determine the sign of \(\frac{(2x-7)(x-3)}{x}\):
+      - For \(x \in (-\infty, 0)\), choose \(x = -1\):
+        - \((2(-1) - 7)(-1 - 3) / (-1) = (-9)(-4) / (-1) = 36 / (-1) = -36 \) (negative)
+      - For \(x \in (0, 3)\), choose \(x = 1\):
+        - \((2(1) - 7)(1 - 3) / (1) = (-5)(-2) / (1) = 10 / (1) = 10 \) (positive)
+      - For \(x \in (3, \frac{7}{2})\), choose \(x = 4\):
+        - \((2(4) - 7)(4 - 3) / (4) = (1)(1) / (4) = 1 / 4 \) (positive)
+      - For \(x \in (\frac{7}{2}, \infty)\), choose \(x = 4\):
+        - \((2(4) - 7)(4 - 3) / (4) = (1)(1) / (4) = 1 / 4 \) (positive, but note that this \(x = 4\) was already used in the previous interval, so we need a different point if needed)
+
+4. **Combine Intervals Where Expression is Non-Negative:**
+    - The expression \(\frac{(2x-7)(x-3)}{x} \ge 0\) is satisfied when the expression is positive or zero. From the above evaluations:
+      - It is positive in the intervals \((0, 3)\) and \((\frac{7}{2}, \infty)\).
+      - It is zero when \((2x - 7)(x - 3) = 0\), i.e., \(x = \frac{7}{2}\) and \(x = 3\).
+    - We need to exclude the value where the expression is undefined, i.e., \(x = 0\).
+
+Combining this information, the solution to the inequality is:
+\[ (0, 3] \cup \left[\frac{7}{2}, \infty\right). \]
+
+Let's confirm this by coding the solution to ensure the accuracy of our intervals.
+```python
+import sympy as sp
+
+# Define the variable and the inequality
+x = sp.symbols('x')
+inequality = ( (2 * x - 7) * (x - 3) ) / x >= 0
+
+# Solve the inequality
+solution = sp.solve_univariate_inequality(inequality, x, relational=False)
+print(solution)
+```
+Code execution result: Union(Interval.Lopen(0, 3), Interval(7/2, oo))
+
+So, the solution to the inequality \(\frac{(2x-7)(x-3)}{x} \ge 0\) is:
+
+\(\boxed{(0, 3] \cup \left[\frac{7}{2}, \infty\right)}\)
+

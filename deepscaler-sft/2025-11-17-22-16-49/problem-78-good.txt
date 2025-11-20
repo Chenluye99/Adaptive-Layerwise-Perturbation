@@ -1,0 +1,50 @@
+Score: 1.0
+
+To solve this problem, we need to test all three-digit numbers \( X \) and check which of the four students (Petya, Vasya, Tolya, Dima) could be wrong while the others are correct.
+
+Let's break it down step-by-step:
+
+1. **Generate All Three-Digit Numbers:**
+   A three-digit number \( X \) can be expressed as \( X = 100a + 10b + c \) where \( a, b, \) and \( c \) are its digits, and \( a \) ranges from 1 to 9 (since it's a three-digit number) and \( b \) and \( c \) range from 0 to 9. We ensure that all three digits \( a, b, c \) are different.
+
+2. **Check Each Statement:**
+   - **Petya's Statement:** "The largest digit in the number \( X \) is \( B \)."
+     This means that \( \max(a, b, c) = b \).
+   - **Vasya's Statement:** "\( C = 8 \)."
+     This means that \( c = 8 \).
+   - **Tolya's Statement:** "The largest digit is \( C \)."
+     This means that \( \max(a, b, c) = c \).
+   - **Dima's Statement:** "\( C \) is the arithmetic mean of the digits \( A \) and \( B \)."
+     This means that \( c = \frac{a + b}{2} \), or equivalently, \( 2c = a + b \).
+
+3. **Check for Exactly One False Statement:**
+   For each three-digit number, we need to check for how many of the four statements each combination of \( a, b, c \) satisfies, and then check if exactly one of them is false while the others are true.
+
+Let's implement this step-by-step process in Python.
+```python
+import itertools
+
+def find_number_X():
+    for a, b, c in itertools.permutations(range(10), 3):
+        if 1 <= a <= 9:  # a must be from 1 to 9 because it is the hundreds place in a three-digit number
+            X = 100 * a + 10 * b + c
+            
+            petya_correct = (max(a, b, c) == b)
+            vasya_correct = (c == 8)
+            tolya_correct = (max(a, b, c) == c)
+            dima_correct = (2 * c == a + b)
+            
+            # Count how many statements are true
+            true_count = sum([petya_correct, vasya_correct, tolya_correct, dima_correct])
+            
+            # Check if exactly one statement is false (i.e., 3 statements are true)
+            if true_count == 3:
+                return X
+
+result = find_number_X()
+print(result)
+```
+Code execution result: 798
+
+Thus, the number \( X \) is \(\boxed{798}\). This is the three-digit number composed of different digits \( 7, 9, \) and \( 8 \) that makes exactly one of the four students mistaken while the other three statements are correct.
+

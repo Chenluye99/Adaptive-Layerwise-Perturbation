@@ -1,0 +1,67 @@
+Score: 0.0
+
+First, let's start by assigning variables to the sides of triangle \(CAB\) based on the given ratio of \(2:3:4\). Let the sides opposite to angles \(C, A, B\) be \(a, b, c\) respectively, and we can assign:
+
+\[ a : b : c = 2 : 3 : 4 \]
+
+This means we can express the sides as:
+
+\[ a = 2k, \quad b = 3k, \quad c = 4k \]
+
+for some positive constant \( k \).
+
+In this problem, the side \(AC\) is the shortest side, so it corresponds to \(a = 2k\). We are given that the length of side \(AC\) is 10 inches, so:
+
+\[ 2k = 10 \implies k = 5 \]
+
+This means the other sides are:
+
+\[ a = 10, \quad b = 3 \cdot 5 = 15, \quad c = 4 \cdot 5 = 20 \]
+
+So, the sides of triangle \(CAB\) are 10, 15, and 20. According to the angle bisector theorem, the angle bisector of \(\angle CAB\) divides the opposite side \(BC\) into segments that are proportional to the adjacent sides \(CA\) and \(AB\). So, segment \(BD\) divides \(AC\) into segments \(AD\) and \(DC\), and the lengths of these segments are given by:
+
+\[
+\frac{AD}{DC} = \frac{AB}{CA} = \frac{15}{10} = \frac{3}{2}
+\]
+
+Let the length of \(AD\) be \(3x\) and the length of \(DC\) be \(2x\). Since \(AD + DC = AC = 10\), we have:
+
+\[
+3x + 2x = 10 \implies 5x = 10 \implies x = 2
+\]
+
+Thus, the lengths of \(AD\) and \(DC\) are:
+
+\[
+AD = 3x = 3 \cdot 2 = 6, \quad DC = 2x = 2 \cdot 2 = 4
+\]
+
+The longer subsegment of side \(AC\) is \(AD = 6\). Let's confirm this by coding the solution to ensure accuracy.
+```python
+# Given that AC = 10, and from the ratio 2:3:4, we know AC corresponds to 2k, so 2k = 10, giving k = 5.
+# This means the sides of the triangle are 10, 15, and 20.
+
+# We use the angle bisector theorem to solve for AD and DC.
+from sympy import symbols, Eq, solve
+
+# Let's define the variables
+x = symbols('x')
+
+# Set up the equation based on the fact that AD + DC = 10, and the ratio of AD to DC is 3:2.
+eq = Eq(3 * x + 2 * x, 10)
+
+# Solve for x
+solution = solve(eq, x)[0]
+
+# Now, get the lengths of AD and DC
+AD = 3 * solution
+DC = 2 * solution
+
+print((AD, DC))
+```
+Code execution result: (6, 4)
+
+Thus, the lengths of the subsegments \(AD\) and \(DC\) are 6 and 4, respectively. The longer subsegment of side \(AC\) is:
+
+\(\boxed{6}\)
+

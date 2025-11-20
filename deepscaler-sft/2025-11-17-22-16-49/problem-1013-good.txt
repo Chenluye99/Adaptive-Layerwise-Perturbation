@@ -1,0 +1,42 @@
+Score: 1.0
+
+To solve this problem, we need to find the maximum value of the function \( f(x) = -x^2 - 8x + 12 \).
+
+### Step-by-Step Solution:
+
+1. **Identify the Function:**
+   The function here is a quadratic function of the form \( f(x) = -x^2 - 8x + 12 \). Since the coefficient of \( x^2 \) is negative (-1), this is a downward-opening parabola, meaning it has a maximum value at its vertex.
+
+2. **Find the Vertex of the Parabola:**
+   For a quadratic function \( ax^2 + bx + c \), the x-coordinate of the vertex is given by \( x = -\frac{b}{2a} \). Here, \( a = -1 \), \( b = -8 \), and \( c = 12 \). So, the x-coordinate of the vertex is:
+   \[
+   x = -\frac{-8}{2 \cdot (-1)} = -\frac{-8}{-2} = -4
+   \]
+   To find the maximum value of the function, we substitute \( x = -4 \) back into the function \( f(x) \):
+   \[
+   f(-4) = -(-4)^2 - 8(-4) + 12 = -16 + 32 + 12 = 28
+   \]
+
+3. **Conclusion:**
+   The maximum value of the function \( f(x) = -x^2 - 8x + 12 \) is 28.
+
+We can also confirm this by using Python to evaluate the function and find its maximum value. Let's implement this in Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variable and function
+x = sp.symbols('x')
+f = -x**2 - 8*x + 12
+
+# Find the critical points by taking the derivative of the function and setting it to 0
+f_prime = sp.diff(f, x)
+critical_points = sp.solve(f_prime, x)
+
+# Evaluate the function at the critical points to find the maximum value
+max_value = max(f.subs(x, cp) for cp in critical_points)
+print(max_value)
+```
+Code execution result: 28
+
+This confirms that the maximum value of the function \( f(x) = -x^2 - 8x + 12 \) is \(\boxed{28}\). Our analytical solution and the Python computation both give us the same result, ensuring its accuracy.
+

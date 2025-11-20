@@ -1,0 +1,133 @@
+Score: 1.0
+
+To solve this problem, we will start by using trigonometric identities and algebraic manipulation. Given the equation:
+
+\[
+\sec x + \tan x = \frac{22}{7}
+\]
+
+We know that:
+
+\[
+\sec x = \frac{1}{\cos x} \quad \text{and} \quad \tan x = \frac{\sin x}{\cos x}
+\]
+
+So we can rewrite the given equation as:
+
+\[
+\frac{1}{\cos x} + \frac{\sin x}{\cos x} = \frac{22}{7}
+\]
+
+This simplifies to:
+
+\[
+\frac{1 + \sin x}{\cos x} = \frac{22}{7}
+\]
+
+From this, we get:
+
+\[
+1 + \sin x = \frac{22}{7} \cos x \quad \text{(Equation 1)}
+\]
+
+We want to find the value of \(\csc x + \cot x\). We know that:
+
+\[
+\csc x = \frac{1}{\sin x} \quad \text{and} \quad \cot x = \frac{\cos x}{\sin x}
+\]
+
+So:
+
+\[
+\csc x + \cot x = \frac{1}{\sin x} + \frac{\cos x}{\sin x} = \frac{1 + \cos x}{\sin x}
+\]
+
+To proceed, we need to find expressions for \(\sin x\) and \(\cos x\). We can use the Pythagorean identity:
+
+\[
+\sin^2 x + \cos^2 x = 1
+\]
+
+Let's solve Equation 1 for \(\cos x\):
+
+\[
+\cos x = \frac{7 (1 + \sin x)}{22} \quad \text{(Equation 2)}
+\]
+
+Now, substitute this into the Pythagorean identity:
+
+\[
+\sin^2 x + \left( \frac{7 (1 + \sin x)}{22} \right)^2 = 1
+\]
+
+This is a quadratic equation in terms of \(\sin x\). Let's solve it step-by-step using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variable
+sin_x = sp.symbols('sin_x', real=True, positive=True)
+
+# Define the equation based on our substitutions
+cos_x = 7 * (1 + sin_x) / 22
+eq = sin_x**2 + cos_x**2 - 1
+
+# Solve for sin_x
+sin_x_solution = sp.solve(eq, sin_x)
+
+print(sin_x_solution)
+```
+Code execution result: [435/533]
+
+So, we have:
+
+\[
+\sin x = \frac{435}{533}
+\]
+
+Next, we substitute \(\sin x = \frac{435}{533}\) back into Equation 2 to get \(\cos x\):
+
+\[
+\cos x = \frac{7 \left( 1 + \frac{435}{533} \right)}{22} = \frac{7 \left( \frac{533 + 435}{533} \right)}{22} = \frac{7 \cdot \frac{968}{533}}{22} = \frac{7 \cdot 968}{533 \cdot 22} = \frac{7 \cdot 44}{533} = \frac{308}{533}
+\]
+
+Now that we have \(\sin x = \frac{435}{533}\) and \(\cos x = \frac{308}{533}\), we can find \(\csc x + \cot x\):
+
+\[
+\csc x = \frac{1}{\sin x} = \frac{533}{435}
+\]
+
+\[
+\cot x = \frac{\cos x}{\sin x} = \frac{\frac{308}{533}}{\frac{435}{533}} = \frac{308}{435}
+\]
+
+So:
+
+\[
+\csc x + \cot x = \frac{533}{435} + \frac{308}{435} = \frac{533 + 308}{435} = \frac{841}{435}
+\]
+
+We can simplify \(\frac{841}{435}\) by finding the greatest common divisor (GCD) of 841 and 435. However, it is often useful to check whether the fraction can be simplified further or computed to its decimal form and then recognized if it equals a known fraction. We'll compute this using Python to ensure accuracy.
+```python
+import math
+
+# Numerator and Denominator
+numerator = 841
+denominator = 435
+
+# GCD of 841 and 435
+gcd = math.gcd(numerator, denominator)
+
+# Simplified fraction
+simplified_numerator = numerator // gcd
+simplified_denominator = denominator // gcd
+
+print(((simplified_numerator, simplified_denominator)))
+```
+Code execution result: (29, 15)
+
+So, the fraction \(\frac{841}{435}\) simplifies to \(\frac{29}{15}\). Therefore, the final answer is:
+
+\[
+\boxed{\frac{29}{15}}
+\]
+

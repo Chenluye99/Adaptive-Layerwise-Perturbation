@@ -1,0 +1,54 @@
+Score: 1.0
+
+To solve this problem, we need to find the smallest initial number \( N \) such that Bernardo wins according to the game rules. Let's break down how this works:
+
+1. **Game Rules:**
+    - Initially, an integer \( N \) (where \( 0 \leq N \leq 999 \)) is selected and given to Bernardo.
+    - Whenever Bernardo receives a number, he doubles it and passes the result to Silvia.
+    - Whenever Silvia receives a number, she adds 50 to it and passes the result to Bernardo.
+    - The winner is the last person who produces a number less than 1000.
+
+2. **Determine the Winner:**
+    - We need to check for each initial number \( N \) from 0 to 999 which player, Bernardo or Silvia, will eventually produce a number that is less than 1000 and thus win the game.
+    - We will simulate the game for each initial number and determine who wins.
+
+3. **Find the Smallest Initial Number that Results in a Win for Bernardo:**
+    - We need to check the sequence of operations for each initial number and keep track of who wins for each case.
+    - Once we find the smallest initial number \( N \) for which Bernardo wins, we compute the sum of the digits of \( N \).
+
+Let's implement this step-by-step in Python to get the accurate result.
+```python
+def determine_winner(initial_number):
+    bernardo_turn = True  # Start with Bernardo's turn
+    number = initial_number
+    
+    while number < 1000:
+        if bernardo_turn:
+            number = 2 * number
+        else:
+            number = number + 50
+        
+        # Switch turns
+        bernardo_turn = not bernardo_turn
+    
+    return bernardo_turn  # Return True if Bernardo wins, False if Silvia wins
+
+# Find the smallest initial number N that results in a win for Bernardo
+smallest_N = None
+
+for N in range(1000):
+    if determine_winner(N):
+        smallest_N = N
+        break
+
+# Calculate the sum of the digits of smallest_N
+sum_of_digits = sum(int(digit) for digit in str(smallest_N))
+
+print((smallest_N, sum_of_digits))
+```
+Code execution result: (16, 7)
+
+Thus, the smallest initial number \( N \) that results in a win for Bernardo is 16, and the sum of the digits of 16 is \( 1 + 6 = 7 \).
+
+Therefore, the final answer is \(\boxed{7}\). This concludes our solution.
+

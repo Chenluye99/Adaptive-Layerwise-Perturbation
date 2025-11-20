@@ -1,0 +1,70 @@
+Score: 1.0
+
+First, let's start by understanding and formulating the problem mathematically before implementing it in Python.
+
+**Given:**
+1. The ratio of the area of triangle \(ABC\) to the area of triangle \(ADC\) is \(7:3\).
+2. \(AB + CD = 210 \, \text{cm}\).
+
+**Objective:**
+Find the length of segment \(\overline{AB}\).
+
+### Step-by-Step Mathematical Formulation
+
+1. **Area Ratios and Properties of Trapezoids:**
+   - Triangles \(ABC\) and \(ADC\) share the same height (the perpendicular distance between the parallel sides of the trapezoid). 
+   - The ratio of their areas is therefore the same as the ratio of their bases \(AB\) and \(CD\). Thus, we can write:
+     \[
+     \frac{\text{Area of } \triangle ABC}{\text{Area of } \triangle ADC} = \frac{AB}{CD} = \frac{7}{3}
+     \]
+   - This gives us the equation:
+     \[
+     \frac{AB}{CD} = \frac{7}{3} \implies AB = \frac{7}{3} CD
+     \]
+
+2. **Using the Second Condition:**
+   - We are also given that:
+     \[
+     AB + CD = 210
+     \]
+   - Substitute \( AB = \frac{7}{3} CD \) into the above equation:
+     \[
+     \frac{7}{3} CD + CD = 210
+     \]
+   - Combine the terms on the left side:
+     \[
+     \frac{7}{3} CD + \frac{3}{3} CD = 210 \implies \frac{10}{3} CD = 210
+     \]
+   - Solve for \( CD \):
+     \[
+     10 CD = 630 \implies CD = \frac{630}{10} = 63
+     \]
+   - Now, substitute \( CD = 63 \) back into the equation \( AB = \frac{7}{3} CD \):
+     \[
+     AB = \frac{7}{3} \times 63 = 7 \times 21 = 147
+     \]
+
+Thus, we have found the length of segment \(\overline{AB}\) to be 147 cm. To ensure the accuracy, we will implement this step-by-step process in Python.
+```python
+from sympy import symbols, Eq, solve
+
+# Define variables
+AB, CD = symbols('AB CD')
+
+# Set up the equations based on the given conditions
+eq1 = Eq(AB / CD, 7 / 3)
+eq2 = Eq(AB + CD, 210)
+
+# Solve the system of equations
+solution = solve((eq1, eq2), (AB, CD))
+
+print(solution)
+```
+Code execution result: {AB: 147.000000000000, CD: 63.0000000000000}
+
+From solving the system of equations, we get:
+\[ AB = 147 \]
+\[ CD = 63 \]
+
+Thus, the length of segment \(\overline{AB}\) is \(\boxed{147}\). This confirms our earlier solution.
+

@@ -1,0 +1,61 @@
+Score: 1.0
+
+Let's start by setting up the problem with some mathematical notation and then use Python to solve it.
+
+1. **Understand the Problem:**
+    - We have a non-square rectangle with integer dimensions \(a\) and \(b\) (where \(a \neq b\)).
+    - The area of the rectangle is given by \(A = a \cdot b\).
+    - The perimeter of the rectangle is given by \(P = 2(a + b)\).
+    - According to the problem, the area of the rectangle is three times its perimeter, so we have:
+      \[
+      a \cdot b = 3 \cdot 2 (a + b) \implies a \cdot b = 6 (a + b)
+      \]
+    - We need to find the smallest possible length for the perimeter, i.e., the smallest possible value of \(2(a + b)\) such that \(a\) and \(b\) are integers and \(a \neq b\).
+
+2. **Set Up the Equation:**
+    - Rearrange the equation \(a \cdot b = 6 (a + b)\) to:
+      \[
+      a \cdot b - 6a - 6b = 0
+      \]
+    - To make this equation more manageable, we can add 36 to both sides:
+      \[
+      a \cdot b - 6a - 6b + 36 = 36 \implies (a - 6)(b - 6) = 36
+      \]
+    - Now we need to find all pairs of integers \((x, y)\) such that \(x \cdot y = 36\), and then solve for \(a\) and \(b\) using:
+      \[
+      a = x + 6 \quad \text{and} \quad b = y + 6
+      \]
+    - We need to ensure that \(a \neq b\) and that both \(a\) and \(b\) are integers. Finally, we want to find the smallest possible perimeter, i.e., the smallest possible value of \(2(a + b)\).
+
+3. **Implement in Python:**
+    - We will iterate through all pairs of factors of 36, and for each pair \((x, y)\) such that \(x \cdot y = 36\), we will calculate corresponding \(a\) and \(b\) and check if they are different and form a valid rectangle. Then, we will calculate the perimeter for each valid pair and find the smallest perimeter.
+Let's write the Python code to solve this step-by-step.
+```python
+import itertools
+
+# Initialize a variable to store the minimum perimeter found
+min_perimeter = float("inf")
+solution_pair = (0, 0)
+
+# We'll iterate over a reasonable range for a and b, checking the condition (a * b == 6 * (a + b))
+for a, b in itertools.combinations_with_replacement(range(1, 100), 2):
+    if a != b:  # Ensuring it's a non-square rectangle
+        if a * b == 6 * (a + b):
+            perimeter = 2 * (a + b)
+            if perimeter < min_perimeter:
+                min_perimeter = perimeter
+                solution_pair = (a, b)
+
+print(((min_perimeter, solution_pair)))
+```
+Code execution result: (50, (10, 15))
+
+This means that the smallest possible length for the perimeter is 50, which occurs with dimensions (10, 15) for the rectangle. To confirm, let's check the values:
+
+- For \(a = 10\) and \(b = 15\):
+  - The area is \(10 \cdot 15 = 150\).
+  - The perimeter is \(2 \cdot (10 + 15) = 2 \cdot 25 = 50\).
+  - Triple the perimeter is \(3 \cdot 50 = 150\), which matches the area.
+
+Since this satisfies the condition and produces the smallest perimeter found so far, we conclude that the smallest possible length for the perimeter is \(\boxed{50}\). This is our final answer.
+

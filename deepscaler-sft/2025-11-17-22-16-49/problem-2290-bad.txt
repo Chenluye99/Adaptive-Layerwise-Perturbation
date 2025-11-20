@@ -1,0 +1,124 @@
+Score: 0.0
+
+First, we need to determine what numbers from 1 to 150 are perfect powers. A perfect power is a number that can be expressed as \( x^y \) where \( x \) is an integer and \( y \) is an integer greater than 1.
+
+We'll start by identifying all perfect powers between 1 and 150. Then, we'll count how many numbers from 1 to 150 are not perfect powers. Finally, we can compute the probability as the ratio of numbers that are not perfect powers to the total numbers (150 in this case).
+
+Let's write some Python code to accomplish this step-by-step:
+
+1. Identify all perfect powers between 1 and 150.
+2. Count how many numbers from 1 to 150 are perfect powers.
+3. Count how many numbers from 1 to 150 are not perfect powers.
+4. Compute the probability as the ratio of numbers that are not perfect powers to 150.
+
+Let's implement this in Python.
+```python
+# Step 1: Identify all perfect powers between 1 and 150
+
+perfect_powers = []
+
+for x in range(1, 151):
+    y = 2
+    while x**y <= 150:
+        if 1 <= x**y <= 150:
+            perfect_powers.append(x**y)
+        y += 1
+
+# Step 2 and 3: Get the unique perfect powers and count non-perfect powers
+
+perfect_powers = list(set(perfect_powers))  # Remove duplicates if any
+num_perfect_powers = len(perfect_powers)
+
+num_total = 150
+num_not_perfect_powers = num_total - num_perfect_powers
+
+# Step 4: Compute the probability as a fraction
+probability_fraction = num_not_perfect_powers / num_total
+
+# To express the result as a common fraction, we can use the fractions module
+from fractions import Fraction
+
+fraction_result = Fraction(num_not_perfect_powers, num_total)
+print(fraction_result)
+```
+Code execution result: Timeout
+It appears there's a timeout issue likely due to inefficiency in the code, especially for checking if a number is a perfect power. We need an efficient way to check if a number is a perfect power. We'll ensure that we correctly identify if a number can be expressed as \( x^y \) for integer \( x \) and \( y > 1 \).
+
+We'll modify the code as follows:
+1. For each number from 1 to 150, we'll check if it can be written as \( x^y \) for integers \( x \) and \( y \) where \( y > 1 \).
+2. We'll store these numbers in a list.
+3. We'll then count the distinct perfect powers from this list.
+4. We'll continue with the steps mentioned above to determine the probability.
+
+Let's implement this more efficient solution in Python.
+```python
+import math
+
+# Function to check if a number is a perfect power
+def is_perfect_power(n):
+    if n < 2:
+        return False
+    for x in range(2, int(math.sqrt(n)) + 1):
+        y = 2
+        while True:
+            power = x ** y
+            if power == n:
+                return True
+            elif power > n:
+                break
+            y += 1
+    return False
+
+# Step 1: Identify all perfect powers between 1 and 150
+perfect_powers = [num for num in range(1, 151) if is_perfect_power(num)]
+
+# Step 2 and 3: Get the unique perfect powers and count non-perfect powers
+num_perfect_powers = len(set(perfect_powers))  # Using set to get distinct perfect powers
+num_total = 150
+num_not_perfect_powers = num_total - num_perfect_powers
+
+# Step 4: Compute the probability as a fraction
+fraction_result = Fraction(num_not_perfect_powers, num_total)
+
+print(fraction_result)
+```
+Code execution result: NameError: name 'Fraction' is not defined
+It seems that there's an issue with the previous code as it appears I missed to import the `Fraction` class properly. I will correct it and ensure the code runs smoothly.
+
+Let's fix this and run the code again.
+```python
+import math
+from fractions import Fraction
+
+# Function to check if a number is a perfect power
+def is_perfect_power(n):
+    if n < 2:
+        return False
+    for x in range(2, int(math.sqrt(n)) + 1):
+        y = 2
+        while True:
+            power = x ** y
+            if power == n:
+                return True
+            elif power > n:
+                break
+            y += 1
+    return False
+
+# Step 1: Identify all perfect powers between 1 and 150
+perfect_powers = [num for num in range(1, 151) if is_perfect_power(num)]
+
+# Step 2 and 3: Get the unique perfect powers and count non-perfect powers
+num_perfect_powers = len(set(perfect_powers))  # Using set to get distinct perfect powers
+num_total = 150
+num_not_perfect_powers = num_total - num_perfect_powers
+
+# Step 4: Compute the probability as a fraction
+fraction_result = Fraction(num_not_perfect_powers, num_total)
+
+print(fraction_result)
+```
+Code execution result: 67/75
+
+Thus, the probability that a randomly selected number from 1 to 150 is not a perfect power is \(\boxed{\frac{67}{75}}\). This is our final answer.
+

@@ -580,6 +580,7 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
             sampler=sampler,
         )
 
+        print(f"[DEBUG] Creating val_dataset with val_sample_size={self.config.data.val_sample_size}")
         self.val_dataset = RLCustomPromptDataset(
             parquet_files=self.config.data.val_files,
             tokenizer=self.tokenizer,
@@ -594,21 +595,27 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
             return_raw_chat=self.config.data.get("return_raw_chat", False),
             truncation="error",
         )
+        print(f"[DEBUG] val_dataset created with {len(self.val_dataset)} samples")
+        
+        # Use val_batch_size if provided, otherwise use full dataset
+        val_batch_size = self.config.data.get("val_batch_size", None)
+        if val_batch_size is None or val_batch_size <= 0:
+            val_batch_size = len(self.val_dataset)
+        else:
+            val_batch_size = min(val_batch_size, len(self.val_dataset))
+        
+        print(f"[DEBUG] Creating val_dataloader with batch_size={val_batch_size}")
         self.val_dataloader = StatefulDataLoader(
             dataset=self.val_dataset,
-            # Validation datasets are sent to inference engines as a whole batch,
-            # which will schedule the memory themselves.
-            batch_size=len(self.val_dataset),
+            batch_size=val_batch_size,
             num_workers=8,
             shuffle=False,
             drop_last=False,
             collate_fn=collate_fn,
         )
+        print(f"[DEBUG] val_dataloader created with {len(self.val_dataloader)} batches")
 
         assert len(self.train_dataloader) >= 1
-        assert len(self.val_dataloader) == 1, (
-            "Validation dataloader must have a single batch, which inference engines will schedule the memory themselves."
-        )
 
         print(f"Size of train dataloader: {len(self.train_dataloader)}")
 
@@ -831,14 +838,44 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
             )
 
         print("=" * 20 + "Validation starts" + "=" * 20)
-        for test_data in self.val_dataloader:
+        print(f"Total validation batches: {len(self.val_dataloader)}")
+        
+        # Get the starting batch index from config
+        val_start_batch = self.config.data.get("val_start_batch", 0)
+        if val_start_batch > 0:
+            print(f"Skipping first {val_start_batch} batches, starting from batch {val_start_batch}")
+            print(f"Note: Batch order is deterministic (shuffle=False), so batches {val_start_batch}+ will be identical to a full run")
+        
+        val_progress = tqdm(
+            total=len(self.val_dataloader),
+            desc="Validation Progress",
+            unit="batch",
+            initial=val_start_batch
+        )
+        
+        # Create iterator and skip to starting batch
+        val_iterator = enumerate(self.val_dataloader)
+        if val_start_batch > 0:
+            print(f"Fast-forwarding through first {val_start_batch} batches...")
+            for _ in range(val_start_batch):
+                try:
+                    next(val_iterator)
+                except StopIteration:
+                    print(f"Warning: val_start_batch ({val_start_batch}) exceeds total batches ({len(self.val_dataloader)})")
+                    val_progress.close()
+                    return {}
+            print(f"Starting validation from batch {val_start_batch}")
+        
+        for batch_idx, test_data in val_iterator:
             test_batch = DataProto.from_single_dict(test_data)
+            print(f"[DEBUG] Initial test_batch size: {test_batch.batch['input_ids'].shape[0]}")
 
             # repeat test batch
             test_batch = test_batch.repeat(
                 repeat_times=self.config.actor_rollout_ref.rollout.val_kwargs.n,
                 interleave=True,
             )
+            print(f"[DEBUG] After repeat (n={self.config.actor_rollout_ref.rollout.val_kwargs.n}), test_batch size: {test_batch.batch['input_ids'].shape[0]}")
 
             # we only do validation on rule-based rm
             if (
@@ -859,6 +896,7 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
             test_gen_batch = test_batch.pop(
                 ["input_ids", "attention_mask", "position_ids"]
             )
+            print(f"[DEBUG] test_gen_batch size: {test_gen_batch.batch['input_ids'].shape[0]}")
             test_gen_batch.meta_info = {
                 "eos_token_id": self.tokenizer.eos_token_id,
                 "pad_token_id": self.tokenizer.pad_token_id,
@@ -872,6 +910,7 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
             test_gen_batch_padded, pad_size = pad_dataproto_to_divisor(
                 test_gen_batch, self.actor_rollout_wg.world_size
             )
+            print(f"[DEBUG] test_gen_batch_padded size: {test_gen_batch_padded.batch['input_ids'].shape[0]}, pad_size: {pad_size}")
 
             if self.config.agent.tool_use:
                 first_input_ids = (
@@ -938,6 +977,15 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
 
             reward_tensor_lst.append(reward_tensor)
             data_source_lst.append(cur_data_source)
+            
+            # Update progress bar
+            val_progress.update(1)
+            val_progress.set_postfix({
+                'batch': f'{batch_idx+1}/{len(self.val_dataloader)}',
+                'samples_processed': len(reward_tensor_lst) * test_batch.batch['input_ids'].shape[0] // self.config.actor_rollout_ref.rollout.val_kwargs.n
+            })
+        
+        val_progress.close()
 
         self._maybe_log_val_generations(
             inputs=sample_inputs,

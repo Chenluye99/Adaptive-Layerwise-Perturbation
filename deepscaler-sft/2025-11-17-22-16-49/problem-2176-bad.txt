@@ -1,0 +1,31 @@
+Score: 0.0
+
+To solve the problem, let's start by understanding what \(121_n\) means. The number \(121_n\) in base \(n\) can be converted to base 10 as follows:
+
+\[ 121_n = 1 \cdot n^2 + 2 \cdot n + 1 = n^2 + 2n + 1 \]
+
+We recognize that \( n^2 + 2n + 1 = (n + 1)^2 \), so \( 121_n \) is always a perfect square regardless of \( n \). However, we need to ensure that \( 3 \leq n \leq 10 \) and that \( 121_n \) is a perfect square in base 10.
+
+Since \( 121_n = (n + 1)^2 \), it is a perfect square for any integer \( n \). We now need to check if \((n + 1)^2\) lies within a reasonable range for each \( n \) in the interval \( 3 \leq n \leq 10 \).
+
+Let's compute \((n + 1)^2\) for each \( n \) in this range and verify that it is a perfect square.
+
+We can use Python to ensure our result by iterating over the values of \( n \) from 3 to 10 and check the condition.
+```python
+# Initialize a counter to keep track of how many such integers n exist
+count = 0
+
+# Iterate over the range 3 to 10 inclusive
+for n in range(3, 11):
+    # Calculate 121 in base n, which is (n + 1)**2
+    value = (n + 1) ** 2
+    # Check if this value is a perfect square (it should be, as (n + 1)**2 is a perfect square by construction)
+    if value >= 3**2 and value <= 10**2:  # Ensuring it falls within plausible values for a perfect square in this context
+        count += 1
+
+print(count)
+```
+Code execution result: 7
+
+Thus, the number of integers \( n \) such that \( 3 \leq n \leq 10 \) and \( 121_n \) is a perfect square is \(\boxed{7}\). This is our final answer.
+

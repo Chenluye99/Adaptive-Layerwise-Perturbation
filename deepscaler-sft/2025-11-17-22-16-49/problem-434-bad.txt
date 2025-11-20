@@ -1,0 +1,57 @@
+Score: 1.0
+
+To solve the problem, we need to find all ordered pairs \((x, y)\) of integers that satisfy the equation \(x^{2020} + y^2 = 2y\).
+
+1. **Rewrite the Equation:**
+   First, let's rewrite the equation for clarity:
+   \[
+   x^{2020} + y^2 = 2y
+   \]
+   We can rearrange this equation to:
+   \[
+   x^{2020} + y^2 - 2y = 0
+   \]
+   Notice that \(y^2 - 2y\) can be written as \((y - 1)^2 - 1\), so the equation becomes:
+   \[
+   x^{2020} + (y - 1)^2 - 1 = 0 \implies x^{2020} + (y - 1)^2 = 1
+   \]
+
+2. **Analyze the Equation:**
+   Since \(x^{2020}\) and \((y - 1)^2\) are both non-negative integers (because any integer raised to the 2020th power is non-negative, and a square of an integer is also non-negative), the only way their sum can be 1 is if one of them is 0 and the other is 1.
+
+   - Case 1: \(x^{2020} = 0\) and \((y - 1)^2 = 1\)
+     - If \(x^{2020} = 0\), then \(x = 0\).
+     - If \((y - 1)^2 = 1\), then \(y - 1 = 1\) or \(y - 1 = -1\), so \(y = 2\) or \(y = 0\).
+     - This gives us two solutions: \((x, y) = (0, 2)\) and \((x, y) = (0, 0)\).
+
+   - Case 2: \(x^{2020} = 1\) and \((y - 1)^2 = 0\)
+     - If \(x^{2020} = 1\), then \(x = 1\) or \(x = -1\) because these are the only integers whose 2020th power is 1.
+     - If \((y - 1)^2 = 0\), then \(y - 1 = 0\), so \(y = 1\).
+     - This gives us two solutions: \((x, y) = (1, 1)\) and \((x, y) = (-1, 1)\).
+
+3. **List All Solutions:**
+   Combining all the possible solutions from the above cases, we get the ordered pairs \((0, 2)\), \((0, 0)\), \((1, 1)\), and \((-1, 1)\).
+
+Let's verify this by implementing the solution in Python to ensure we haven't missed any other possible integer solutions.
+```python
+# We will use a Python script to check for all possible integer solutions to the equation x^2020 + y^2 = 2y.
+
+solutions = []
+
+# We will check for a reasonable range of integers for x and y. Since x^2020 grows very fast, we can limit our range based on that.
+# We expect solutions to be within a range that makes x^2020 and y^2 reasonable compared to 2y. We can start with a reasonable range and expand if needed.
+
+for x in range(-10, 11):
+    for y in range(-10, 11):
+        if x**2020 + y**2 == 2 * y:
+            solutions.append((x, y))
+
+print((len(solutions), solutions))
+```
+Code execution result: (4, [(-1, 1), (0, 0), (0, 2), (1, 1)])
+
+From the code, we get that there are 4 ordered pairs that satisfy the equation \(x^{2020} + y^2 = 2y\). The solutions are \((-1, 1)\), \((0, 0)\), \((0, 2)\), and \((1, 1)\).
+
+Thus, the final answer is:
+\(\boxed{4}\)
+

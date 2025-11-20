@@ -1,0 +1,68 @@
+Score: 1.0
+
+To solve the problem, we need to find the remainder when the polynomial \( P(x) = x^{18} + x^{13} + x^7 + x^4 + x \) is divided by \( D(x) = x^3 - x \).
+
+First, let's note that \( D(x) = x^3 - x = x(x^2 - 1) = x(x - 1)(x + 1) \). The roots of \( D(x) \) are \( x = 0, 1, -1 \). When dividing \( P(x) \) by \( D(x) \), the remainder will be a polynomial of degree less than 3 (since the degree of \( D(x) \) is 3). So, we can express the remainder in the form \( R(x) = ax^2 + bx + c \).
+
+Thus, we have:
+\[ P(x) = (x^3 - x) \cdot Q(x) + R(x) \]
+where \( R(x) = ax^2 + bx + c \).
+
+To determine the coefficients \( a, b, \) and \( c \), we can substitute the roots of \( D(x) \) (i.e., \( x = 0, 1, -1 \)) into the equation above. This will give us a system of equations to solve for \( a, b, \) and \( c \).
+
+1. Substitute \( x = 0 \):
+\[ P(0) = 0^{18} + 0^{13} + 0^7 + 0^4 + 0 = 0 \]
+So, we have:
+\[ R(0) = a \cdot 0^2 + b \cdot 0 + c = c = 0 \]
+
+2. Substitute \( x = 1 \):
+\[ P(1) = 1^{18} + 1^{13} + 1^7 + 1^4 + 1 = 1 + 1 + 1 + 1 + 1 = 5 \]
+So, we have:
+\[ R(1) = a \cdot 1^2 + b \cdot 1 + c = a + b + c = 5 \]
+Since we already found that \( c = 0 \), this simplifies to:
+\[ a + b = 5 \]
+
+3. Substitute \( x = -1 \):
+\[ P(-1) = (-1)^{18} + (-1)^{13} + (-1)^7 + (-1)^4 + (-1) = 1 - 1 - 1 + 1 - 1 = -1 \]
+So, we have:
+\[ R(-1) = a \cdot (-1)^2 + b \cdot (-1) + c = a - b + c = -1 \]
+Since we already found that \( c = 0 \), this simplifies to:
+\[ a - b = -1 \]
+
+Now, we have the following system of linear equations:
+\[
+\begin{cases}
+a + b = 5 \\
+a - b = -1
+\end{cases}
+\]
+
+We can solve this system by adding and subtracting these equations.
+
+Add the two equations:
+\[ (a + b) + (a - b) = 5 + (-1) \implies 2a = 4 \implies a = 2 \]
+
+Substitute \( a = 2 \) into the equation \( a + b = 5 \):
+\[ 2 + b = 5 \implies b = 3 \]
+
+So, we have \( a = 2 \), \( b = 3 \), and \( c = 0 \). Therefore, the remainder \( R(x) \) is:
+\[ R(x) = 2x^2 + 3x \]
+
+Let's confirm this result by implementing it in Python.
+```python
+import sympy as sp
+
+# Define the polynomials P(x) and D(x)
+x = sp.symbols('x')
+P = x**18 + x**13 + x**7 + x**4 + x
+D = x**3 - x
+
+# Perform polynomial division to find the quotient and remainder
+quotient, remainder = sp.div(P, D)
+
+print(remainder)
+```
+Code execution result: 2*x**2 + 3*x
+
+This confirms that the remainder when the polynomial \( x^{18} + x^{13} + x^7 + x^4 + x \) is divided by \( x^3 - x \) is \(\boxed{2x^2 + 3x}\). This is our final answer.
+

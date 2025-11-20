@@ -1,0 +1,76 @@
+Score: 0.0
+
+First, let's start by establishing the coordinates for the points of the rectangle ABCD.
+
+1. Place \( A \) at \((0, 0)\).
+2. Place \( B \) at \((0, 6)\).
+3. Place \( D \) at \((25, 0)\).
+4. Place \( C \) at \((25, 15)\).
+
+Next, let's find the equation of the diagonal \( AC \). The slope of \( AC \) is:
+\[
+\text{slope of } AC = \frac{15 - 0}{25 - 0} = \frac{15}{25} = \frac{3}{5}
+\]
+The equation of the line passing through points \( A(0, 0) \) and \( C(25, 15) \) can be written as:
+\[
+y = \frac{3}{5} x
+\]
+
+Now, let's find the coordinates of point \( M \), the midpoint of \( AC \). The midpoint formula for \( A(0, 0) \) and \( C(25, 15) \) is:
+\[
+M = \left( \frac{0 + 25}{2}, \frac{0 + 15}{2} \right) = \left( \frac{25}{2}, \frac{15}{2} \right) = \left( 12.5, 7.5 \right)
+\]
+
+Next, we need to find the coordinates of point \( X \), where a perpendicular from \( B \) meets \( AC \). The slope of the line perpendicular to \( AC \) will be the negative reciprocal of \(\frac{3}{5}\), which is \(-\frac{5}{3}\). The equation of the line passing through \( B(0, 6) \) and perpendicular to \( AC \) can be written as:
+\[
+y - 6 = -\frac{5}{3} (x - 0) \implies y = -\frac{5}{3} x + 6
+\]
+
+To find the intersection of this line with \( AC \), we substitute \( y = \frac{3}{5} x \) (the equation of \( AC \)) into \( y = -\frac{5}{3} x + 6 \):
+\[
+\frac{3}{5} x = -\frac{5}{3} x + 6
+\]
+Multiply through by 15 (the least common multiple of 5 and 3) to clear the fractions:
+\[
+9x = -25x + 90
+\]
+Combine like terms:
+\[
+34x = 90 \implies x = \frac{90}{34} = \frac{45}{17}
+\]
+Now, substitute \( x = \frac{45}{17} \) back into the equation \( y = \frac{3}{5} x \) to get the y-coordinate:
+\[
+y = \frac{3}{5} \cdot \frac{45}{17} = \frac{3 \cdot 45}{5 \cdot 17} = \frac{135}{85} = \frac{27}{17}
+\]
+So, the coordinates of point \( X \) are:
+\[
+X = \left( \frac{45}{17}, \frac{27}{17} \right)
+\]
+
+Next, we need to find the distance between point \( X \) and the midpoint \( M \). The distance formula between two points \((x_1, y_1)\) and \((x_2, y_2)\) is:
+\[
+\text{Distance} = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}
+\]
+Substitute the coordinates of \( X \left( \frac{45}{17}, \frac{27}{17} \right) \) and \( M (12.5, 7.5) \):
+\[
+\text{Distance} = \sqrt{\left( 12.5 - \frac{45}{17} \right)^2 + \left( 7.5 - \frac{27}{17} \right)^2}
+\]
+
+We can perform this calculation step-by-step using Python to ensure precision.
+```python
+import sympy as sp
+
+# Coordinates of points
+X = (45 / 17, 27 / 17)
+M = (12.5, 7.5)
+
+# Calculate distance using distance formula
+distance = sp.sqrt((M[0] - X[0])**2 + (M[1] - X[1])**2)
+distance_evaluated = distance.evalf()
+
+print(distance_evaluated)
+```
+Code execution result: 11.4904052045481
+
+To the nearest tenth, the distance is \(\boxed{11.5}\). This is the final answer.
+

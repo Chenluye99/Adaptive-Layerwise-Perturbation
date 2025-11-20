@@ -1,0 +1,46 @@
+Score: 1.0
+
+To solve this problem, we need to determine the number of ordered pairs \((a, b)\) such that the polynomial \(x^2 + ax + b\) can be factored into two linear factors with integer coefficients.
+
+If a quadratic polynomial \(x^2 + ax + b\) can be factored into two linear factors, it must be of the form \((x - r_1)(x - r_2)\) where \(r_1\) and \(r_2\) are integers. Expanding \((x - r_1)(x - r_2)\), we get:
+
+\[x^2 - (r_1 + r_2)x + r_1 r_2.\]
+
+By comparing this with \(x^2 + ax + b\), we get:
+
+\[a = - (r_1 + r_2),\]
+\[b = r_1 r_2.\]
+
+Given the constraints \(1 \leq a \leq 100\) and \(b \geq 0\), we need to find all pairs of integers \((r_1, r_2)\) such that when substituted into the above equations, we get valid values for \(a\) and \(b\) that meet the conditions.
+
+1. **Generate Possible Pairs \((r_1, r_2)\):** We need to consider all pairs of integers \((r_1, r_2)\) and then check whether the derived \(a\) and \(b\) values fall within the given constraints.
+
+2. **Check Conditions:** For each valid pair \((r_1, r_2)\), compute \(a = - (r_1 + r_2)\) and \(b = r_1 r_2\). Check if \(1 \leq a \leq 100\) and \(b \geq 0\). If both conditions are satisfied, then consider \((a, b)\) as a valid ordered pair.
+
+3. **Count Unique Ordered Pairs:** Use a set to store unique ordered pairs \((a, b)\) that meet the conditions.
+
+Let's implement this step-by-step plan in Python to ensure accuracy.
+```python
+# Initialize a set to store unique (a, b) pairs
+valid_pairs = set()
+
+# We need to consider a reasonable range for r1 and r2 so that we cover all possibilities and meet the constraints on a and b.
+# Given 1 <= a <= 100, and a = - (r1 + r2), it implies -100 <= r1 + r2 <= -1. 
+# Also, b = r1 * r2, and b >= 0, so r1 and r2 must either be both non-negative or both non-positive.
+
+# We loop through possible values of r1 and r2 and check the conditions
+for r1 in range(-1000, 1001):
+    for r2 in range(-1000, 1001):
+        a = - (r1 + r2)
+        b = r1 * r2
+        if 1 <= a <= 100 and b >= 0:
+            valid_pairs.add((a, b))
+
+# Get the number of unique ordered pairs (a, b)
+num_valid_pairs = len(valid_pairs)
+print(num_valid_pairs)
+```
+Code execution result: 2600
+
+Thus, the number of ordered pairs \((a, b)\) that satisfy the conditions is \(\boxed{2600}\). This is our final answer.
+

@@ -1,0 +1,45 @@
+Score: 0.0
+
+To solve this problem, we will handle it through mathematical reasoning and Python code.
+
+### Step-by-Step Breakdown:
+
+1. **Problem Understanding:**
+    - Each mathematician is equally likely to be born at any point in a 500-year period.
+    - Each mathematician lives for 100 years (i.e., from birth to 100 years old and then they die).
+    - We need to find the probability that the two mathematicians were contemporaries for any length of time, i.e., their lifespans overlap at any point.
+
+2. **Mathematical Formulation:**
+    - Let's say the first mathematician is born at year \(a\) (where \(0 \leq a < 500\)) and the second mathematician is born at year \(b\) (where \(0 \leq b < 500\)).
+    - The first mathematician will live from year \(a\) to year \(a + 100\).
+    - The second mathematician will live from year \(b\) to year \(b + 100\).
+    - The two mathematicians will have overlapping lifespans (i.e., they were contemporaries) if and only if there is any overlap between the intervals \([a, a + 100]\) and \([b, b + 100]\). This happens if and only if \(a < b + 100\) and \(b < a + 100\).
+
+3. **Set Up and Evaluate the Conditions:**
+    - We need to count the number of pairs \((a, b)\) that satisfy at least one of the conditions above over all possible values of \(a\) and \(b\) (i.e., both \(a\) and \(b\) range from 0 to 499).
+    - Then, we divide that count by the total number of possible pairs \((a, b)\), which is \(500 \times 500 = 250000\).
+
+### Implementation in Python
+
+We will iterate over all possible pairs of \((a, b)\) and count how many of them satisfy the condition that the lifespans of the two mathematicians overlap. Then we compute the probability as the ratio of this count to the total number of pairs.
+
+Let's implement this step-by-step in Python:
+```python
+count = 0
+total = 0
+
+# Iterate over all possible birth years for both mathematicians (from 0 to 499)
+for a in range(500):
+    for b in range(500):
+        # Check if the lifespans of the two mathematicians overlap
+        if (a < b + 100) and (b < a + 100):
+            count += 1
+        total += 1
+
+probability = count / total
+print(probability)
+```
+Code execution result: 0.3584
+
+Thus, the probability that the two mathematicians were contemporaries for any length of time is \(\boxed{0.3584}\). This is the final answer.
+

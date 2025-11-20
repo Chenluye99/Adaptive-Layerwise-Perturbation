@@ -1,0 +1,30 @@
+Score: 1.0
+
+To solve this problem, we need to:
+
+1. Generate all two-digit prime numbers.
+2. Check which of these prime numbers have a ones digit of 1.
+3. Count how many such prime numbers exist.
+
+Let's start by generating all two-digit prime numbers. A two-digit number ranges from 10 to 99. We can check each number in this range to see if it is prime.
+
+A number is prime if it has no divisors other than 1 and itself. Then, we will check the ones digit of each prime number and count how many of them are 1.
+
+Let's implement this step-by-step in Python.
+```python
+import sympy
+
+# Generate all two-digit prime numbers
+two_digit_primes = list(sympy.primerange(10, 100))
+
+# Filter primes that have a ones digit of 1
+primes_with_ones_digit_1 = [p for p in two_digit_primes if p % 10 == 1]
+
+# Get the count of such primes
+count_primes_with_ones_digit_1 = len(primes_with_ones_digit_1)
+print(count_primes_with_ones_digit_1)
+```
+Code execution result: 5
+
+Thus, the number of two-digit primes that have a ones digit of 1 is \(\boxed{5}\). This is our final answer.
+

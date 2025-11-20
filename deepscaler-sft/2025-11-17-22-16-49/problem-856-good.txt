@@ -1,0 +1,46 @@
+Score: 1.0
+
+To solve the problem, we need to find the slant asymptote of the rational expression \( y = \frac{2x^2 + 3x - 7}{x - 3} \). A slant asymptote occurs when the degree of the numerator is exactly one more than the degree of the denominator. We can determine the slant asymptote by performing polynomial long division on the numerator and the denominator.
+
+Let's divide \(2x^2 + 3x - 7\) by \(x - 3\):
+
+1. Divide the leading term of the numerator \(2x^2\) by the leading term of the denominator \(x\) to get \(2x\).
+2. Multiply \(2x\) by \(x - 3\) to get \(2x^2 - 6x\).
+3. Subtract \(2x^2 - 6x\) from \(2x^2 + 3x - 7\) to get \(9x - 7\).
+4. Divide the leading term of the new numerator \(9x\) by the leading term of the denominator \(x\) to get \(9\).
+5. Multiply \(9\) by \(x - 3\) to get \(9x - 27\).
+6. Subtract \(9x - 27\) from \(9x - 7\) to get \(20\).
+
+So, we have:
+\[ \frac{2x^2 + 3x - 7}{x - 3} = 2x + 9 + \frac{20}{x - 3}. \]
+
+As \( x \) approaches \(\infty\) or \(-\infty\), the term \(\frac{20}{x - 3}\) approaches 0. Therefore, the slant asymptote of the function is given by the polynomial part of the division, which is \( y = 2x + 9 \).
+
+From this, we can see that \( m = 2 \) and \( b = 9 \). Therefore, \( m + b = 2 + 9 = 11 \).
+
+Let's confirm this using Python.
+```python
+import sympy as sp
+
+# Define the variables
+x = sp.symbols('x')
+
+# Define the function
+numerator = 2*x**2 + 3*x - 7
+denominator = x - 3
+
+# Perform polynomial long division
+quotient, remainder = sp.div(numerator, denominator)
+
+print((quotient, remainder))
+```
+Code execution result: (2*x + 9, 20)
+
+This confirms our previous result. The quotient of the polynomial division is \(2x + 9\) and the remainder is 20. So, we have:
+
+\[ \frac{2x^2 + 3x - 7}{x - 3} = 2x + 9 + \frac{20}{x - 3}. \]
+
+As \( x \) approaches \(\infty\) or \(-\infty\), the term \(\frac{20}{x - 3}\) approaches 0, and the function approaches the line \( y = 2x + 9 \). Thus, the slant asymptote is \( y = 2x + 9 \), giving us \( m = 2 \) and \( b = 9 \). Therefore, \( m + b = 2 + 9 = 11 \).
+
+So, the final answer is \(\boxed{11}\). This confirms our solution is accurate.
+

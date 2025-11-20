@@ -1,0 +1,45 @@
+Score: 1.0
+
+To solve the given problem, we need to compute:
+
+\[
+\sum_{k = 1}^{1728} \frac{1}{1 + \omega^k + \omega^{2k} + \omega^{3k}},
+\]
+
+where \(\omega = e^{2 \pi i / 1729}\).
+
+Let's break it down step-by-step:
+
+1. **Define \(\omega\):**
+   \(\omega = e^{2 \pi i / 1729}\) is a 1729th root of unity, meaning \(\omega^{1729} = 1\) and the powers of \(\omega\) cycle every 1729.
+
+2. **Set Up the Sum:**
+   We need to compute the sum for \(k\) ranging from 1 to 1728. For each \(k\), we need to evaluate the expression \(\frac{1}{1 + \omega^k + \omega^{2k} + \omega^{3k}}\).
+
+3. **Implement the Calculation in Python:**
+   We will use Python to compute this sum accurately. We'll use the `cmath` module to handle complex numbers and perform the computations.
+
+Let's write the Python code to get the answer.
+```python
+import cmath
+
+# Define ω
+n = 1729
+omega = cmath.exp(2 * cmath.pi * 1j / n)
+
+# Initialize the sum
+result = 0
+
+# Compute the sum from k=1 to k=1728
+for k in range(1, 1729):
+    term = 1 / (1 + omega**k + omega**(2 * k) + omega**(3 * k))
+    result += term
+
+print(result)
+```
+Code execution result: (431.99999999978166+4.4365846478371107e-10j)
+
+The result obtained from the code is approximately \(432 + 0i\), so we can conclude that the imaginary part is effectively zero and the real part is 432. Hence, the final answer is:
+
+\(\boxed{432}\)
+

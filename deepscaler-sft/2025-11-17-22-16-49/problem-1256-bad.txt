@@ -1,0 +1,33 @@
+Score: 1.0
+
+To solve this problem, we need to determine the number of ways to choose 2 people out of 4 to cook, and the remaining 2 people will automatically be assigned to clean up.
+
+This is a combinatorial problem where we need to choose 2 people out of 4 to perform the task of cooking. The number of ways to choose 2 people out of 4 can be calculated using the binomial coefficient, often denoted as \( \binom{4}{2} \), which is calculated as follows:
+
+\[
+\binom{4}{2} = \frac{4!}{2!(4-2)!} = \frac{4!}{2!2!} = \frac{4 \times 3}{2 \times 1} = 6
+\]
+
+However, once we choose 2 people to cook, the other 2 people are automatically chosen to clean. So, every choice of 2 people for cooking is uniquely associated with a choice of 2 people for cleaning, and each selection of 2 cooks determines 1 way of choosing 2 cleaners. Therefore, the process of choosing 2 out of 4 to cook inherently accounts for all possible combinations of dividing the group into a cooking pair and a cleaning pair. 
+
+So, the number of ways to choose 2 people out of 4 to cook is 6, and once that choice is made, the rest are determined.
+
+Let's confirm this using Python.
+```python
+import itertools
+
+# List of 4 people
+people = ['A', 'B', 'C', 'D']
+
+# Find all possible ways to choose 2 out of 4 to cook, and the rest will clean
+combinations = list(itertools.combinations(people, 2))
+
+# Each combination of 2 people chosen to cook corresponds to one way of dividing the group into cooks and cleaners
+num_ways = len(combinations)
+
+print(num_ways)
+```
+Code execution result: 6
+
+Thus, the number of different ways for the four people to choose who cooks and who cleans is \(\boxed{6}\). This matches our combinatorial calculation, confirming that our solution is accurate.
+

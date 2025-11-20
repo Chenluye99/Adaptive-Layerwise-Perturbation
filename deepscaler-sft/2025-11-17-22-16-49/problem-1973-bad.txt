@@ -1,0 +1,38 @@
+Score: 1.0
+
+Let's denote the three consecutive even integers as \( x, x+2, \) and \( x+4 \).
+
+According to the problem, the product of these three integers is twenty times their sum. We can set up the equation as follows:
+
+\[ x \cdot (x + 2) \cdot (x + 4) = 20 \cdot [x + (x + 2) + (x + 4)] \]
+
+First, let's simplify the right-hand side of the equation:
+
+\[ x \cdot (x + 2) \cdot (x + 4) = 20 \cdot (3x + 6) \]
+
+Now, let's iterate through possible values of \( x \) (starting with the smallest positive even integer, i.e., 2) and check which value satisfies this equation. We will use Python to perform this iteration and check.
+```python
+# We will iterate through even numbers to find the correct value of x that satisfies the equation.
+def find_even_consecutive_integers():
+    x = 2  # start with the smallest positive even integer
+    
+    while True:
+        left_side = x * (x + 2) * (x + 4)
+        right_side = 20 * (3 * x + 6)
+        
+        if left_side == right_side:
+            return x, x + 2, x + 4
+        x += 2  # move to the next even number
+
+# Get the three integers that satisfy the equation
+integers = find_even_consecutive_integers()
+print((integers, sum(integers)))
+```
+Code execution result: ((6, 8, 10), 24)
+
+So, the three consecutive even integers that satisfy the equation are 6, 8, and 10. The sum of these three integers is:
+
+\[ 6 + 8 + 10 = 24 \]
+
+Thus, the sum of the three integers is \(\boxed{24}\). This is our final answer.
+

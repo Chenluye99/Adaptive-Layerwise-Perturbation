@@ -1,0 +1,35 @@
+Score: 0.0
+
+First, let's start by understanding the problem. We need to find the probability that Hannah gets fewer than 4 heads when she flips 12 coins. Each coin flip is a Bernoulli trial with a probability of 0.5 for heads and 0.5 for tails. The number of heads in 12 coin flips follows a binomial distribution with parameters \( n = 12 \) and \( p = 0.5 \).
+
+The probability mass function for a binomial random variable \( X \) (the number of heads in 12 coin flips) is given by:
+
+\[
+P(X = k) = \binom{12}{k} \left( \frac{1}{2} \right)^{12}
+\]
+
+We need to find the probability that Hannah gets fewer than 4 heads, i.e., \( P(X < 4) = P(X = 0) + P(X = 1) + P(X = 2) + P(X = 3) \).
+
+Let's calculate this step-by-step using Python.
+```python
+import scipy.stats as stats
+
+# Number of coin flips
+n = 12
+# Probability of getting heads in a single flip
+p = 0.5
+
+# Calculate the probability of getting 0, 1, 2, or 3 heads
+prob_0_heads = stats.binom.pmf(0, n, p)
+prob_1_head = stats.binom.pmf(1, n, p)
+prob_2_heads = stats.binom.pmf(2, n, p)
+prob_3_heads = stats.binom.pmf(3, n, p)
+
+# Sum these probabilities to get the final answer
+prob_fewer_than_4_heads = prob_0_heads + prob_1_head + prob_2_heads + prob_3_heads
+print(prob_fewer_than_4_heads)
+```
+Code execution result: 0.07299804687500001
+
+Thus, the probability that Hannah gets fewer than 4 heads if she flips 12 coins is \(\boxed{0.073}\) (rounded to three decimal places). This is the final answer.
+

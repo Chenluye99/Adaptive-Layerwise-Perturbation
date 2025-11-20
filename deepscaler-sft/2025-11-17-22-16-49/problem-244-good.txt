@@ -1,0 +1,131 @@
+Score: 1.0
+
+First, let's start with the given equation: \(\tan \left( \alpha + \frac{\pi}{4} \right) = -\frac{1}{2}\).
+
+Using the tangent addition formula, we have:
+\[
+\tan \left( \alpha + \frac{\pi}{4} \right) = \frac{\tan \alpha + \tan \frac{\pi}{4}}{1 - \tan \alpha \cdot \tan \frac{\pi}{4}} = \frac{\tan \alpha + 1}{1 - \tan \alpha}
+\]
+Setting this equal to \(-\frac{1}{2}\), we get:
+\[
+\frac{\tan \alpha + 1}{1 - \tan \alpha} = -\frac{1}{2}
+\]
+Cross-multiply to solve for \(\tan \alpha\):
+\[
+2 (\tan \alpha + 1) = - (1 - \tan \alpha)
+\]
+\[
+2 \tan \alpha + 2 = -1 + \tan \alpha
+\]
+\[
+2 \tan \alpha - \tan \alpha = -1 - 2
+\]
+\[
+\tan \alpha = -3
+\]
+
+Since \(\frac{\pi}{2} < \alpha < \pi\), \(\alpha\) is in the second quadrant, so \(\sin \alpha > 0\) and \(\cos \alpha < 0\). We use the identity \(\tan \alpha = \frac{\sin \alpha}{\cos \alpha} = -3\), so we can set \(\sin \alpha = 3k\) and \(\cos \alpha = -k\) for some \(k\). Using the identity \(\sin^2 \alpha + \cos^2 \alpha = 1\), we get:
+\[
+(3k)^2 + (-k)^2 = 1 \implies 9k^2 + k^2 = 1 \implies 10k^2 = 1 \implies k^2 = \frac{1}{10} \implies k = \frac{1}{\sqrt{10}} = \frac{\sqrt{10}}{10}
+\]
+So, we have:
+\[
+\sin \alpha = \frac{3 \sqrt{10}}{10}, \quad \cos \alpha = -\frac{\sqrt{10}}{10}
+\]
+
+Next, we need to calculate \(\sin 2\alpha\) and \(\cos^2 \alpha\):
+\[
+\sin 2\alpha = 2 \sin \alpha \cos \alpha = 2 \cdot \frac{3 \sqrt{10}}{10} \cdot -\frac{\sqrt{10}}{10} = 2 \cdot \frac{3 \cdot (-10)}{100} = 2 \cdot \frac{-30}{100} = 2 \cdot -\frac{3}{10} = -\frac{6}{10} = -\frac{3}{5}
+\]
+\[
+\cos^2 \alpha = \left( -\frac{\sqrt{10}}{10} \right)^2 = \frac{10}{100} = \frac{1}{10}
+\]
+So,
+\[
+\sin 2\alpha - 2 \cos^2 \alpha = -\frac{3}{5} - 2 \cdot \frac{1}{10} = -\frac{3}{5} - \frac{2}{10} = -\frac{3}{5} - \frac{1}{5} = -\frac{4}{5}
+\]
+
+Now we need to calculate \(\sin \left( \alpha - \frac{\pi}{4} \right)\):
+\[
+\sin \left( \alpha - \frac{\pi}{4} \right) = \sin \alpha \cos \frac{\pi}{4} - \cos \alpha \sin \frac{\pi}{4} = \frac{3 \sqrt{10}}{10} \cdot \frac{\sqrt{2}}{2} - \left( -\frac{\sqrt{10}}{10} \right) \cdot \frac{\sqrt{2}}{2} 
+\]
+\[
+= \frac{3 \sqrt{10} \cdot \sqrt{2}}{20} + \frac{\sqrt{10} \cdot \sqrt{2}}{20} = \frac{3 \sqrt{20}}{20} + \frac{\sqrt{20}}{20} = \frac{4 \sqrt{20}}{20} = \frac{4 \cdot 2 \sqrt{5}}{20} = \frac{8 \sqrt{5}}{20} = \frac{2 \sqrt{5}}{5}
+\]
+
+Therefore, we have:
+\[
+\frac{\sin 2 \alpha - 2 \cos^2 \alpha}{\sin \left( \alpha - \frac{\pi}{4} \right)} = \frac{-\frac{4}{5}}{\frac{2 \sqrt{5}}{5}} = \frac{-4}{2 \sqrt{5}} = \frac{-2}{\sqrt{5}} = \frac{-2 \sqrt{5}}{5}
+\]
+
+Let's confirm all these calculations with Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variables
+alpha = sp.symbols('alpha')
+
+# Set the equation tan(alpha + pi/4) = -1/2 and solve for alpha
+eq = sp.tan(alpha + sp.pi / 4) + 1 / 2
+sol = sp.solve(eq, alpha)
+
+# Filter the solution to get the one in the given range (pi/2 < alpha < pi)
+alpha_value = [s for s in sol if sp.pi / 2 < s < sp.pi][0]
+
+# Calculate sin(alpha), cos(alpha)
+sin_alpha = sp.sin(alpha_value)
+cos_alpha = sp.cos(alpha_value)
+
+# Calculate sin(2*alpha) and cos^2(alpha)
+sin_2alpha = sp.sin(2 * alpha_value)
+cos2_alpha = sp.cos(alpha_value) ** 2
+
+# Calculate the expression (sin(2*alpha) - 2*cos^2(alpha)) / sin(alpha - pi/4)
+numerator = sin_2alpha - 2 * cos2_alpha
+denominator = sp.sin(alpha_value - sp.pi / 4)
+result = numerator / denominator
+
+print(result.evalf())
+```
+Code execution result: IndexError: list index out of range
+It appears we need to ensure the correct handling of solving the equation and getting the appropriate solution in the specified range. Let's solve it step-by-step again to ensure getting all necessary evaluations and choosing the correct \(\alpha\) value properly in Python code without errors.
+
+To ensure correct evaluation, let's directly solve for \(\alpha\) and then compute the expression step by step. We know \(\tan \alpha = -3\), and we can use this to get both \(\sin \alpha\) and \(\cos \alpha\) as previously mentioned, and then compute all the necessary components of the expression \(\frac{\sin 2\alpha - 2 \cos^2 \alpha}{ \sin \left( \alpha - \frac{\pi}{4} \right)}\).
+
+Let's proceed with such a more straightforward approach in Python to ensure accuracy:
+```python
+import sympy as sp
+
+# Define symbols
+alpha = sp.symbols('alpha')
+
+# Set the equation tan(alpha + pi/4) = -1/2
+eq = sp.tan(alpha + sp.pi / 4) + 1 / 2
+
+# Solve for alpha in the given range pi/2 < alpha < pi
+solution = sp.solveset(eq, alpha, domain=sp.Interval(sp.pi / 2, sp.pi))
+
+# Filter the correct solution
+alpha_value = next(iter(solution))
+
+# Get sin(alpha) and cos(alpha) for this alpha
+sin_alpha = sp.sin(alpha_value)
+cos_alpha = sp.cos(alpha_value)
+
+# Compute sin(2*alpha) and cos^2(alpha)
+sin_2alpha = sp.sin(2 * alpha_value)
+cos2_alpha = sp.cos(alpha_value) ** 2
+
+# Compute the expression (sin(2*alpha) - 2*cos^2(alpha)) / sin(alpha - pi/4)
+numerator = sin_2alpha - 2 * cos2_alpha
+denominator = sp.sin(alpha_value - sp.pi / 4)
+result = numerator / denominator
+
+print(result.evalf())
+```
+Code execution result: -0.894427190999916
+
+Thus, after evaluating it correctly, the value of the expression \(\frac{\sin 2 \alpha - 2 \cos^2 \alpha}{ \sin \left( \alpha - \frac{\pi}{4} \right)}\) is:
+
+\(\boxed{-0.894427190999916}\)
+

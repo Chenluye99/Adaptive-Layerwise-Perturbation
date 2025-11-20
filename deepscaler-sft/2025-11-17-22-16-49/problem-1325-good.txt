@@ -1,0 +1,47 @@
+Score: 1.0
+
+First, we need to find the semi-perimeter ($s$) of triangle $ABC$ with sides $a = BC = 14$, $b = AC = 12$, and $c = AB = 22$:
+
+\[ s = \frac{a + b + c}{2} = \frac{14 + 12 + 22}{2} = 24 \]
+
+The formula to find the area ($K$) of a triangle using Heron's formula is:
+
+\[ K = \sqrt{s(s - a)(s - b)(s - c)} \]
+
+Substituting the values of $a, b, c,$ and $s$ into the formula, we get:
+
+\[ K = \sqrt{24 (24 - 14) (24 - 12) (24 - 22)} = \sqrt{24 \cdot 10 \cdot 12 \cdot 2} = \sqrt{5760} = \sqrt{576 \cdot 10} = 24 \sqrt{10} \]
+
+The radius ($r$) of the inscribed circle (incircle) of a triangle is given by the formula:
+
+\[ r = \frac{K}{s} \]
+
+Substituting the values of $K$ and $s$ into this formula, we get:
+
+\[ r = \frac{24 \sqrt{10}}{24} = \sqrt{10} \]
+
+Let's confirm this step-by-step with Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Side lengths
+a = 14
+b = 12
+c = 22
+
+# Semi-perimeter
+s = (a + b + c) / 2
+
+# Area using Heron's formula
+K = sp.sqrt(s * (s - a) * (s - b) * (s - c))
+
+# Radius of the inscribed circle
+r = K / s
+print(r)
+```
+Code execution result: 3.16227766016838
+
+This is equivalent to $\sqrt{10}$. So, the radius of the circle inscribed in triangle $ABC$ is:
+
+\(\boxed{\sqrt{10}}\)
+

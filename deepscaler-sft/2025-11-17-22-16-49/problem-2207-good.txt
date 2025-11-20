@@ -1,0 +1,92 @@
+Score: 1.0
+
+First, let's understand and solve the problem step-by-step.
+
+1. **Define the Variables:**
+    - Let \( z = x + yi \) where \( x \) and \( y \) are real numbers, and \( i \) is the imaginary unit.
+    - The modulus condition \( |z| = 1 \) means that \( \sqrt{x^2 + y^2} = 1 \), or equivalently, \( x^2 + y^2 = 1 \).
+    - The complex conjugate of \( z \) is \( \overline{z} = x - yi \).
+
+2. **Express the Given Condition:**
+    - We need to evaluate the expression \(\left| \frac{z}{\overline{z}} + \frac{\overline{z}}{z} \right| = 1 \).
+    - Substitute \( z = x + yi \) and \( \overline{z} = x - yi \):
+      \[
+      \frac{z}{\overline{z}} = \frac{x + yi}{x - yi}
+      \]
+      and
+      \[
+      \frac{\overline{z}}{z} = \frac{x - yi}{x + yi}.
+      \]
+    - To simplify \(\frac{x + yi}{x - yi}\) and \(\frac{x - yi}{x + yi}\), we multiply the numerator and the denominator by the conjugate of the denominator:
+      \[
+      \frac{x + yi}{x - yi} \cdot \frac{x + yi}{x + yi} = \frac{(x + yi)^2}{(x - yi)(x + yi)} = \frac{x^2 + 2xyi - y^2}{x^2 + y^2},
+      \]
+      and
+      \[
+      \frac{x - yi}{x + yi} \cdot \frac{x - yi}{x - yi} = \frac{(x - yi)^2}{(x + yi)(x - yi)} = \frac{x^2 - 2xyi - y^2}{x^2 + y^2}.
+      \]
+    - Since \( x^2 + y^2 = 1 \) (from the condition \( |z| = 1 \)), we get:
+      \[
+      \frac{z}{\overline{z}} = x^2 + 2xyi - y^2,
+      \]
+      and
+      \[
+      \frac{\overline{z}}{z} = x^2 - 2xyi - y^2.
+      \]
+    - Adding these gives:
+      \[
+      \frac{z}{\overline{z}} + \frac{\overline{z}}{z} = (x^2 - y^2 + 2xyi) + (x^2 - y^2 - 2xyi) = 2(x^2 - y^2).
+      \]
+    - So, we need:
+      \[
+      \left| 2(x^2 - y^2) \right| = 1 \implies |x^2 - y^2| = \frac{1}{2}.
+      \]
+3. **Formulate the Equation System:**
+    - We now have two equations:
+      \[
+      x^2 + y^2 = 1,
+      \]
+      and
+      \[
+      |x^2 - y^2| = \frac{1}{2}.
+      \]
+    - This gives us two cases to consider:
+      1. \( x^2 - y^2 = \frac{1}{2} \)
+      2. \( x^2 - y^2 = -\frac{1}{2} \)
+
+4. **Solve the System of Equations:**
+    - We can solve these equations simultaneously to find the values of \( x \) and \( y \).
+
+Let's implement this step-by-step using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variables
+x, y = sp.symbols('x y', real=True)
+
+# Define the equations based on our formulation
+eq1 = x**2 + y**2 - 1
+eq2_case1 = x**2 - y**2 - 1/2
+eq2_case2 = x**2 - y**2 + 1/2
+
+# Solve the system of equations
+solutions_case1 = sp.solve([eq1, eq2_case1], (x, y))
+solutions_case2 = sp.solve([eq1, eq2_case2], (x, y))
+
+# Combine the solutions
+solutions = solutions_case1 + solutions_case2
+
+# Get the distinct complex numbers z = x + yi from the solutions
+distinct_z = set()
+for sol in solutions:
+    z = sol[0] + sol[1]*1j
+    distinct_z.add(z)
+
+# Return the number of distinct complex numbers satisfying the conditions
+num_of_solutions = len(distinct_z)
+print(num_of_solutions)
+```
+Code execution result: 8
+
+Thus, the number of complex numbers \( z \) satisfying \( |z| = 1 \) and \(\left| \frac{z}{\overline{z}} + \frac{\overline{z}}{z} \right| = 1 \) is \(\boxed{8}\). This is our final answer.
+

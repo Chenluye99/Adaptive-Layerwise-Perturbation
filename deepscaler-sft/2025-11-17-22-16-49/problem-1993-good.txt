@@ -1,0 +1,37 @@
+Score: 1.0
+
+To solve this problem, we need to determine the day of the week for January 1, 1960, given that January 1, 2000, was a Saturday. We can use Python's `datetime` module to get the date information and then use it to find the day of the week for January 1, 1960.
+
+Here's the step-by-step approach:
+
+1. Import the `datetime` module.
+2. Use the `datetime` module to get the date for January 1, 2000.
+3. Use the `weekday()` method of the `date` object, which returns the day of the week as an integer (0 = Monday, 1 = Tuesday, ..., 6 = Sunday).
+4. Use this to work backwards or forwards by the appropriate number of days to determine the day of the week for January 1, 1960.
+
+Let's write the Python code to solve this problem.
+```python
+import datetime
+
+# Given data
+date_2000 = datetime.date(2000, 1, 1)
+weekday_2000 = date_2000.weekday()  # This will return the day of the week for January 1, 2000
+
+# We know that January 1, 2000, was a Saturday, so let's set it manually for verification.
+# Saturday is represented as 5 in the weekday() method (0 = Monday, 1 = Tuesday, ..., 6 = Sunday).
+assert weekday_2000 == 5, "The weekday for January 1, 2000 should be 5 (Saturday)"
+
+# Now, we need to get the date for January 1, 1960, and find out its weekday.
+date_1960 = datetime.date(1960, 1, 1)
+weekday_1960 = date_1960.weekday()
+
+# Map the weekday number to the corresponding day of the week
+days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+day_of_week_1960 = days_of_week[weekday_1960]
+print(day_of_week_1960)
+```
+Code execution result: Friday
+
+Thus, January 1, 1960, was on a \(\boxed{\text{Friday}}\). This is our final answer.
+

@@ -1,0 +1,63 @@
+Score: 1.0
+
+Let's define the initial number of goldfish for both Brent and Gretel:
+
+- Brent starts with 4 goldfish.
+- Gretel starts with 128 goldfish.
+
+We know that:
+- Brent's goldfish quadruple every month, so if \( B_0 = 4 \) is the initial number of Brent's goldfish, then after \( n \) months, the number of Brent's goldfish will be \( B_n = 4 \cdot 4^n = 4^{n+1} \).
+- Gretel's goldfish double every month, so if \( G_0 = 128 \) is the initial number of Gretel's goldfish, then after \( n \) months, the number of Gretel's goldfish will be \( G_n = 128 \cdot 2^n \).
+
+We need to find the smallest integer \( n \) such that the number of goldfish that Brent and Gretel have is the same, i.e., we need to solve the equation:
+
+\[ 4^{n+1} = 128 \cdot 2^n \]
+
+First, let's express 128 as a power of 2:
+
+\[ 128 = 2^7 \]
+
+So, the equation becomes:
+
+\[ 4^{n+1} = 2^7 \cdot 2^n = 2^{7+n} \]
+
+We know that \( 4 = 2^2 \), so:
+
+\[ 4^{n+1} = (2^2)^{n+1} = 2^{2(n+1)} = 2^{2n+2} \]
+
+Thus, we have:
+
+\[ 2^{2n+2} = 2^{7+n} \]
+
+By setting the exponents equal to each other, we get:
+
+\[ 2n + 2 = 7 + n \]
+
+Solving for \( n \):
+
+\[ 2n - n = 7 - 2 \]
+\[ n = 5 \]
+
+So, we need to check if this value of \( n \) is accurate by plugging it back into the original expressions for the number of goldfish:
+
+- The number of Brent's goldfish after 5 months: \( 4^{5+1} = 4^6 \)
+- The number of Gretel's goldfish after 5 months: \( 128 \cdot 2^5 \)
+
+Let's compute these values using Python to ensure accuracy.
+```python
+# Initial number of goldfish
+brent_goldfish = 4
+gretel_goldfish = 128
+
+# Calculate the number of goldfish for both Brent and Gretel after 5 months
+brent_goldfish_after_5_months = 4 ** (5 + 1)
+gretel_goldfish_after_5_months = 128 * (2 ** 5)
+
+print(((brent_goldfish_after_5_months, gretel_goldfish_after_5_months)))
+```
+Code execution result: (4096, 4096)
+
+Since both Brent and Gretel have 4096 goldfish after 5 months, this confirms that our solution is correct. Thus, the number of months from the initial time when Brent has 4 goldfish and Gretel has 128 goldfish, until they have the same number of goldfish, is
+
+\(\boxed{5}\)
+

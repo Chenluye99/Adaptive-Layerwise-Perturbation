@@ -1,0 +1,89 @@
+Score: 1.0
+
+To solve this problem, we need to consider both the principles of conservation of momentum and kinematics.
+
+1. **Initial Set-up:**
+    - The firecracker is thrown vertically upward with an initial velocity of 20 m/s.
+    - Three seconds after it is thrown, it explodes.
+    - At \( t = 3 \) seconds, the velocity of the firecracker before the explosion is given by the equation of motion \( v_y = v_0 - g t \), where \( v_0 = 20 \) m/s and \( g = 10 \) m/s².
+    - Substituting the values, we get:
+      \[
+      v_y = 20 - 10 \cdot 3 = -10 \text{ m/s}
+      \]
+      So, the speed of the firecracker 3 seconds after it is thrown is 10 m/s, but it is directed downwards (hence, the negative sign).
+
+2. **Conservation of Momentum:**
+    - Let's denote the mass of the smaller fragment as \( m \) and the mass of the larger fragment as \( 2m \) (since their mass ratio is 1:2).
+    - Just before the explosion, the momentum of the firecracker in the vertical direction is \( m_{\text{total}} \cdot v_y = 3m \cdot (-10) = -30m \).
+    - In the horizontal direction, the momentum of the firecracker is 0 because it is thrown vertically.
+    - After the explosion, the smaller fragment flies horizontally with a speed of 16 m/s. Since it is flying horizontally, its vertical component of velocity is 0.
+    - Let's denote the velocity of the smaller fragment just after the explosion as \( \mathbf{v}_{\text{small}} = 16 \hat{i} + 0 \hat{j} \).
+    - Let the velocity of the larger fragment just after the explosion be \( \mathbf{v}_{\text{large}} = v_{\text{large},x} \hat{i} + v_{\text{large},y} \hat{j} \).
+
+3. **Horizontal and Vertical Momentum Conservation:**
+    - **Horizontal momentum conservation:**
+      \[
+      m \cdot 16 + 2m \cdot v_{\text{large},x} = 0 \implies 16 + 2 v_{\text{large},x} = 0 \implies 2 v_{\text{large},x} = -16 \implies v_{\text{large},x} = -8
+      \]
+    - **Vertical momentum conservation:**
+      \[
+      m \cdot 0 + 2m \cdot v_{\text{large},y} = -30m \implies 2 v_{\text{large},y} = -30 \implies v_{\text{large},y} = -15
+      \]
+
+4. **Find the Magnitude of the Speed of the Larger Fragment:**
+    - The speed of the larger fragment is given by the magnitude of its velocity vector:
+      \[
+      v_{\text{large}} = \sqrt{v_{\text{large},x}^2 + v_{\text{large},y}^2} = \sqrt{(-8)^2 + (-15)^2} = \sqrt{64 + 225} = \sqrt{289} = 17
+      \]
+
+Let's confirm this result using Python for accuracy.
+```python
+import sympy as sp
+
+# Define variables
+v_large_x, v_large_y = sp.symbols('v_large_x v_large_y')
+
+# Equations from the conservation of momentum
+eq1 = sp.Eq(m * 16 + 2 * m * v_large_x, 0)
+eq2 = sp.Eq(2 * m * v_large_y, -30 * m)
+
+# Solve the system of equations
+solution = sp.solve((eq1, eq2), (v_large_x, v_large_y))
+
+# Get the velocity components
+v_large_x_val = solution[v_large_x]
+v_large_y_val = solution[v_large_y]
+
+# Calculate the magnitude of the velocity of the larger fragment
+v_large_magnitude = sp.sqrt(v_large_x_val**2 + v_large_y_val**2)
+print(v_large_magnitude)
+```
+Code execution result: NameError: name 'm' is not defined
+It appears that I made a mistake by using undefined symbol `m` in the equations. However, the values for \( v_{\text{large},x} \) and \( v_{\text{large},y} \) can be obtained and verified without the mass variable as it will cancel out. We'll proceed by re-solving just with the coefficients from the equations and solve for the magnitude of the speed of the larger fragment.
+
+Let's correct and proceed with the Python code execution.
+```python
+import sympy as sp
+
+# Define variables for the velocity components of the larger fragment
+v_large_x, v_large_y = sp.symbols('v_large_x v_large_y')
+
+# Set up the equations based on momentum conservation (without the mass as it will cancel out)
+eq1 = sp.Eq(16 + 2 * v_large_x, 0)
+eq2 = sp.Eq(2 * v_large_y, -30)
+
+# Solve the system of equations
+solution = sp.solve((eq1, eq2), (v_large_x, v_large_y))
+
+# Extract the solution
+v_large_x_val = solution[v_large_x]
+v_large_y_val = solution[v_large_y]
+
+# Calculate the magnitude of the speed of the larger fragment
+v_large_magnitude = sp.sqrt(v_large_x_val**2 + v_large_y_val**2)
+print(v_large_magnitude)
+```
+Code execution result: 17
+
+Thus, the magnitude of the speed of the second fragment immediately after the explosion is \(\boxed{17}\) m/s. This solution is both logically sound and verified by computation.
+

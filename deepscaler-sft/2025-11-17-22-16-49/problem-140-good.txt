@@ -1,0 +1,141 @@
+Score: 1.0
+
+To solve this problem, we need to follow these steps:
+
+1. **Find \(\sin \alpha\) and \(\cos \alpha\):**
+   Given \(\tan \alpha = 2\), we can use the identity \(\tan \alpha = \frac{\sin \alpha}{\cos \alpha}\). This gives:
+   \[
+   \sin \alpha = 2 \cos \alpha
+   \]
+   We also know that \(\sin^2 \alpha + \cos^2 \alpha = 1\). Substituting \(\sin \alpha = 2 \cos \alpha\) into this identity, we get:
+   \[
+   (2 \cos \alpha)^2 + \cos^2 \alpha = 1 \implies 4 \cos^2 \alpha + \cos^2 \alpha = 1 \implies 5 \cos^2 \alpha = 1 \implies \cos^2 \alpha = \frac{1}{5}
+   \]
+   So,
+   \[
+   \cos \alpha = \frac{1}{\sqrt{5}} \quad \text{(since } 0 < \alpha < \frac{\pi}{2} \text{, we take the positive root)}
+   \]
+   And,
+   \[
+   \sin \alpha = 2 \cos \alpha = 2 \cdot \frac{1}{\sqrt{5}} = \frac{2}{\sqrt{5}}
+   \]
+
+2. **Find \(\sin 2\alpha\):**
+   We use the double-angle formula \(\sin 2\alpha = 2 \sin \alpha \cos \alpha\):
+   \[
+   \sin 2\alpha = 2 \cdot \frac{2}{\sqrt{5}} \cdot \frac{1}{\sqrt{5}} = 2 \cdot \frac{2}{5} = \frac{4}{5}
+   \]
+
+3. **Find \(\cos^4 \alpha - \sin^4 \alpha\):**
+   We can use the difference of squares:
+   \[
+   \cos^4 \alpha - \sin^4 \alpha = (\cos^2 \alpha + \sin^2 \alpha)(\cos^2 \alpha - \sin^2 \alpha) = 1 \cdot (\cos^2 \alpha - \sin^2 \alpha) = \cos^2 \alpha - \sin^2 \alpha
+   \]
+   Substituting \(\cos^2 \alpha = \frac{1}{5}\) and \(\sin^2 \alpha = \left( \frac{2}{\sqrt{5}} \right)^2 = \frac{4}{5}\), we get:
+   \[
+   \cos^2 \alpha - \sin^2 \alpha = \frac{1}{5} - \frac{4}{5} = -\frac{3}{5}
+   \]
+
+4. **Substitute into the Expression:**
+   The expression we need to evaluate is:
+   \[
+   \frac{\sin 2\alpha + 1}{\cos^4 \alpha - \sin^4 \alpha}
+   \]
+   Substituting \(\sin 2\alpha = \frac{4}{5}\) and \(\cos^4 \alpha - \sin^4 \alpha = -\frac{3}{5}\), we get:
+   \[
+   \frac{\frac{4}{5} + 1}{-\frac{3}{5}} = \frac{\frac{4}{5} + \frac{5}{5}}{-\frac{3}{5}} = \frac{\frac{9}{5}}{-\frac{3}{5}} = \frac{9}{5} \cdot -\frac{5}{3} = -3
+   \]
+
+Let's verify this solution with Python to ensure the result is accurate.
+```python
+import sympy as sp
+
+# Define the variable
+alpha = sp.symbols('alpha', real=True, positive=True)
+
+# Given tan(alpha) = 2
+eq = sp.Eq(sp.tan(alpha), 2)
+
+# Solve for alpha
+alpha_solution = sp.solve(eq, alpha)[0]
+
+# Get sin(alpha) and cos(alpha)
+sin_alpha = sp.sin(alpha_solution)
+cos_alpha = sp.cos(alpha_solution)
+
+# Calculate sin(2*alpha)
+sin_2alpha = sp.sin(2 * alpha_solution)
+
+# Calculate the expression
+numerator = sin_2alpha + 1
+denominator = cos_alpha**4 - sin_alpha**4
+expression = numerator / denominator
+
+print(expression)
+```
+Code execution result: -5/3 - 5*sin(2*atan(2))/3
+
+It appears that the code has returned an expression rather than a simplified numerical value. Let's proceed by simplifying this expression using SymPy's simplification functions to get the final answer.
+
+We know from our previous steps that the expression should simplify to a single numerical value. We can force the code to evaluate it fully and get a concise answer. Let's update the code to ensure it gets the numerical value.
+```python
+import sympy as sp
+
+# Define the variable
+alpha = sp.symbols('alpha', real=True, positive=True)
+
+# Given tan(alpha) = 2
+eq = sp.Eq(sp.tan(alpha), 2)
+
+# Solve for alpha
+alpha_solution = sp.solve(eq, alpha)[0]
+
+# Get sin(alpha) and cos(alpha)
+sin_alpha = sp.sin(alpha_solution)
+cos_alpha = sp.cos(alpha_solution)
+
+# Calculate sin(2*alpha)
+sin_2alpha = sp.sin(2 * alpha_solution)
+
+# Calculate the expression
+numerator = sin_2alpha + 1
+denominator = cos_alpha**4 - sin_alpha**4
+expression = numerator / denominator
+
+# Evaluate the expression to get the final result
+expression_evaluated = sp.evalf(expression)
+
+print(expression_evaluated)
+```
+Code execution result: TypeError: 'module' object is not callable
+It looks like there was an issue with directly calling `sp.evalf(expression)`. We should ensure we evaluate the expression step by step if necessary, but in this case, SymPy should handle it properly by just evaluating it directly. Let's simplify it and directly get the numerical value of the expression.
+
+Let's simplify and get the numerical value of our expression \(\frac{\sin 2\alpha + 1}{\cos^4 \alpha - \sin^4 \alpha}\) by substituting the computed values of \(\sin \alpha\) and \(\cos \alpha\) and then evaluate the expression directly.
+
+We know \(\cos \alpha = \frac{1}{\sqrt{5}}\) and \(\sin \alpha = \frac{2}{\sqrt{5}}\), so we can substitute these values into the expression and evaluate it directly in SymPy.
+
+Let's implement that.
+```python
+import sympy as sp
+
+# Define sin(alpha) and cos(alpha)
+cos_alpha = 1 / sp.sqrt(5)
+sin_alpha = 2 / sp.sqrt(5)
+
+# Calculate sin(2*alpha)
+sin_2alpha = 2 * sin_alpha * cos_alpha
+
+# Calculate the expression
+numerator = sin_2alpha + 1
+denominator = cos_alpha**4 - sin_alpha**4
+expression = numerator / denominator
+
+# Evaluate the expression to get the final result
+expression_evaluated = sp.simplify(expression)
+
+print(expression_evaluated)
+```
+Code execution result: -3
+
+Thus, the final answer is \(\boxed{-3}\). This confirms that our solution is correct, and the value of the given expression is \(\boxed{-3}\).
+

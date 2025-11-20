@@ -1,0 +1,49 @@
+Score: 1.0
+
+To solve this problem, let's set up a mathematical equation based on the description:
+
+1. Let the original number of muffins be \( m \).
+2. Since the batch of muffins is split evenly onto six different trays, each tray initially gets \( \frac{m}{6} \) muffins.
+3. After splitting the muffins, the baker adds five croissants to each tray. Therefore, each tray now contains \( \frac{m}{6} + 5 \) baked goods.
+4. We know that each tray now contains at least twenty baked goods. So, we can set up the following inequality:
+   \[
+   \frac{m}{6} + 5 \geq 20
+   \]
+5. To solve this inequality for \( m \):
+   \[
+   \frac{m}{6} + 5 \geq 20
+   \]
+   Subtract 5 from both sides:
+   \[
+   \frac{m}{6} \geq 15
+   \]
+   Multiply both sides by 6:
+   \[
+   m \geq 90
+   \]
+
+Thus, the least possible number of muffins in the baker's original batch is 90. We will confirm this by implementing it in Python to ensure the accuracy.
+```python
+# Let's verify this step-by-step by coding the conditions in Python.
+
+# We start checking from m = 90 and go upwards until we ensure that each tray has at least 20 baked goods after adding 5 croissants to each tray that originally got m/6 muffins.
+
+def find_min_muffins():
+    m = 90  # Start checking from the derived minimum value
+
+    while True:
+        muffins_per_tray = m / 6
+        total_goods_per_tray = muffins_per_tray + 5
+
+        if total_goods_per_tray >= 20:
+            return m
+        else:
+            m += 1  # If not, increment m and check again
+
+min_muffins = find_min_muffins()
+print(min_muffins)
+```
+Code execution result: 90
+
+Thus, the least possible number of muffins in the baker's original batch is \(\boxed{90}\). This confirms our analytical solution is accurate.
+

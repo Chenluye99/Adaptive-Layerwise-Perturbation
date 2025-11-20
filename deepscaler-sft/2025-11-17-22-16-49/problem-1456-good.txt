@@ -1,0 +1,46 @@
+Score: 1.0
+
+To solve the problem, we need to find the smallest and second-smallest positive integers \( a \) that satisfy the congruence \( 27a \equiv 17 \pmod{40} \). We will then compute their sum.
+
+### Step-by-Step Solution:
+
+1. **Understand the Congruence Equation:**
+   We need to find integers \( a \) such that when 27 is multiplied by \( a \), the result is congruent to 17 modulo 40. In other words, we need to solve:
+   \[
+   27a \equiv 17 \pmod{40}
+   \]
+   This means that there is some integer \( k \) such that:
+   \[
+   27a = 17 + 40k
+   \]
+   for some integer \( k \).
+
+2. **Find the Smallest Positive Solution:**
+   To find the smallest positive solution, we can iterate through positive integers and check when the congruence holds. Once we find the first solution, we can find the second-smallest solution by checking subsequent values.
+
+3. **Implement in Python:**
+   We will write a Python program to find these solutions and then compute their sum.
+
+Let's implement this step-by-step in Python.
+```python
+# Find the smallest positive integer a that satisfies 27a ≡ 17 (mod 40)
+solutions = []
+
+for a in range(1, 1000):  # We use an upper bound of 1000 to ensure we find the second smallest as well
+    if (27 * a) % 40 == 17:
+        solutions.append(a)
+
+# Get the smallest and second smallest solutions
+smallest_a = solutions[0]
+second_smallest_a = solutions[1]
+
+# Calculate their sum
+sum_of_solutions = smallest_a + second_smallest_a
+print(((smallest_a, second_smallest_a, sum_of_solutions)))
+```
+Code execution result: (11, 51, 62)
+
+Thus, the smallest positive integer \( a \) that satisfies the congruence is 11, and the second-smallest positive integer \( a \) that satisfies the congruence is 51. The sum of these two integers is:
+
+\(\boxed{62}\)
+

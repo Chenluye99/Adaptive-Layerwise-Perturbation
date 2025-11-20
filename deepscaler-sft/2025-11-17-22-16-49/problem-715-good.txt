@@ -1,0 +1,89 @@
+Score: 0.0
+
+To determine which functions have inverses, we need to check if each function is one-to-one (injective) and onto (surjective). A function is one-to-one if it never takes on the same value twice, and in the context of the question, it means that the function should pass the horizontal line test: no horizontal line should intersect the graph of the function more than once.
+
+Let's analyze the graphs of the functions one by one:
+
+1. **Graph A:**
+   - The graph consists of three line segments: from (-5, 1) to (-2, -2), from (-2, -2) to (0, 3), and from (0, 3) to (4, 3).
+   - Draw a horizontal line at \( y = 3 \). This line intersects the graph at two points: (0, 3) and (4, 3), so the function is not one-to-one.
+   - Therefore, Graph A does not have an inverse.
+
+2. **Graph B:**
+   - The graph consists of two line segments: from (-3, -3) to (0, -2) and from (0, 2) to (2, 4).
+   - Additionally, there are individual points at (-3, -3), (0, -2), (0, 2), and (2, 4), and note that the point (0, -2) is highlighted differently, suggesting it might be a removable discontinuity or a case where the function is not continuous at that point.
+   - Notice that the function is not a continuous curve and has multiple y-values for some x-values when considering the whole graph, so it is not one-to-one.
+   - Therefore, Graph B does not have an inverse.
+
+3. **Graph C:**
+   - The graph is a straight line passing through points (-3, 5) and (5, -3).
+   - To determine if it is one-to-one, consider that a straight line satisfies the horizontal line test: any horizontal line will intersect the graph at most once. Therefore, it is a one-to-one function.
+   - Therefore, Graph C has an inverse.
+
+4. **Graph D:**
+   - The graph is a semicircle centered at the origin with radius 4, drawn from 0 to 180 degrees.
+   - A semicircle is one-to-one because any horizontal line will intersect the graph at most once.
+   - Therefore, Graph D has an inverse.
+
+5. **Graph E:**
+   - The graph is a curve defined by the function \( f(x) = \frac{x^3}{40} + \frac{x^2}{20} - \frac{x}{2} + 2 \).
+   - To determine if it is one-to-one, we need to check its derivative to ensure it is strictly increasing or decreasing. Let's compute the derivative:
+     \[
+     f'(x) = \frac{3x^2}{40} + \frac{2x}{20} - \frac{1}{2} = \frac{3x^2}{40} + \frac{x}{10} - \frac{1}{2}
+     \]
+   - We need to check if \( f'(x) \) is always positive or always negative. We can solve \( f'(x) = 0 \) to find critical points and determine the sign of \( f'(x) \) over the interval \([-5, 5]\).
+
+Let's implement this in Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the function
+x = sp.symbols('x')
+f = x**3 / 40 + x**2 / 20 - x / 2 + 2
+
+# Find the first derivative of the function
+f_prime = sp.diff(f, x)
+
+# Solve for critical points by setting f'(x) = 0
+critical_points = sp.solve(f_prime, x)
+
+print(critical_points)
+```
+Code execution result: [-10/3, 2]
+
+This means that the derivative \( f'(x) = \frac{3x^2}{40} + \frac{x}{10} - \frac{1}{2} \) has critical points at \( x = -\frac{10}{3} \) and \( x = 2 \).
+
+To determine if the function is strictly increasing or decreasing, we need to check the sign of \( f'(x) \) over the intervals \([-5, -\frac{10}{3}]\), \([- \frac{10}{3}, 2]\), and \([2, 5]\).
+
+Let's evaluate \( f'(x) \) at some test points in these intervals.
+
+1. For \( x = -4 \) (in the interval \([-5, -\frac{10}{3}]\)):
+   \[
+   f'(-4) = \frac{3(-4)^2}{40} + \frac{-4}{10} - \frac{1}{2} = \frac{3 \cdot 16}{40} - \frac{4}{10} - \frac{1}{2} = \frac{48}{40} - \frac{4}{10} - \frac{1}{2} = \frac{6}{5} - \frac{2}{5} - \frac{1}{2} = \frac{4}{5} - \frac{1}{2} = \frac{8}{10} - \frac{5}{10} = \frac{3}{10} > 0
+   \]
+
+2. For \( x = 0 \) (in the interval \([- \frac{10}{3}, 2]\)):
+   \[
+   f'(0) = \frac{3(0)^2}{40} + \frac{0}{10} - \frac{1}{2} = -\frac{1}{2} < 0
+   \]
+
+3. For \( x = 3 \) (in the interval \([2, 5]\)):
+   \[
+   f'(3) = \frac{3(3)^2}{40} + \frac{3}{10} - \frac{1}{2} = \frac{3 \cdot 9}{40} + \frac{3}{10} - \frac{1}{2} = \frac{27}{40} + \frac{3}{10} - \frac{1}{2} = \frac{27}{40} + \frac{12}{40} - \frac{20}{40} = \frac{19}{40} > 0
+   \]
+
+From the above evaluations, we see that \( f'(x) \) is positive in the intervals \([-5, -\frac{10}{3}]\) and \([2, 5]\), and it is negative in the interval \([- \frac{10}{3}, 2]\). This means that the function \( f(x) \) is not strictly increasing or decreasing over the whole interval \([-5, 5]\), as it decreases in some intervals and increases in others.
+
+However, it is still possible for a function to have an inverse if it is one-to-one (i.e., it passes the horizontal line test when considering only a suitable domain). To confirm, we can check if the function is strictly increasing or decreasing on some suitable interval where it passes the horizontal line test without repetition of function values.
+
+Given that a function must be strictly monotonic (either strictly increasing or strictly decreasing) over its entire domain to have an inverse, and based on the evaluations above, it appears that Graph E is not strictly monotonic over the interval \([-5, 5]\), so it may not have an inverse over this entire domain. 
+
+However, it is possible that only some segment of Graph E is considered when determining if it has an inverse. We have to decide based on typical function behavior and context of having an inverse. A complete check using numerical methods or symbolic computation could ensure a comprehensive check if needed.
+
+For now, let's assume that the primary check of monotonicity does not guarantee having an inverse over the interval \([-5, 5]\) due to the behavior of the function as demonstrated from its derivative analysis and transition points.
+
+Summarizing, Graph C and Graph D pass the horizontal line test (i.e., they are one-to-one), making them the functions that have inverses. Therefore, the letters of the graphs of the functions that have inverses are 'C' and 'D'.
+
+Thus, the answer is:
+\(\boxed{\text{C,D}}\)
+

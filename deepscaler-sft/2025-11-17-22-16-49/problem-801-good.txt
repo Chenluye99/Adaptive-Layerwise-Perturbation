@@ -1,0 +1,38 @@
+Score: 1.0
+
+To solve the equation \( z^4 = -4 \), we can use complex number theory and computational methods. 
+
+First, let's express -4 in its polar form. The number -4 can be written as \( 4 \text{cis} ( \pi + 2k\pi ) \) where \( \text{cis}(\theta) = \cos(\theta) + i \sin(\theta) \), and \( k \) is an integer. 
+
+The equation \( z^4 = 4 \text{cis} (\pi + 2k\pi) \) can be solved by taking the fourth roots of both sides. The magnitude of \( z \) will be the fourth root of 4, i.e., \( \sqrt[4]{4} = \sqrt{2} \). The argument (angle) of \( z \) will be \( \frac{\pi + 2k\pi}{4} \) for \( k = 0, 1, 2, 3 \) (since we need the distinct fourth roots).
+
+So, we get:
+
+\[ z_k = \sqrt{2} \text{cis} \left( \frac{\pi + 2k\pi}{4} \right) = \sqrt{2} \text{cis} \left( \frac{\pi}{4} + \frac{k\pi}{2} \right) \]
+
+for \( k = 0, 1, 2, 3 \).
+
+Let's calculate these roots step-by-step using Python to ensure accuracy.
+```python
+import cmath
+
+# We want to find the four roots of the equation z^4 = -4
+# -4 can be written as 4 * (cos(pi) + i * sin(pi)) in polar form.
+# To find the four roots, we will use the formula for the k-th root of a complex number:
+
+# z_k = 2^(1/4) * (cos((pi + 2 * k * pi) / 4) + i * sin((pi + 2 * k * pi) / 4))
+# for k = 0, 1, 2, 3.
+
+n = 4
+r = 4 ** (1/n)
+angles = [(cmath.pi + 2 * k * cmath.pi) / n for k in range(n)]
+
+roots = [r * (cmath.cos(angle) + cmath.sin(angle) * 1j) for angle in angles]
+print(roots)
+```
+Code execution result: [(1.0000000000000002+1j), (-1+1.0000000000000002j), (-1.0000000000000002-1j), (0.9999999999999998-1.0000000000000002j)]
+
+Thus, the solutions to the equation \( z^4 = -4 \) are:
+
+\[ \boxed{1 + i, -1 + i, -1 - i, 1 - i} \]
+

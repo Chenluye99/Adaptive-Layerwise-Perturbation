@@ -1,0 +1,90 @@
+Score: 1.0
+
+First, let's place the square \(ABCD\) in a coordinate system. We can place the square such that:
+
+- \(A = (0, 4)\)
+- \(B = (4, 4)\)
+- \(C = (4, 0)\)
+- \(D = (0, 0)\)
+
+The midpoint \(M\) of \(\overline{CD}\) will be:
+\[ M = \left( \frac{4 + 0}{2}, \frac{0 + 0}{2} \right) = (2, 0) \]
+
+We need to find the intersection point \(O\) of \(\overline{AC}\) and \(\overline{BM}\).
+
+1. **Find the Equations of \(\overline{AC}\) and \(\overline{BM}\):**
+
+   - The line \(\overline{AC}\) runs through points \(A = (0, 4)\) and \(C = (4, 0)\). The slope of \(\overline{AC}\) is \(\frac{0 - 4}{4 - 0} = -1\), so the equation of the line \(\overline{AC}\) is:
+     \[
+     y = -x + 4
+     \]
+
+   - The line \(\overline{BM}\) runs through points \(B = (4, 4)\) and \(M = (2, 0)\). The slope of \(\overline{BM}\) is \(\frac{0 - 4}{2 - 4} = 2\), so the equation of the line \(\overline{BM}\) is:
+     \[
+     y = 2(x - 4) + 4 = 2x - 4
+     \]
+
+2. **Find the Intersection Point \(O\):**
+
+   To find the intersection of \(\overline{AC}\) and \(\overline{BM}\), we set the equations equal to each other:
+   \[
+   -x + 4 = 2x - 4
+   \]
+   Solving for \(x\):
+   \[
+   4 + 4 = 2x + x \implies 8 = 3x \implies x = \frac{8}{3}
+   \]
+   Substituting \(x = \frac{8}{3}\) back into the equation \( y = -x + 4 \):
+   \[
+   y = -\frac{8}{3} + 4 = -\frac{8}{3} + \frac{12}{3} = \frac{4}{3}
+   \]
+   So, the coordinates of \(O\) are \(\left( \frac{8}{3}, \frac{4}{3} \right)\).
+
+3. **Find the Distances \(OC\) and \(OA\):**
+
+   - The coordinates of \(O\) are \(\left( \frac{8}{3}, \frac{4}{3} \right)\), and the coordinates of \(C\) are \((4, 0)\). The distance \(OC\) is:
+     \[
+     OC = \sqrt{\left( \frac{8}{3} - 4 \right)^2 + \left( \frac{4}{3} - 0 \right)^2} = \sqrt{\left( \frac{8}{3} - \frac{12}{3} \right)^2 + \left( \frac{4}{3} \right)^2} = \sqrt{\left( -\frac{4}{3} \right)^2 + \left( \frac{4}{3} \right)^2} = \sqrt{\frac{16}{9} + \frac{16}{9}} = \sqrt{\frac{32}{9}} = \frac{4 \sqrt{2}}{3}
+     \]
+
+   - The coordinates of \(O\) are \(\left( \frac{8}{3}, \frac{4}{3} \right)\), and the coordinates of \(A\) are \((0, 4)\). The distance \(OA\) is:
+     \[
+     OA = \sqrt{\left( \frac{8}{3} - 0 \right)^2 + \left( \frac{4}{3} - 4 \right)^2} = \sqrt{\left( \frac{8}{3} \right)^2 + \left( \frac{4}{3} - \frac{12}{3} \right)^2} = \sqrt{\left( \frac{8}{3} \right)^2 + \left( -\frac{8}{3} \right)^2} = \sqrt{\frac{64}{9} + \frac{64}{9}} = \sqrt{\frac{128}{9}} = \frac{8 \sqrt{2}}{3}
+     \]
+
+4. **Find the Ratio \(\frac{OC}{OA}\):**
+
+   \[
+   \frac{OC}{OA} = \frac{\frac{4 \sqrt{2}}{3}}{\frac{8 \sqrt{2}}{3}} = \frac{4 \sqrt{2}}{8 \sqrt{2}} = \frac{4}{8} = \frac{1}{2}
+   \]
+
+Let's confirm this by coding the solution to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the coordinates of the points
+A = (0, 4)
+B = (4, 4)
+C = (4, 0)
+D = (0, 0)
+M = ((4 + 0) / 2, (0 + 0) / 2)
+
+# Define the lines AC and BM
+line_AC = sp.Line(A, C)
+line_BM = sp.Line(B, M)
+
+# Find the intersection point O of AC and BM
+O = line_AC.intersection(line_BM)[0]
+
+# Calculate the distances OC and OA
+OC = sp.sqrt((O[0] - C[0])**2 + (O[1] - C[1])**2)
+OA = sp.sqrt((O[0] - A[0])**2 + (O[1] - A[1])**2)
+
+# Find the ratio of OC to OA
+ratio = OC / OA
+print(ratio)
+```
+Code execution result: 1/2
+
+Thus, the ratio of \(OC\) to \(OA\) is \(\boxed{\frac{1}{2}}\). This confirms that our solution is accurate.
+

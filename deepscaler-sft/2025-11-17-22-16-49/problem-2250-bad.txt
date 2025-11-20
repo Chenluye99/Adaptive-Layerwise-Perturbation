@@ -1,0 +1,100 @@
+Score: 0.0
+
+First, let's find the normal vector of the plane we are looking for. This plane is perpendicular to the plane given by the equation \(x + 2y + 3z = 5\), so its normal vector is \((1, 2, 3)\).
+
+To find the normal vector of the plane we are constructing, it must be perpendicular to \((1, 2, 3)\). So, we need another vector that lies on the plane. We can get this by taking the points \((-1, 1, 1)\) and \((1, -1, 1)\) and finding the vector between them:
+
+\[
+\mathbf{v} = (1 - (-1), -1 - 1, 1 - 1) = (2, -2, 0)
+\]
+
+Let's call the normal vector of the plane we want to find \((a, b, c)\). This vector \((a, b, c)\) must be perpendicular to both \((1, 2, 3)\) and \((2, -2, 0)\). Therefore, the dot product of \((a, b, c)\) with \((1, 2, 3)\) and \((2, -2, 0)\) should be zero:
+
+\[
+(a, b, c) \cdot (1, 2, 3) = a + 2b + 3c = 0
+\]
+\[
+(a, b, c) \cdot (2, -2, 0) = 2a - 2b = 0 \implies a = b
+\]
+
+Substituting \(a = b\) into the first equation, we get:
+
+\[
+a + 2a + 3c = 0 \implies 3a + 3c = 0 \implies a + c = 0 \implies c = -a
+\]
+
+So, the normal vector \((a, b, c)\) can be written as \((a, a, -a)\). We can choose \(a = 1\) for simplicity, giving us the normal vector \((1, 1, -1)\).
+
+Now, we use the point \((-1, 1, 1)\) to find the constant term \(D\) in the equation of the plane \(Ax + By + Cz + D = 0\). Substituting \((-1, 1, 1)\) into the plane equation \(1x + 1y - 1z + D = 0\):
+
+\[
+1(-1) + 1(1) - 1(1) + D = 0 \implies -1 + 1 - 1 + D = 0 \implies -1 + D = 0 \implies D = 1
+\]
+
+So, the equation of the plane is:
+
+\[
+x + y - z + 1 = 0
+\]
+
+We need to ensure that \(\gcd(|1|, |1|, |-1|, |1|) = 1\), which is true since \(\gcd(1, 1, 1, 1) = 1\). Additionally, the coefficient \(A = 1\) is positive.
+
+So, the final answer is:
+
+\[
+\boxed{x + y - z + 1 = 0}
+\]
+
+Let's confirm this by implementing it in Python to ensure our solution is accurate.
+```python
+import math
+from sympy import symbols, Eq, solve
+from math import gcd
+from functools import reduce
+
+# Define the points
+P1 = (-1, 1, 1)
+P2 = (1, -1, 1)
+
+# Find the direction vector from P1 to P2
+dir_vector = (P2[0] - P1[0], P2[1] - P1[1], P2[2] - P1[2])
+
+# Normal vector of the plane x + 2y + 3z = 5 is (1, 2, 3)
+normal_vector_given_plane = (1, 2, 3)
+
+# Find a normal vector for the required plane that is perpendicular to (1, 2, 3)
+# We know that (a, b, c) should satisfy:
+# a + 2b + 3c = 0 and a = b
+# Substituting a = b into the first equation:
+# a + 2a + 3c = 0 => 3a + 3c = 0 => a + c = 0 => c = -a
+# So, (a, a, -a) is a normal vector. We can choose a = 1 for simplicity, so the normal vector is (1, 1, -1).
+
+a = 1
+b = 1
+c = -1
+
+# Form the equation of the plane using the normal vector (1, 1, -1) and the point (-1, 1, 1)
+# The equation of the plane is 1*x + 1*y - 1*z + D = 0
+# Substitute the point (-1, 1, 1) into the equation to solve for D:
+x, y, z, D = symbols('x y z D')
+eq = Eq(a * P1[0] + b * P1[1] + c * P1[2] + D, 0)
+solution = solve(eq, D)[0]
+
+# Now we have the equation of the plane as x + y - z + solution = 0
+plane_equation = f"{a} * x + {b} * y + {c} * z + {solution} = 0"
+
+# Get the GCD of the coefficients |1|, |1|, |-1|, |1|
+coefficients = [abs(a), abs(b), abs(c), abs(solution)]
+gcd_of_coefficients = reduce(gcd, coefficients)
+
+# If gcd is not 1, we need to scale the equation so that gcd is 1
+if gcd_of_coefficients != 1:
+    scale = 1 // gcd_of_coefficients
+    a, b, c, solution = a * scale, b * scale, c * scale, solution * scale
+
+print(f"Plane Equation: {a} * x + {b} * y + {c} * z + {solution} = 0")
+```
+Code execution result: Plane Equation: 1 * x + 1 * y + -1 * z + 1 = 0
+
+
+

@@ -1,0 +1,100 @@
+Score: 1.0
+
+To solve the given problem, we need to use the properties of matrix inverses and the given condition \(\mathbf{A}^{-1} = k \mathbf{A}\).
+
+1. **Matrix Representation and Inverse:**
+    The matrix \(\mathbf{A} = \begin{pmatrix} 2 & 3 \\ 5 & d \end{pmatrix}\) has an inverse given by:
+    \[
+    \mathbf{A}^{-1} = \frac{1}{\text{det}(\mathbf{A})} \begin{pmatrix} d & -3 \\ -5 & 2 \end{pmatrix}
+    \]
+    where \(\text{det}(\mathbf{A}) = 2d - 15\).
+
+2. **Condition Given:**
+    The condition \(\mathbf{A}^{-1} = k \mathbf{A}\) means:
+    \[
+    \frac{1}{2d - 15} \begin{pmatrix} d & -3 \\ -5 & 2 \end{pmatrix} = k \begin{pmatrix} 2 & 3 \\ 5 & d \end{pmatrix}
+    \]
+    This results in the following system of equations by comparing corresponding matrix elements:
+    \[
+    \frac{d}{2d - 15} = 2k
+    \]
+    \[
+    \frac{-3}{2d - 15} = 3k
+    \]
+    \[
+    \frac{-5}{2d - 15} = 5k
+    \]
+    \[
+    \frac{2}{2d - 15} = dk
+    \]
+
+3. **Solving Equations:**
+    We will start by solving the second equation:
+    \[
+    \frac{-3}{2d - 15} = 3k \implies -3 = 3k (2d - 15) \implies -1 = k (2d - 15)
+    \]
+    So, we get:
+    \[
+    k = \frac{-1}{2d - 15}
+    \]
+
+    Next, we substitute this expression for \( k \) into the first equation:
+    \[
+    \frac{d}{2d - 15} = 2 \left( \frac{-1}{2d - 15} \right) \implies d = 2 \cdot (-1) \implies d = -2
+    \]
+
+    Now we substitute \( d = -2 \) back into the expression for \( k \):
+    \[
+    k = \frac{-1}{2(-2) - 15} = \frac{-1}{-4 - 15} = \frac{-1}{-19} = \frac{1}{19}
+    \]
+
+So, we get the ordered pair \((d, k) = (-2, \frac{1}{19})\).
+
+Let's verify this solution by substituting \( d = -2 \) and \( k = \frac{1}{19} \) back into the original condition \(\mathbf{A}^{-1} = k \mathbf{A}\) to ensure the result is accurate.
+
+### Verification:
+
+1. **Compute \(\mathbf{A}^{-1}\) for \( d = -2 \):**
+    \[
+    \mathbf{A} = \begin{pmatrix} 2 & 3 \\ 5 & -2 \end{pmatrix}
+    \]
+    \[
+    \text{det}(\mathbf{A}) = 2 \cdot (-2) - 3 \cdot 5 = -4 - 15 = -19
+    \]
+    \[
+    \mathbf{A}^{-1} = \frac{1}{-19} \begin{pmatrix} -2 & -3 \\ -5 & 2 \end{pmatrix} = \begin{pmatrix} \frac{2}{19} & \frac{3}{19} \\ \frac{5}{19} & -\frac{2}{19} \end{pmatrix}
+    \]
+
+2. **Compute \( k \mathbf{A} \) for \( k = \frac{1}{19} \):**
+    \[
+    k \mathbf{A} = \frac{1}{19} \begin{pmatrix} 2 & 3 \\ 5 & -2 \end{pmatrix} = \begin{pmatrix} \frac{2}{19} & \frac{3}{19} \\ \frac{5}{19} & -\frac{2}{19} \end{pmatrix}
+    \]
+
+Since \(\mathbf{A}^{-1} = k \mathbf{A}\) holds true with the computed values, our solution is verified to be correct.
+
+Thus, the ordered pair \((d, k)\) is \(\boxed{(-2, \frac{1}{19})}\). 
+
+Let's also confirm this by running the Python code for completeness.
+```python
+import sympy as sp
+
+# Define the variables
+d, k = sp.symbols('d k')
+
+# Define the matrix A
+A = sp.Matrix([[2, 3], [5, d]])
+
+# Calculate the inverse of A
+A_inv = A.inv()
+
+# Set up the equation A_inv = k * A
+equation = A_inv - k * A
+
+# Solve for d and k
+solution = sp.solve([sp.Eq(A_inv[i, j], k * A[i, j]) for i in range(2) for j in range(2)], (d, k))
+print(solution)
+```
+Code execution result: [(-2, 1/19)]
+
+
+

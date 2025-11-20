@@ -1,0 +1,95 @@
+Score: 1.0
+
+To solve this problem, we'll proceed step-by-step using Python and SymPy.
+
+### Part 1: Find the Polar Equation of Circle \( C \)
+
+1. **Understand the Problem:**
+    - The center of the circle in polar coordinates is given as \( C \left(2, -\frac{\pi}{6}\right) \).
+    - The radius of the circle is 2.
+    - The general form of the equation of a circle in Cartesian coordinates with center \((x_0, y_0)\) and radius \(r\) is \((x - x_0)^2 + (y - y_0)^2 = r^2\).
+
+2. **Convert the Center to Cartesian Coordinates:**
+    - The polar coordinates \( \left(2, -\frac{\pi}{6}\right) \) convert to Cartesian coordinates as follows:
+      \[
+      x_0 = 2 \cos \left(-\frac{\pi}{6}\right) = 2 \cdot \frac{\sqrt{3}}{2} = \sqrt{3}
+      \]
+      \[
+      y_0 = 2 \sin \left(-\frac{\pi}{6}\right) = 2 \cdot \left(-\frac{1}{2}\right) = -1
+      \]
+    - Therefore, the center of the circle in Cartesian coordinates is \((\sqrt{3}, -1)\).
+    - The equation of the circle in Cartesian coordinates is then:
+      \[
+      (x - \sqrt{3})^2 + (y + 1)^2 = 4
+      \]
+
+3. **Convert the Equation to Polar Coordinates:**
+    - Using the transformations \( x = \rho \cos \theta \) and \( y = \rho \sin \theta \), substitute these into the Cartesian equation:
+      \[
+      (\rho \cos \theta - \sqrt{3})^2 + (\rho \sin \theta + 1)^2 = 4
+      \]
+    - Expanding and simplifying this equation will give us the polar equation of the circle.
+
+### Part 2: Find the Length of the Chord Cut by the Line \( \theta = -\frac{5\pi}{12} \)
+
+1. **Understand the Problem:**
+    - The line \( \theta = -\frac{5\pi}{12} \) in Cartesian coordinates is a line passing through the origin with a slope of \( \tan \left(-\frac{5\pi}{12}\right) \).
+    - To find the points of intersection of this line with the circle, substitute \( \theta = -\frac{5\pi}{12} \) into the polar equation of the circle and solve for \( \rho \).
+
+2. **Find the Points of Intersection:**
+    - Substitute \( \theta = -\frac{5\pi}{12} \) into the polar equation of the circle and solve for \( \rho \):
+      \[
+      \left( \rho \cos \left( -\frac{5\pi}{12} \right) - \sqrt{3} \right)^2 + \left( \rho \sin \left( -\frac{5\pi}{12} \right) + 1 \right)^2 = 4
+      \]
+    - The solutions for \( \rho \) will give us the points of intersection. The length of the chord will be the distance between these two intersection points.
+
+Let's implement this step-by-step in Python using SymPy:
+
+```python
+import sympy as sp
+
+# Define variables
+rho, theta = sp.symbols('rho theta')
+
+# Part 1: Find the Polar Equation of Circle C
+# Convert center (2, -pi/6) to Cartesian coordinates
+x0 = 2 * sp.cos(-sp.pi / 6)
+y0 = 2 * sp.sin(-sp.pi / 6)
+# The equation of the circle in Cartesian coordinates is (x - sqrt(3))^2 + (y + 1)^2 = 4
+x, y = sp.symbols('x y')
+circle_eq = (x - x0)**2 + (y - y0)**2 - 4
+# Convert this equation to polar coordinates
+polar_eq = circle_eq.subs({x: rho * sp.cos(theta), y: rho * sp.sin(theta)})
+polar_eq = sp.simplify(polar_eq)
+
+# Part 2: Find the Length of the Chord Cut by the Line θ = -5π/12
+# Substitute θ = -5π/12 into the polar equation of the circle and solve for ρ
+theta_line = -5 * sp.pi / 12
+circle_polar_sub = polar_eq.subs(theta, theta_line)
+rho_solutions = sp.solve(circle_polar_sub, rho)
+
+# Get the two solutions for ρ
+rho1, rho2 = rho_solutions
+
+# Find the length of the chord, which is the distance between the two points of intersection
+length_of_chord = abs(rho1 - rho2)
+
+print(f"Polar Equation of Circle C: {polar_eq}")
+print(f"Length of the Chord Cut by the Line θ = -5π/12: {length_of_chord}")
+```
+Code execution result: Polar Equation of Circle C: rho*(rho - 4*cos(theta + pi/6))
+Length of the Chord Cut by the Line θ = -5π/12: 2*sqrt(2)
+
+Hence, we get the results from the code execution as follows:
+
+1. The polar equation of circle \( C \) is given by:
+   \[
+   \boxed{\rho (\rho - 4 \cos (\theta + \frac{\pi}{6})) = 0}
+   \]
+   (we can ignore \(\rho = 0\) which corresponds to the trivial solution, so the meaningful equation is \(\rho = 4 \cos (\theta + \frac{\pi}{6})\)).
+
+2. The length of the chord cut from circle \( C \) by the line \( \theta = -\frac{5\pi}{12} \) is:
+   \[
+   \boxed{2 \sqrt{2}}
+   \]
+

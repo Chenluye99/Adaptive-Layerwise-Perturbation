@@ -1,0 +1,57 @@
+Score: 1.0
+
+To solve the given problem, we need to find the value of \( n \) that satisfies the equation \( 2(n+1)! + 6n! = 3(n+1)! \).
+
+First, let's simplify the equation algebraically. We start by moving all terms involving \((n+1)!\) to one side of the equation:
+
+\[ 2(n+1)! + 6n! = 3(n+1)! \]
+
+Subtract \( 2(n+1)! \) from both sides:
+
+\[ 6n! = (3(n+1)! - 2(n+1)!) \]
+
+This simplifies to:
+
+\[ 6n! = (3 - 2)(n+1)! \]
+
+So,
+
+\[ 6n! = (n+1)! \]
+
+We know that \((n+1)! = (n+1) \cdot n!\), so we can substitute this in:
+
+\[ 6n! = (n+1) \cdot n! \]
+
+By dividing both sides of the equation by \( n! \) (assuming \( n! \neq 0 \), i.e., \( n \geq 0 \)):
+
+\[ 6 = n + 1 \]
+
+Then, solve for \( n \):
+
+\[ n = 6 - 1 \]
+\[ n = 5 \]
+
+So, the solution to the equation is \( n = 5 \). To ensure this result is accurate, we can verify it by substituting \( n = 5 \) back into the original equation and check if both sides are equal. We will use Python to confirm this.
+```python
+import math
+
+# Define the left and right sides of the equation as functions of n
+def left_side(n):
+    return 2 * math.factorial(n + 1) + 6 * math.factorial(n)
+
+def right_side(n):
+    return 3 * math.factorial(n + 1)
+
+# Check for n = 5
+n = 5
+left_value = left_side(n)
+right_value = right_side(n)
+
+print(((left_value, right_value, left_value == right_value)))
+```
+Code execution result: (2160, 2160, True)
+
+Since the left side of the equation evaluates to 2160 and the right side also evaluates to 2160 when \( n = 5 \), this confirms that our solution is accurate.
+
+Thus, the value of \( n \) that satisfies the equation is \(\boxed{5}\).
+

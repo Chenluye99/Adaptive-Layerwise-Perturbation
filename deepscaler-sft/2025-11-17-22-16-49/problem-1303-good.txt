@@ -1,0 +1,51 @@
+Score: 1.0
+
+First, let's set up the problem in a mathematical context.
+
+1. **Initialize Positions and Velocities:**
+    - The car starts at the origin (0, 0) and moves due east at \(\frac{2}{3}\) mile per minute. Thus, its position at time \( t \) is \((\frac{2}{3} t, 0)\).
+    - The storm starts at position (0, 110) and moves southeast at \(\frac{1}{2} \sqrt{2}\) mile per minute. This means it moves at a 45-degree angle, so its velocity can be broken down into equal eastward and southward components, both being \(\frac{1}{2}\) mile per minute. Thus, its position at time \( t \) is \((\frac{1}{2} t, 110 - \frac{1}{2} t)\).
+
+2. **Distance Between the Car and the Center of the Storm:**
+    - We need to find the distance between the car's position \((\frac{2}{3} t, 0)\) and the storm's position \((\frac{1}{2} t, 110 - \frac{1}{2} t)\). Using the distance formula:
+      \[
+      d(t) = \sqrt{ \left( \frac{2}{3} t - \frac{1}{2} t \right)^2 + \left( 0 - \left( 110 - \frac{1}{2} t \right) \right)^2 } = \sqrt{ \left( \frac{4}{6} t - \frac{3}{6} t \right)^2 + \left( \frac{1}{2} t - 110 \right)^2 } = \sqrt{ \left( \frac{1}{6} t \right)^2 + \left( \frac{1}{2} t - 110 \right)^2 }
+      \]
+
+3. **Condition for the Car Entering and Leaving the Storm:**
+    - The car is in the storm circle when the distance \( d(t) \) is less than or equal to the storm's radius, which is 51 miles. This gives us the following inequalities to solve:
+      \[
+      \left( \frac{1}{6} t \right)^2 + \left( \frac{1}{2} t - 110 \right)^2 \leq 51^2
+      \]
+    - To find \( t_1 \) and \( t_2 \), we solve the equation:
+      \[
+      \left( \frac{1}{6} t \right)^2 + \left( \frac{1}{2} t - 110 \right)^2 = 51^2
+      \]
+
+4. **Set Up and Solve the Equation:**
+    - Let's solve this equation using Python:
+```python
+import sympy as sp
+
+# Define the variables
+t = sp.symbols('t', real=True, positive=True)
+
+# Define the equation based on the distance condition
+eq = ( (1/6) * t )**2 + ( (1/2) * t - 110 )**2 - 51**2
+
+# Find the roots of the equation
+roots = sp.solve(eq, t)
+print(roots)
+```
+Code execution result: [127.235602171713, 268.764397828287]
+
+Hence, we get two solutions: \( t_1 = 127.235602171713 \) and \( t_2 = 268.764397828287 \).
+
+5. **Find \(\frac{1}{2}(t_1 + t_2)\):**
+    - Now, we compute \(\frac{1}{2}(t_1 + t_2)\):
+      \[
+      \frac{1}{2}(t_1 + t_2) = \frac{1}{2} \left( 127.235602171713 + 268.764397828287 \right) = \frac{1}{2} \times 396 = 198
+      \]
+
+Thus, the final answer is \(\boxed{198}\). This is the solution obtained from solving the equation and computing the average of the times when the car enters and leaves the storm circle.
+

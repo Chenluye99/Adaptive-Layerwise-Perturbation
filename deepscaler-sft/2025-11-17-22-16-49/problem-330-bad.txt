@@ -1,0 +1,39 @@
+Score: 1.0
+
+To solve this problem, we'll need to follow these steps:
+
+1. **Generate All Four-Digit Numbers Without Repeated Digits:**
+    - A four-digit number ranges from 1000 to 9999.
+    - Ensure that no digit is repeated in a given number.
+
+2. **Check the Condition:**
+    - For each number, check if the digit in the thousandth place (i.e., the first digit from the left or the thousands place) is 2 greater than the digit in the unit place (i.e., the last digit).
+
+3. **Count Such Numbers:**
+    - Count how many numbers satisfy the above condition.
+
+Let's implement this step-by-step process in Python to ensure accuracy.
+```python
+count = 0
+
+# Function to check if a number has all distinct digits
+def has_distinct_digits(n):
+    num_str = str(n)
+    return len(set(num_str)) == 4
+
+# Check all numbers from 1000 to 9999
+for num in range(1000, 10000):
+    num_str = str(num)
+    if len(set(num_str)) == 4:  # Ensure all digits are distinct
+        thousandth_digit = int(num_str[0])
+        unit_digit = int(num_str[3])
+        
+        if thousandth_digit == unit_digit + 2:
+            count += 1
+
+print(count)
+```
+Code execution result: 448
+
+Thus, the number of four-digit numbers without repeated digits, where the digit in the thousand's place is 2 greater than the digit in the unit's place, is \(\boxed{448}\). This completes our solution.
+

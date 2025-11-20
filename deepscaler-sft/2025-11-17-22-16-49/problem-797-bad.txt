@@ -1,0 +1,32 @@
+Score: 0.0
+
+First, let's generate all possible numbers that can be formed using the digits 1, 2, 3, and 4 exactly once. These numbers will be permutations of the list [1, 2, 3, 4]. We then need to check which of these permutations form numbers that are divisible by 4. A number is divisible by 4 if the number formed by its last two digits is divisible by 4.
+
+We will use Python to perform this task accurately. Let's start by generating all permutations of [1, 2, 3, 4], forming numbers from these permutations, and then checking the divisibility by 4 condition for the last two digits of each number.
+```python
+import itertools
+
+# Digits to be used
+digits = [1, 2, 3, 4]
+
+# Generate all permutations of the list [1, 2, 3, 4]
+perm = list(itertools.permutations(digits))
+
+# List to store numbers that are divisible by 4
+divisible_by_4 = []
+
+# Check each permutation to see if it forms a number divisible by 4
+for p in perm:
+    num = int(''.join(map(str, p)))
+    if num % 4 == 0:
+        divisible_by_4.append(num)
+
+# Get the count of different positive integers that are divisible by 4
+count_divisible_by_4 = len(set(divisible_by_4))
+
+print(count_divisible_by_4)
+```
+Code execution result: 6
+
+Thus, the number of different positive integers divisible by 4 that can be formed using each of the digits 1, 2, 3, and 4 at most once is \(\boxed{6}\).
+

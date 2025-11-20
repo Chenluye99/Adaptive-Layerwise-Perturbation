@@ -1,0 +1,35 @@
+Score: 0.0
+
+To solve this problem, we need to determine if a number \( n \) (where \( 1 \leq n \leq 221 \)) is lucky based on the following condition: when dividing 221 by \( n \), the remainder is wholly divisible by the incomplete quotient (also known as the integer quotient).
+
+Mathematically, let's denote:
+- \( q \) as the quotient when 221 is divided by \( n \), i.e., \( q = \left\lfloor \frac{221}{n} \right\rfloor \).
+- \( r \) as the remainder when 221 is divided by \( n \), i.e., \( r = 221 \mod n \).
+
+The condition for \( n \) to be lucky is that the remainder \( r \) should be divisible by the quotient \( q \), i.e., \( r \% q == 0 \) or simply \( r \bmod q == 0 \).
+
+We need to check this condition for all numbers \( n \) in the range from 1 to 221 and count how many such numbers satisfy the condition.
+
+Let's write some Python code to determine the solution:
+```python
+# Initialize a counter for lucky numbers
+lucky_count = 0
+
+# Check the condition for each number n in the range from 1 to 221
+for n in range(1, 222):
+    quotient = 221 // n
+    remainder = 221 % n
+    
+    if remainder != 0 or quotient == 0:
+        continue  # We only consider the case where dividing 221 by n makes sense, i.e., n is not 0 or greater than 221
+    
+    # Check if the remainder is divisible by the quotient
+    if remainder % quotient == 0:
+        lucky_count += 1
+
+print(lucky_count)
+```
+Code execution result: 4
+
+Thus, the number of lucky numbers in the range from 1 to 221 is \(\boxed{4}\). This is our final answer.
+

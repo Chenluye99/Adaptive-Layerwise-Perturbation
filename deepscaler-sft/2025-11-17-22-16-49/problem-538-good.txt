@@ -1,0 +1,31 @@
+Score: 1.0
+
+Let's solve this step-by-step. We need to form the sequence \( a_n \) according to the given recurrence relation \( a_n = 100a_{n-1} + 134 \) with the initial value \( a_1 = 24 \), and check for the least value of \( n \) such that \( a_n \) is divisible by 99.
+
+We'll implement this in Python and iterate until we find such an \( n \).
+```python
+# Initialize the sequence with the first term
+a = [24]
+
+# Function to generate the sequence and check for divisibility by 99
+def find_least_n():
+    n = 2
+    while True:
+        # Compute the next term in the sequence
+        a_n = 100 * a[-1] + 134
+        a.append(a_n)
+        
+        # Check if the current term is divisible by 99
+        if a_n % 99 == 0:
+            return n
+        
+        n += 1
+
+# Find and return the least value of n for which a_n is divisible by 99
+least_n = find_least_n()
+print(least_n)
+```
+Code execution result: 88
+
+Thus, the least value of \( n \) for which \( a_n \) is divisible by 99 is \(\boxed{88}\). This is our final answer.
+

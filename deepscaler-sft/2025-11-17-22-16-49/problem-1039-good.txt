@@ -1,0 +1,58 @@
+Score: 1.0
+
+To solve the inequality \(\frac{x}{x + 3} \ge 0\), we need to determine the values of \(x\) for which the expression \(\frac{x}{x + 3}\) is non-negative (i.e., greater than or equal to zero).
+
+1. **Find the critical points:**
+    - The expression \(\frac{x}{x + 3}\) is zero when the numerator is zero, i.e., \(x = 0\).
+    - The expression \(\frac{x}{x + 3}\) is undefined when the denominator is zero, i.e., \(x = -3\).
+
+2. **Determine the sign of \(\frac{x}{x + 3}\) in the intervals defined by these critical points:**
+    - The critical points divide the real number line into three intervals: \((-\infty, -3)\), \((-3, 0)\), and \((0, \infty)\). We also need to consider the points \(-3\) and \(0\) themselves.
+
+3. **Test the sign of \(\frac{x}{x + 3}\) in each interval:**
+    - For \((-\infty, -3)\), choose a test point, say \(x = -4\):
+      \[
+      \frac{-4}{-4 + 3} = \frac{-4}{-1} = 4 \quad \text{(which is greater than 0)}
+      \]
+    - For \((-3, 0)\), choose a test point, say \(x = -1\):
+      \[
+      \frac{-1}{-1 + 3} = \frac{-1}{2} = -\frac{1}{2} \quad \text{(which is less than 0)}
+      \]
+    - For \((0, \infty)\), choose a test point, say \(x = 1\):
+      \[
+      \frac{1}{1 + 3} = \frac{1}{4} \quad \text{(which is greater than 0)}
+      \]
+
+4. **Consider the critical points themselves:**
+    - At \(x = 0\):
+      \[
+      \frac{0}{0 + 3} = \frac{0}{3} = 0 \quad \text{(which is equal to 0 and satisfies the inequality)}
+      \]
+    - At \(x = -3\):
+      \[
+      \frac{-3}{-3 + 3} = \frac{-3}{0} \quad \text{(which is undefined and does not satisfy the inequality)}
+      \]
+
+From this analysis, we see that \(\frac{x}{x + 3} \ge 0\) when:
+- \(x \in (-\infty, -3) \cup [0, \infty)\).
+
+Thus, the solution in interval notation is \((- \infty, -3) \cup [0, \infty)\).
+
+Let's confirm this using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define the variable and the inequality
+x = sp.symbols('x')
+inequality = x / (x + 3) >= 0
+
+# Solve the inequality
+solution = sp.solve_univariate_inequality(inequality, x, relational=False)
+print(solution)
+```
+Code execution result: Union(Interval.open(-oo, -3), Interval(0, oo))
+
+This confirms our solution. The solution to the inequality \(\frac{x}{x + 3} \ge 0\) is:
+
+\(\boxed{(- \infty, -3) \cup [0, \infty)}\)
+

@@ -1,0 +1,54 @@
+Score: 1.0
+
+First, let's analyze the graph and the function given by \( y = \frac{x}{x^3 + Ax^2 + Bx + C} \). The graph has vertical asymptotes at \( x = 1 \), \( x = 2 \), and \( x = -2 \). This means the denominator of the function must have roots at these points, so we can write the denominator as:
+
+\[ x^3 + Ax^2 + Bx + C = (x - 1)(x - 2)(x + 2) \]
+
+Now, let's expand the product \((x - 1)(x - 2)(x + 2)\):
+
+1. First, expand \((x - 2)(x + 2)\):
+\[ (x - 2)(x + 2) = x^2 - 4 \]
+
+2. Then, multiply the result by \((x - 1)\):
+\[ (x - 1)(x^2 - 4) = x^3 - 4x - x^2 + 4 = x^3 - x^2 - 4x + 4 \]
+
+So, we have:
+\[ x^3 + Ax^2 + Bx + C = x^3 - x^2 - 4x + 4 \]
+
+By comparing coefficients, we get:
+\[ A = -1, \quad B = -4, \quad C = 4 \]
+
+Thus, we need to find \( A + B + C \):
+\[ A + B + C = -1 + (-4) + 4 = -1 \]
+
+Let's confirm this by coding the solution in Python to ensure that our result is accurate.
+```python
+import sympy as sp
+
+# Define the variables
+x = sp.symbols('x')
+A, B, C = sp.symbols('A B C', integer=True)
+
+# Define the equation for the denominator
+denominator = (x - 1) * (x - 2) * (x + 2)
+
+# Expand the product to get the polynomial form
+expanded_denominator = sp.expand(denominator)
+
+# Extract the coefficients
+coefficients = sp.Poly(expanded_denominator, x).all_coeffs()
+
+# Assign the coefficients to A, B, C respectively (the coefficients correspond to [x^3, x^2, x, x^0] in that order)
+A_val = coefficients[1]
+B_val = coefficients[2]
+C_val = coefficients[3]
+
+print(f"A: {A_val}, B: {B_val}, C: {C_val}")
+print(f"A + B + C: {A_val + B_val + C_val}")
+```
+Code execution result: A: -1, B: -4, C: 4
+A + B + C: -1
+
+Thus, the final answer is:
+\(\boxed{-1}\)
+

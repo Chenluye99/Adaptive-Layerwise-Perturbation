@@ -1,0 +1,73 @@
+Score: 1.0
+
+First, let us start by calculating the distances from the point \( P = (4, 2) \) to the vertices \( A = (0, 0) \), \( B = (10, 0) \), and \( C = (3, 5) \).
+
+The distance formula between two points \((x_1, y_1)\) and \((x_2, y_2)\) is given by:
+\[
+d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}
+\]
+
+1. Calculate the distance from \( P \) to \( A \):
+\[
+d_{PA} = \sqrt{(4 - 0)^2 + (2 - 0)^2} = \sqrt{4^2 + 2^2} = \sqrt{16 + 4} = \sqrt{20} = 2 \sqrt{5}
+\]
+
+2. Calculate the distance from \( P \) to \( B \):
+\[
+d_{PB} = \sqrt{(4 - 10)^2 + (2 - 0)^2} = \sqrt{(-6)^2 + 2^2} = \sqrt{36 + 4} = \sqrt{40} = 2 \sqrt{10}
+\]
+
+3. Calculate the distance from \( P \) to \( C \):
+\[
+d_{PC} = \sqrt{(4 - 3)^2 + (2 - 5)^2} = \sqrt{1^2 + (-3)^2} = \sqrt{1 + 9} = \sqrt{10}
+\]
+
+Now, sum these distances:
+\[
+d_{PA} + d_{PB} + d_{PC} = 2 \sqrt{5} + 2 \sqrt{10} + \sqrt{10} = 2 \sqrt{5} + 3 \sqrt{10}
+\]
+
+From the problem, we know that this sum is given as \( m \sqrt{5} + n \sqrt{10} \). By comparing, we can see that:
+\[
+m = 2 \quad \text{and} \quad n = 3
+\]
+
+Thus, the sum \( m + n = 2 + 3 = 5 \).
+
+Let's confirm this by implementing it in Python to ensure the results are accurate.
+```python
+import sympy as sp
+
+# Coordinates of the points
+A = (0, 0)
+B = (10, 0)
+C = (3, 5)
+P = (4, 2)
+
+# Function to calculate the distance between two points
+def distance(point1, point2):
+    return sp.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)
+
+# Calculate the distances
+d_PA = distance(P, A)
+d_PB = distance(P, B)
+d_PC = distance(P, C)
+
+# Sum the distances
+sum_distances = d_PA + d_PB + d_PC
+
+# Get the expression in the form of m*sqrt(5) + n*sqrt(10)
+m, n = 0, 0
+# Extract coefficient of sqrt(5) and sqrt(10)
+coeffs = sp.collect(sum_distances, [sp.sqrt(5), sp.sqrt(10)], evaluate=False)
+m = coeffs.get(sp.sqrt(5), 0)
+n = coeffs.get(sp.sqrt(10), 0)
+
+print(((m, n, m + n)))
+```
+Code execution result: (2, 3, 5)
+
+This confirms our earlier solution. Thus, the final answer is:
+
+\(\boxed{5}\)
+

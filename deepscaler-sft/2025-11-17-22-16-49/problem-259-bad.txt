@@ -1,0 +1,42 @@
+Score: 0.0
+
+To solve this problem, we need to simulate the process of eliminating and adding bacteria day by day until the number of bacteria becomes zero.
+
+Given:
+- Each day, 11 bacteria are eliminated.
+- Each night, 5 bacteria are added.
+- We start with 50 bacteria in the morning of the first day.
+
+Let's denote the number of bacteria at the start of each day as \( \text{bacteria\_count} \).
+
+1. In the morning of day 1, there are 50 bacteria.
+2. By the end of the day (which is actually the start of the next day in the morning), 11 bacteria would have been eliminated, so the count at the start of the next day (night) would be \( 50 - 11 = 39 \).
+3. By the end of the night (which is the start of the next day in the morning), 5 bacteria would be added, so the count at the start of the next day (morning) would be \( 39 + 5 = 44 \).
+
+So, the process continues until the number of bacteria becomes zero. We need to implement this step-by-step in Python to find out on which day this will happen.
+
+Let's write the Python code to simulate this process and find the answer.
+```python
+# Initialize the count of bacteria and the day counter
+bacteria_count = 50
+day = 1
+
+# We will iterate until the bacteria_count becomes 0
+while bacteria_count > 0:
+    # Eliminate 11 bacteria by the end of the day (which is the start of the next day in the morning)
+    bacteria_count -= 11
+    
+    # Add 5 bacteria by the end of the night (which is the start of the next day in the morning)
+    bacteria_count += 5
+    
+    # Move to the next day
+    day += 1
+
+print(day - 1)  # We subtract 1 because the counting of days started from 1 when we had 50 bacteria in the morning, and the loop ends when bacteria_count becomes 0 (which is the end of the day when the bacteria are eliminated but not added back to make it go to zero)
+```
+Code execution result: 9
+
+So, all the bacteria will be eliminated on the 9th day.
+
+\(\boxed{9}\)
+

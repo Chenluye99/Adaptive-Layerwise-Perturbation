@@ -1,0 +1,42 @@
+Score: 1.0
+
+To solve for \(\tan 120^\circ\), we can use the properties of the tangent function and known trigonometric values.
+
+1. **Understand the Angle:**
+    - The angle \(120^\circ\) is in the second quadrant.
+    - The reference angle for \(120^\circ\) is \(180^\circ - 120^\circ = 60^\circ\).
+    - The tangent function is negative in the second quadrant, so \(\tan 120^\circ = -\tan 60^\circ\).
+
+2. **Known Value of \(\tan 60^\circ\):**
+    - We know that \(\tan 60^\circ = \sqrt{3}\).
+
+3. **Combine to Find \(\tan 120^\circ\):**
+    - Therefore, \(\tan 120^\circ = -\tan 60^\circ = -\sqrt{3}\).
+
+We can verify this using Python's `math` library which provides trigonometric functions that use radians. We need to convert \(120^\circ\) to radians because the trigonometric functions in the `math` library expect the angle in radians.
+
+The conversion from degrees to radians is given by:
+\[ \text{radians} = \text{degrees} \times \frac{\pi}{180} \]
+
+So, \(120^\circ\) in radians is:
+\[ 120 \times \frac{\pi}{180} = \frac{2\pi}{3} \]
+
+We can now use `math.tan` to compute \(\tan \left( \frac{2\pi}{3} \right)\) and confirm our answer.
+```python
+import math
+
+# Convert 120 degrees to radians
+angle_degrees = 120
+angle_radians = angle_degrees * (math.pi / 180)
+
+# Compute the tangent of 120 degrees
+tan_120 = math.tan(angle_radians)
+print(tan_120)
+```
+Code execution result: -1.7320508075688783
+
+This result matches our expected value of \(-\sqrt{3}\), because \(\sqrt{3} \approx 1.7320508075688772\), and thus \(-\sqrt{3} \approx -1.7320508075688772\).
+
+So, the final answer is:
+\(\boxed{-\sqrt{3}}\)
+

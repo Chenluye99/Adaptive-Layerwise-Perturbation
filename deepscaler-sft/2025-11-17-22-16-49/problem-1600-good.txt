@@ -1,0 +1,84 @@
+Score: 1.0
+
+To solve this problem, we need to determine the number of pairs \((a, b)\) of real numbers such that \(10, a, b, ab\) forms an arithmetic progression.
+
+In an arithmetic progression, the difference between consecutive terms is constant. So for the sequence \(10, a, b, ab\), the following conditions must hold:
+
+1. The difference between the second and the first term is the same as the difference between the third and the second term, and so on.
+2. Mathematically, this translates to:
+   \[
+   a - 10 = b - a = ab - b
+   \]
+
+Let's call the common difference \(d\). Then we have:
+\[
+a - 10 = d \quad \text{(1)}
+\]
+\[
+b - a = d \quad \text{(2)}
+\]
+\[
+ab - b = d \quad \text{(3)}
+\]
+
+From equation (1), we can express \(a\) in terms of \(d\):
+\[
+a = 10 + d \quad \text{(4)}
+\]
+
+Substitute \(a = 10 + d\) into equation (2):
+\[
+b - (10 + d) = d \implies b - 10 - d = d \implies b = 10 + 2d \quad \text{(5)}
+\]
+
+Now, substitute both \(a = 10 + d\) and \(b = 10 + 2d\) into equation (3):
+\[
+(10 + d)(10 + 2d) - (10 + 2d) = d
+\]
+
+Let's solve this equation step-by-step using Python to ensure accuracy.
+```python
+import sympy as sp
+
+# Define variables
+d = sp.symbols('d', real=True)
+
+# Define the equation based on our substitutions
+a = 10 + d
+b = 10 + 2 * d
+equation = a * b - b - d
+
+# Solve the equation for d
+solutions = sp.solve(equation, d)
+print(solutions)
+```
+Code execution result: [-15/2, -6]
+
+So, we have two solutions for \( d \): \(-\frac{15}{2}\) and \(-6\).
+
+For each solution of \(d\), we can find the corresponding values of \(a\) and \(b\) using the equations \(a = 10 + d\) and \(b = 10 + 2d\):
+
+1. When \( d = -\frac{15}{2} \):
+   \[
+   a = 10 + \left(-\frac{15}{2}\right) = 10 - \frac{15}{2} = \frac{20}{2} - \frac{15}{2} = \frac{5}{2}
+   \]
+   \[
+   b = 10 + 2 \left(-\frac{15}{2}\right) = 10 - 15 = -5
+   \]
+
+2. When \( d = -6 \):
+   \[
+   a = 10 + (-6) = 4
+   \]
+   \[
+   b = 10 + 2(-6) = 10 - 12 = -2
+   \]
+
+So, we have two pairs \((a, b)\):
+1. \(\left(\frac{5}{2}, -5\right)\)
+2. \((4, -2)\)
+
+Thus, there are 2 pairs of \((a, b)\) that satisfy the conditions. The final answer is:
+
+\(\boxed{2}\)
+

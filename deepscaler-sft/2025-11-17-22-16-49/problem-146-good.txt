@@ -1,0 +1,117 @@
+Score: 1.0
+
+First, let's analyze the problem and set up our plan.
+
+1. **Problem Understanding:**
+    - Four princesses each guessed a two-digit number, and Ivan guessed a four-digit number.
+    - When these numbers (six in total, four two-digit numbers and one four-digit number) are written in a row, they form the sequence "132040530321".
+
+2. **Task:**
+    - We need to determine Ivan's four-digit number based on the sequence "132040530321".
+
+3. **Plan:**
+    - We know that the sequence contains six numbers written in some order, so we have to split the sequence into six parts. Each part should be a number (either two-digit or four-digit).
+
+4. **Implementation:**
+    - We will check different ways to split the sequence "132040530321" into six parts such that exactly one of these parts is a four-digit number and the other four are two-digit numbers.
+    - For each valid split, we will verify if the numbers formed can be correct 2-digit numbers and if the four-digit number guessed by Ivan matches some four-digit number.
+
+Let's implement this step-by-step using Python to ensure accuracy.
+```python
+from itertools import permutations
+
+# Given sequence
+sequence = "132040530321"
+
+# Function to check if a given split of the sequence is valid
+def find_ivan_number(sequence):
+    for i in range(1, 13):  # Trying to split the sequence into 6 numbers (1 through 12 characters for the first number, 1 through 11 for the second, and so on)
+        for j in range(i + 1, 14):
+            for k in range(j + 1, 15):
+                for l in range(k + 1, 16):
+                    for m in range(l + 1, 17):
+                        p1 = sequence[:i]
+                        p2 = sequence[i:j]
+                        p3 = sequence[j:k]
+                        p4 = sequence[k:l]
+                        p5 = sequence[l:m]
+                        p6 = sequence[m:]
+                        
+                        nums = [p1, p2, p3, p4, p5, p6]
+                        
+                        # Check the lengths of the numbers and their validity as 2-digit or 4-digit numbers
+                        two_digit_count = 0
+                        four_digit_number = None
+                        
+                        for num in nums:
+                            if len(num) == 4:
+                                four_digit_number = int(num)
+                            elif 10 <= int(num) <= 99:
+                                two_digit_count += 1
+                            else:
+                                continue
+                        
+                        if len(nums) == 6 and two_digit_count == 4 and 1000 <= four_digit_number <= 9999:
+                            return four_digit_number
+
+ivan_number = find_ivan_number(sequence)
+print(ivan_number)
+```
+Code execution result: ValueError: invalid literal for int() with base 10: ''
+It seems there was an issue with checking if numerical interpretations of various parts of the sequence were valid 2-digit numbers (which should be integers between 10 and 99) or the four-digit number (which should be an integer between 1000 and 9999).
+
+We need to ensure that when checking permutations and splits, the interpretation of these numbers is validated correctly by ensuring all parts of the sequence, when put together properly, result in valid two-digit and four-digit numbers when appropriately grouped. Let's correct this and take another approach.
+
+We will generate all permutations of the sequence, group them into six parts, and then check if the conditions of four 2-digit numbers and one 4-digit number can be satisfied, and also ensure that the resulting numbers are valid.
+```python
+import itertools
+
+sequence = "132040530321"
+
+# Generate all possible ways to split the sequence into 6 parts
+def find_split_ways(sequence):
+    ways = []
+    for i in range(1, 13):
+        for j in range(i + 1, 14):
+            for k in range(j + 1, 15):
+                for l in range(k + 1, 16):
+                    for m in range(l + 1, 17):
+                        part1 = sequence[:i]
+                        part2 = sequence[i:j]
+                        part3 = sequence[j:k]
+                        part4 = sequence[k:l]
+                        part5 = sequence[l:m]
+                        part6 = sequence[m:]
+                        ways.append((part1, part2, part3, part4, part5, part6))
+    return ways
+
+# Check each possible split to find the valid Ivan's 4-digit number
+def find_ivan_and_check(ways):
+    for (part1, part2, part3, part4, part5, part6) in ways:
+        num_list = [part1, part2, part3, part4, part5, part6]
+        
+        two_digit_count = 0
+        four_digit_numbers = []
+        
+        for num in num_list:
+            try:
+                num = int(num)
+                if 10 <= num <= 99:
+                    two_digit_count += 1
+                elif 1000 <= num <= 9999:
+                    four_digit_numbers.append(num)
+            except ValueError:
+                continue
+        
+        if two_digit_count == 4 and len(four_digit_numbers) == 1:
+            return four_digit_numbers[0]
+    
+    return None
+
+result = find_ivan_and_check(find_split_ways(sequence))
+print(result)
+```
+Code execution result: 5303
+
+Therefore, Ivan's number is \(\boxed{5303}\). This result is found by ensuring all conditions of the problem are satisfied, i.e., there are exactly four 2-digit numbers and one 4-digit number formed from the sequence, and verifying that they are valid numbers under the conditions provided in the problem statement.
+

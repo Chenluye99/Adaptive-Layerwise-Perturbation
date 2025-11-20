@@ -1,0 +1,62 @@
+Score: 1.0
+
+To solve this problem, we need to determine the smallest positive integer \( n \) such that \( 80325 \) divides \( n! \) (i.e., \( n! \) is a multiple of 80325).
+
+Let's start by performing the prime factorization of 80325. Then we can determine what the smallest \( n \) is such that \( n! \) contains all these prime factors with at least the same multiplicities as in the prime factorization of 80325.
+
+First, let's start with the prime factorization of 80325:
+\[ 80325 \div 3 = 26775 \]
+\[ 26775 \div 3 = 8925 \]
+\[ 8925 \div 3 = 2975 \]
+\[ 2975 \div 5 = 595 \]
+\[ 595 \div 5 = 119 \]
+\[ 119 \div 7 = 17 \]
+\[ 17 \div 17 = 1 \]
+
+So, the prime factorization of 80325 is:
+\[ 80325 = 3^3 \times 5^2 \times 7 \times 17 \]
+
+Now, we need to find the smallest \( n \) such that \( n! \) contains at least three factors of 3, two factors of 5, one factor of 7, and one factor of 17 in its prime factorization.
+
+We can implement this step-by-step by checking the prime factorization of factorials starting from 1 and moving up until we find such an \( n \).
+
+Let's implement this in Python to ensure accuracy.
+```python
+import math
+
+def prime_factors(n):
+    i = 2
+    factors = {}
+    while i * i <= n:
+        while (n % i) == 0:
+            if i in factors:
+                factors[i] += 1
+            else:
+                factors[i] = 1
+            n //= i
+        i += 1
+    if n > 1:
+        factors[n] = 1 if n not in factors else factors[n] + 1
+    return factors
+
+factorization_of_80325 = prime_factors(80325)
+
+def has_enough_factors_in_factorial(n, factorization):
+    factorial_prime_factors = prime_factors(math.factorial(n))
+    for prime, needed_count in factorization.items():
+        if prime not in factorial_prime_factors or factorial_prime_factors[prime] < needed_count:
+            return False
+    return True
+
+n = 1
+while True:
+    if has_enough_factors_in_factorial(n, factorization_of_80325):
+        break
+    n += 1
+
+print(n)
+```
+Code execution result: 17
+
+Thus, the least positive integer \( n \) such that \( 80325 \) divides \( n! \) is \(\boxed{17}\). This means that \( 17! \) is the smallest factorial that contains all the prime factors of 80325 with at least the same multiplicities.
+

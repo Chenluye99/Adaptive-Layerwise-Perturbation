@@ -1,0 +1,88 @@
+Score: 1.0
+
+Let's solve this step-by-step.
+
+### Part (1)
+
+Given:
+1. \( 2\sin A = 3 \sin B \)
+2. The perimeter of \(\triangle ABC\) is 8, so \( a + b + c = 8 \).
+3. From the Law of Sines, we know that \(\frac{a}{\sin A} = \frac{b}{\sin B} = \frac{c}{\sin C} = 2R\) (where \(R\) is the circumradius of the triangle), so \(\sin A = \frac{a}{2R}\) and \(\sin B = \frac{b}{2R}\). Substituting this into the given equation \(2 \sin A = 3 \sin B\), we get:
+\[ 2 \cdot \frac{a}{2R} = 3 \cdot \frac{b}{2R} \implies 2a = 3b \implies a = \frac{3b}{2}. \]
+
+Substitute \( a = \frac{3b}{2} \) into the perimeter equation \( a + b + c = 8 \):
+\[ \frac{3b}{2} + b + c = 8 \implies \frac{5b}{2} + c = 8 \implies 5b + 2c = 16. \]
+We need to solve this equation for \( c \). However, we don't have enough information yet to determine \( b \) and \( c \) directly. We could try different values or use another condition as needed.
+
+### Part (2)
+
+Given:
+1. \(\triangle ABC\) is an isosceles triangle, so at least two of its sides are equal.
+2. From the equation \( b \sin A = (3b - c) \sin B \), using the Law of Sines again, we can substitute \(\sin A = \frac{a}{2R}\) and \(\sin B = \frac{b}{2R}\):
+\[ b \cdot \frac{a}{2R} = (3b - c) \cdot \frac{b}{2R} \implies b \cdot a = (3b - c) \cdot b \implies a = 3b - c. \]
+We know that for an isosceles triangle, let's assume without loss of generality that \( a = c \). Substituting \( a = c \) into the equation, we get:
+\[ c = 3b - c \implies 2c = 3b \implies c = \frac{3b}{2}. \]
+Substitute \( a = c = \frac{3b}{2} \) into the Law of Cosines to find \(\cos B\). For an isosceles triangle with \(a = c\):
+\[ a^2 = b^2 + c^2 - 2bc \cos A \implies \left(\frac{3b}{2}\right)^2 = b^2 + \left(\frac{3b}{2}\right)^2 - 2 \cdot b \cdot \frac{3b}{2} \cdot \cos A. \]
+However, another useful approach is to use the Law of Cosines for angle \( B \):
+\[ \cos B = \frac{a^2 + c^2 - b^2}{2ac}. \]
+Substituting \( a = c = \frac{3b}{2} \):
+\[ \cos B = \frac{\left(\frac{3b}{2}\right)^2 + \left(\frac{3b}{2}\right)^2 - b^2}{2 \cdot \frac{3b}{2} \cdot \frac{3b}{2}} = \frac{\frac{9b^2}{4} + \frac{9b^2}{4} - b^2}{2 \cdot \frac{9b^2}{4}} = \frac{\frac{18b^2}{4} - b^2}{\frac{9b^2}{2}} = \frac{\frac{18b^2 - 4b^2}{4}}{\frac{9b^2}{2}} = \frac{\frac{14b^2}{4}}{\frac{9b^2}{2}} = \frac{14b^2 \cdot 2}{4 \cdot 9b^2} = \frac{28}{36} = \frac{7}{9}. \]
+Now, we need to find \(\cos 2B\):
+\[ \cos 2B = 2 \cos^2 B - 1 = 2 \left( \frac{7}{9} \right)^2 - 1 = 2 \left( \frac{49}{81} \right) - 1 = \frac{98}{81} - 1 = \frac{98 - 81}{81} = \frac{17}{81}. \]
+
+Let's verify this by coding the solution to ensure accuracy.
+```python
+import sympy as sp
+
+# Part (1)
+# Set up the equations
+b, c = sp.symbols('b c', positive=True)
+a = (3 * b) / 2
+
+# The perimeter condition
+perimeter_eq = a + b + c - 8
+
+# Solve for c
+solution_c = sp.solve(perimeter_eq, c)
+print(f"Part (1) solutions for c: {solution_c}")
+
+# Part (2)
+# Setting up the equations based on isosceles triangle condition and equation b * sin(A) = (3 * b - c) * sin(B)
+# We know sin(A) = a / (2 * R), sin(B) = b / (2 * R), and due to isosceles triangle, let's consider a = c 
+a, b, c = sp.symbols('a b c', positive=True)
+
+# Equation a = 3b - c
+eq1 = a - (3 * b - c)
+
+# Assume a = c in isosceles triangle, so substitute a = c into eq1
+eq1_sub = eq1.subs(a, c)
+solution = sp.solve(eq1_sub, c)
+
+# We get c = 3b / 2. Substitute this back into the equation a = c so a = 3b / 2 as well.
+# Now, we can find cos(B) using the Law of Cosines
+cos_B = (a**2 + c**2 - b**2) / (2 * a * c)
+cos_B = cos_B.subs({a: (3 * b) / 2, c: (3 * b) / 2})
+
+# Find cos(2B) using the double-angle formula cos(2B) = 2 * cos^2(B) - 1
+cos_2B = 2 * cos_B**2 - 1
+cos_2B = cos_2B.simplify()
+
+print(f"Part (2) value for cos(2B): {cos_2B}")
+```
+Code execution result: Part (1) solutions for c: [8 - 5*b/2]
+Part (2) value for cos(2B): 17/81
+
+So, the results are:
+
+1. For Part (1), we get \( c = 8 - \frac{5b}{2} \). To further solve for \( c \), we need to find a value of \( b \) that makes all sides of the triangle valid (i.e., they should satisfy the triangle inequality: \( a + b > c \), \( a + c > b \), and \( b + c > a \)). We can substitute \( c = 8 - \frac{5b}{2} \) and \( a = \frac{3b}{2} \) into these inequalities and check if there is a valid solution for \( b \), but typically, we would expect \( b \) and \( c \) to be positive and reasonable values for the sides of a triangle. Given \( a + b + c = 8 \), and knowing that \( a \), \( b \), and \( c \) must be positive, we can choose reasonable values. For instance, ensuring \( 0 < b < \frac{16}{5} \), ensuring \( 0 < \frac{3b}{2} < 8 \), and \( 0 < 8 - \frac{5b}{2} < 8 \), and that all values satisfy the triangle inequality conditions.
+
+2. For Part (2), the value of \(\cos 2B = \frac{17}{81}\).
+
+So, the final answers are:
+
+1. For Part (1), solving for \( c \) and ensuring values are reasonable and positive for the triangle inequality is necessary. However, without additional constraints or more specific values, \( c \) can be expressed as \( c = 8 - \frac{5b}{2} \) for general \( b \) that makes \( a, b, c \) a valid triangle's side lengths.
+2. For Part (2), the final answer is:
+
+\(\boxed{\frac{17}{81}}\)
+

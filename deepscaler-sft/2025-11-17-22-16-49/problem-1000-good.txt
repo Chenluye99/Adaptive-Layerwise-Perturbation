@@ -1,0 +1,44 @@
+Score: 1.0
+
+Let's call the two positive numbers \( x \) and \( y \). We are given the following equations based on the problem statement:
+
+1. The product of the two numbers is 24:
+\[ x \cdot y = 24 \]
+2. The sum of their squares is 73:
+\[ x^2 + y^2 = 73 \]
+
+We need to find the square of their difference, i.e., \((x - y)^2\).
+
+We can use the identity:
+\[ (x - y)^2 = x^2 + y^2 - 2xy \]
+
+Substituting the given values into this identity, we get:
+\[ (x - y)^2 = 73 - 2 \cdot 24 = 73 - 48 = 25 \]
+
+Let's confirm this step-by-step using Python to ensure accuracy. We'll solve the system of equations to get the values of \( x \) and \( y \) and then compute \((x - y)^2 \).
+```python
+import sympy as sp
+
+# Define the variables
+x, y = sp.symbols('x y', positive=True)
+
+# Define the equations
+eq1 = sp.Eq(x * y, 24)
+eq2 = sp.Eq(x**2 + y**2, 73)
+
+# Solve the system of equations
+solution = sp.solve((eq1, eq2), (x, y))
+
+print(solution)
+```
+Code execution result: [(3, 8), (8, 3)]
+
+The solutions to the system of equations are \((x, y) = (3, 8)\) and \((x, y) = (8, 3)\). In both cases, the differences \(|x - y| = |3 - 8| = 5\) or \(|8 - 3| = 5\).
+
+Now, we compute the square of their difference:
+\[
+(x - y)^2 = 5^2 = 25
+\]
+
+Thus, the square of their difference is \(\boxed{25}\). This matches our earlier derived result, ensuring the solution is accurate.
+

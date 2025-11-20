@@ -1,0 +1,29 @@
+Score: 0.0
+
+First, let's get the decimal representation of \(\frac{4}{7}\). We can use Python to perform this division and then get its decimal expansion to a sufficient number of digits, so we can determine the 125th digit beyond the decimal point.
+
+We start by computing the decimal representation of \(\frac{4}{7}\) to enough precision and then extract the 125th digit after the decimal point. Let's get started with the code to solve this problem.
+```python
+from decimal import Decimal, getcontext
+
+# Set the precision high enough to get at least 125 digits after the decimal point
+getcontext().prec = 150
+
+# Compute the decimal representation of 4 / 7
+decimal_rep = Decimal(4) / Decimal(7)
+
+# Convert the result to string to easily access individual decimal places
+decimal_str = str(decimal_rep)
+
+# Find the position of the decimal point
+decimal_point_index = decimal_str.index('.')
+
+# Get the 125th digit after the decimal point (Note: Indexing starts from 0, so the 125th digit is at index 124)
+hundred_twenty_fifth_digit = decimal_str[decimal_point_index + 124]
+
+print(hundred_twenty_fifth_digit)
+```
+Code execution result: 4
+
+Thus, the 125th digit beyond the decimal point in the decimal representation of \(\frac{4}{7}\) is \(\boxed{4}\). This result is obtained by ensuring we had enough precision and then directly accessing the 125th digit in the resulting decimal expansion.
+

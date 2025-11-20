@@ -1,0 +1,37 @@
+Score: 0.0
+
+To solve the problem, we need to find the smallest positive integer that has exactly 12 positive factors.
+
+First, we need to understand how the number of factors of a number is determined. If a number \( n \) has the prime factorization \( n = p_1^{e_1} \cdot p_2^{e_2} \cdot \ldots \cdot p_k^{e_k} \), then the number of positive factors of \( n \) is given by \((e_1 + 1) \cdot (e_2 + 1) \cdot \ldots \cdot (e_k + 1)\).
+
+We need to find the smallest \( n \) such that \((e_1 + 1) \cdot (e_2 + 1) \cdot \ldots \cdot (e_k + 1) = 12\). The number 12 can be factored into the following products:
+
+1. \( 12 = 12 \) which corresponds to \( n = p_1^{11} \)
+2. \( 12 = 6 \cdot 2 \) which corresponds to \( n = p_1^5 \cdot p_2^1 \)
+3. \( 12 = 4 \cdot 3 \) which corresponds to \( n = p_1^3 \cdot p_2^2 \)
+4. \( 12 = 3 \cdot 2 \cdot 2 \) which corresponds to \( n = p_1^2 \cdot p_2^1 \cdot p_3^1 \)
+
+We will check each of these forms to find the smallest \( n \) by iterating through possible values of \( p_1, p_2, p_3, \ldots \) (starting with the smallest prime numbers, i.e., 2, 3, 5, etc.) and compute the corresponding \( n \).
+
+We will then implement this in Python to get the accurate result.
+```python
+import sympy
+
+def count_factors(n):
+    """Return the number of positive factors of n."""
+    return len(sympy.divisors(n))
+
+# We will check numbers sequentially and count their factors until we find the smallest number with exactly 12 factors.
+n = 1
+while True:
+    if count_factors(n) == 12:
+        result = n
+        break
+    n += 1
+
+print(result)
+```
+Code execution result: 60
+
+Thus, the least positive integer with exactly 12 positive factors is \(\boxed{60}\). This is our final answer.
+
