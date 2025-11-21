@@ -59,8 +59,8 @@ echo "----------------------------------------"
 echo "Start time: $(date)"
 echo "=========================================="
 
-clip_ratio_low=0.2
-clip_ratio_high=0.28
+clip_ratio_low=0.5
+clip_ratio_high=3.0
 
 # Shared parameters
 max_prompt_length=$((2048 * 1))
@@ -104,7 +104,7 @@ MODEL_ID=$(echo "${MODEL_PATH}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-
 
 # Generate experiment name
 project_name="mismatch_rl_research"
-EXP_NAME="exp_perturb_analysis_${MODEL_ID}_${DATASET_NAME}_${LOSS_MODE}_std${PERTURB_STD}_n${n_resp_per_prompt}_bz${train_prompt_bsz}_mini_bz${train_prompt_mini_bsz}"
+EXP_NAME="exp_perturb_analysis_${MODEL_ID}_${DATASET_NAME}_${LOSS_MODE}_std${PERTURB_STD}_clip${clip_ratio_low}_${clip_ratio_high}_n${n_resp_per_prompt}_bz${train_prompt_bsz}_mini_bz${train_prompt_mini_bsz}"
 if [ "$GEOMETRIC" = "true" ]; then
     EXP_NAME="${EXP_NAME}_geo"
 fi

@@ -1,20 +1,27 @@
 #!/bin/bash
 # Experiment: GRPO Bypass (bypass old logprob for rollout)
-# Usage: bash run_exp_bypass.sh [dataset]
+# Usage: bash run_exp_bypass.sh [loss_mode] [dataset]
 #
 # Prerequisites: conda activate verl_new
 #
 # Examples:
-#   bash run_exp_bypass.sh          # Default: guru dataset
-#   bash run_exp_bypass.sh guru     # Use guru_rl92k dataset
-#   bash run_exp_bypass.sh openr1   # Use openr1 dataset
+#   bash run_exp_bypass.sh          # Default: sequence, guru dataset
+#   bash run_exp_bypass.sh token    # Token-level, guru dataset
+#   bash run_exp_bypass.sh sequence openr1   # Sequence-level, openr1 dataset
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/utils_gpu.sh"
 
 # Parse arguments
-DATASET="${1:-guru}"  # guru or openr1
+LOSS_MODE="${1:-sequence}"  # token/sequence/cum-token/cum-turn
+DATASET="${2:-guru}"  # guru or openr1
+
+# Validate loss mode
+if [[ "$LOSS_MODE" != "token" && "$LOSS_MODE" != "sequence" && "$LOSS_MODE" != "cum-token" && "$LOSS_MODE" != "cum-turn" ]]; then
+    echo "Error: Invalid loss mode. Use 'token', 'sequence', 'cum-token', or 'cum-turn'"
+    exit 1
+fi
 
 FREE_GPUS="0,1,2,3,4,5,6,7"
 FREE_GPU_COUNT=8
@@ -42,11 +49,25 @@ export TEMP=${TMPDIR}
 
 export NCCL_P2P_DISABLE=1
 
+# Set Ray memory management to prevent OOM
+# Increase memory usage threshold from default 0.95 to 0.98
+export RAY_memory_usage_threshold=0.98
+# Enable automatic cleanup of unused objects
+export RAY_enable_auto_cleanup=true
+# Set memory monitor refresh interval (ms) - lower value means more frequent checks
+export RAY_memory_monitor_refresh_ms=1000
+# Limit object store memory to 30GB to prevent excessive memory usage
+export RAY_object_store_memory=32212254720
+# Enable object store spilling to disk when memory is full
+# Using environment variable format that Ray understands
+export RAY_object_spilling_config="{\"type\":\"filesystem\",\"params\":{\"directory_path\":\"${RAY_TMPDIR}/spill\"}}"
+
 # Set WandB credentials
 export WANDB_API_KEY="de10a9d8ee68dcfcae3324b99a557c99ec7a1f32"
 
 # Create all temp directories
 mkdir -p $RAY_TMPDIR
+mkdir -p ${RAY_TMPDIR}/spill
 chmod -R 777 $RAY_TMPDIR 2>/dev/null || true
 
 mkdir -p $TMPDIR
@@ -56,8 +77,8 @@ chmod -R 777 $TMPDIR 2>/dev/null || true
 mkdir -p $ROLLOUT_DUMP_DIR
 chmod -R 777 $ROLLOUT_DUMP_DIR 2>/dev/null || true
 
-clip_ratio_low=0.2
-clip_ratio_high=0.28
+clip_ratio_low=0.5
+clip_ratio_high=3.0
 
 # Shared parameters
     max_prompt_length=$((2048 * 1))
@@ -75,6 +96,7 @@ clip_ratio_high=0.28
 echo "=========================================="
 echo "Experiment: GRPO Bypass"
 echo "Dataset: ${DATASET}"
+echo "Loss Mode: ${LOSS_MODE}"
 echo "Using ${FREE_GPU_COUNT} GPUs: ${FREE_GPUS}"
 echo "CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES}"
 echo "----------------------------------------"
@@ -120,7 +142,7 @@ MODEL_ID=$(echo "${MODEL_PATH}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-
 
 # Generate experiment name
 project_name="mismatch_rl_research"
-EXP_NAME="exp_grpo_bypass_analysis_${MODEL_ID}_${DATASET_NAME}_n${n_resp_per_prompt}_bz${train_prompt_bsz}_mini_bz${train_prompt_mini_bsz}"
+EXP_NAME="exp_grpo_bypass_analysis_${MODEL_ID}_${DATASET_NAME}_${LOSS_MODE}_n${n_resp_per_prompt}_bz${train_prompt_bsz}_mini_bz${train_prompt_mini_bsz}"
 
 # Checkpoint directory (handle both local and Docker environments)
 if [ -d "/workspace/project" ]; then
@@ -171,6 +193,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.kl_loss_type=low_var_kl \
     actor_rollout_ref.actor.entropy_coeff=0 \
     actor_rollout_ref.actor.use_torch_compile=False \
+    actor_rollout_ref.actor.policy_loss.loss_mode=${LOSS_MODE} \
     actor_rollout_ref.actor.clip_ratio_low=${clip_ratio_low} \
     actor_rollout_ref.actor.clip_ratio_high=${clip_ratio_high} \
     actor_rollout_ref.actor.clip_ratio_c=10.0 \
@@ -199,7 +222,8 @@ python3 -m verl.trainer.main_ppo \
     trainer.experiment_name=${EXP_NAME} \
     +trainer.wandb_entity=mismatch \
     +trainer.wandb_mode=online \
-    +trainer.wandb_tags=["grpo","bypass"] \
+    +trainer.wandb_tags=["grpo","bypass","${LOSS_MODE}"] \
+    +trainer.wandb_config.loss_mode=${LOSS_MODE} \
     +trainer.wandb_config.clip_ratio_low=${clip_ratio_low} \
     +trainer.wandb_config.clip_ratio_high=${clip_ratio_high} \
     +trainer.wandb_config.loss_agg_mode=${loss_agg_mode} \
@@ -207,6 +231,7 @@ python3 -m verl.trainer.main_ppo \
     trainer.nnodes=1 \
     +trainer.ray_init.num_gpus=${FREE_GPU_COUNT} \
     +trainer.ray_init.num_cpus=${ray_num_cpus} \
+    +trainer.ray_init.object_store_memory=32212254720 \
     trainer.save_freq=20 \
     trainer.test_freq=20 \
     trainer.default_local_dir="${CKPTS_DIR}" \
