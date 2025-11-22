@@ -249,23 +249,23 @@ if __name__ == '__main__':
                        default='both',
                        help='合并模式: train(仅训练集), test(仅测试集), both(训练集和测试集)')
     parser.add_argument('--openr1-train', type=str, 
-                       default='/home/zhang430/data/openr1/train.parquet',
+                       default='/home/chenluy/data/openr1/train.parquet',
                        help='openr1训练集路径')
     parser.add_argument('--guru-train', type=str,
-                       default='/home/zhang430/data/guru_rl92k/train/math__combined_54.4k.parquet',
+                       default='/home/chenluy/data/guru_rl92k/train/math__combined_54.4k.parquet',
                        help='guru_rl92k训练集路径')
     parser.add_argument('--openr1-test', type=str,
-                       default='/home/zhang430/data/openr1/test.parquet',
+                       default='/home/chenluy/data/openr1/test.parquet',
                        help='openr1测试集路径')
     parser.add_argument('--guru-test', type=str, nargs='+',
-                       default=['/home/zhang430/data/guru_rl92k/online_eval/math__math_500.parquet',
-                               '/home/zhang430/data/guru_rl92k/online_eval/math__aime_repeated_8x_240.parquet'],
+                       default=['/home/chenluy/data/guru_rl92k/online_eval/math__math_500.parquet',
+                               '/home/chenluy/data/guru_rl92k/online_eval/math__aime_repeated_8x_240.parquet'],
                        help='guru_rl92k测试集路径（可指定多个文件）')
     parser.add_argument('--output-train', type=str,
-                       default='/home/zhang430/data/merged_openr1_guru/train.parquet',
+                       default='/home/chenluy/data/merged_openr1_guru/train.parquet',
                        help='训练集输出路径')
     parser.add_argument('--output-test', type=str,
-                       default='/home/zhang430/data/merged_openr1_guru/test.parquet',
+                       default='/home/chenluy/data/merged_openr1_guru/test.parquet',
                        help='测试集输出路径')
     parser.add_argument('--keep', type=str, choices=['first', 'last', 'guru', 'openr1'],
                        default='guru',
