@@ -85,7 +85,7 @@ class DataParallelPPOActor(BasePPOActor):
 
     def _forward_micro_batch(
         self, micro_batch, temperature, calculate_entropy=False, perturb_std=0.0
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Args:
             micro_batch: Input micro batch
@@ -96,6 +96,7 @@ class DataParallelPPOActor(BasePPOActor):
         Returns:
             entropy: # (bs, response_len)
             log_probs: # (bs, response_len)
+            perturb_sigma: # (vocab_size,) or None - sigma vector for this forward pass
         """
         response_length = micro_batch["responses"].size(-1)
         multi_modal_inputs = {}
@@ -277,12 +278,40 @@ class DataParallelPPOActor(BasePPOActor):
                         else:
                             entropy = torch.utils.checkpoint.checkpoint(verl_F.entropy_from_logits, logits)
             
-            # Return perturb_sigma if it exists, otherwise None
-            perturb_sigma = None
-            if hasattr(output, "perturb_sigma"):
-                perturb_sigma = output.perturb_sigma.detach().cpu()
-            
-            return entropy, log_probs, perturb_sigma
+        
+        # Try to get perturb_sigma vector from model instance variable first (more reliable with FSDP)
+        # This avoids issues with output attributes being lost during FSDP processing
+        perturb_sigma = None
+        
+        # Get the actual model (unwrap FSDP if needed)
+        actual_module = getattr(self.actor_module, '_fsdp_wrapped_module', self.actor_module)
+        if hasattr(actual_module, '_last_perturb_sigma') and actual_module._last_perturb_sigma is not None:
+            perturb_sigma = actual_module._last_perturb_sigma  # Shape: (vocab_size,)
+            # Debug: Log when perturb_sigma is found from instance variable
+            if not hasattr(self, '_logged_perturb_sigma'):
+                import torch.distributed as dist
+                if not dist.is_initialized() or dist.get_rank() == 0:
+                    print(f"[DEBUG] Found perturb_sigma from model instance: shape={perturb_sigma.shape}, mean={perturb_sigma.mean().item():.6f}")
+                self._logged_perturb_sigma = True
+        elif hasattr(output, "perturb_sigma"):
+            # Fallback: try to get from output object
+            perturb_sigma = output.perturb_sigma
+            if not hasattr(self, '_logged_perturb_from_output'):
+                import torch.distributed as dist
+                if not dist.is_initialized() or dist.get_rank() == 0:
+                    print(f"[DEBUG] Found perturb_sigma from output object: shape={perturb_sigma.shape}")
+                self._logged_perturb_from_output = True
+        else:
+            # Debug: Log when perturb_sigma is missing
+            if not hasattr(self, '_logged_no_perturb_sigma'):
+                import torch.distributed as dist
+                if not dist.is_initialized() or dist.get_rank() == 0:
+                    print(f"[DEBUG] No perturb_sigma found. self.actor_module.training={self.actor_module.training}")
+                    print(f"[DEBUG] torch.is_grad_enabled()={torch.is_grad_enabled()}")
+                    print(f"[DEBUG] hasattr(actual_module, '_last_perturb_sigma')={hasattr(actual_module, '_last_perturb_sigma')}")
+                self._logged_no_perturb_sigma = True
+        
+        return entropy, log_probs, perturb_sigma
 
     def _optimizer_step(self):
         assert self.config.grad_clip is not None
@@ -405,7 +434,7 @@ class DataParallelPPOActor(BasePPOActor):
         on_policy = len(mini_batches) == 1 and self.config.ppo_epochs == 1
 
         metrics = {}
-        sigma_tensors = []
+        sigma_tensors = []  # Will store (vocab_size,) tensors
         for _ in range(self.config.ppo_epochs):
             for batch_idx, mini_batch in enumerate(mini_batches):
                 if self.config.use_dynamic_bsz:
@@ -444,12 +473,25 @@ class DataParallelPPOActor(BasePPOActor):
                     use_perturbation = self.config.get("use_perturbation", False)
                     perturb_std = self.config.get("perturb_std", 0.0)
                     
+                    # Debug: log training state
+                    if not hasattr(self, '_logged_training_state'):
+                        import torch.distributed as dist
+                        if not dist.is_initialized() or dist.get_rank() == 0:
+                            print(f"[DEBUG] In update_policy: self.actor_module.training={self.actor_module.training}")
+                            print(f"[DEBUG] torch.is_grad_enabled()={torch.is_grad_enabled()}")
+                            # Check if FSDP wrapped
+                            if hasattr(self.actor_module, '_fsdp_wrapped_module'):
+                                unwrapped = self.actor_module._fsdp_wrapped_module
+                                print(f"[DEBUG] FSDP unwrapped module training={unwrapped.training}")
+                        self._logged_training_state = True
+                    
                     entropy, log_prob, perturb_sigma = self._forward_micro_batch(
                         model_inputs, temperature=temperature, calculate_entropy=calculate_entropy, perturb_std=perturb_std
                     )
+                    # Collect sigma vectors (vocab_size,) from each micro-batch
                     # Only append if perturb_sigma is not None
                     if perturb_sigma is not None:
-                        sigma_tensors.append(perturb_sigma)
+                        sigma_tensors.append(perturb_sigma)  # Each is (vocab_size,)
 
                     # for fully_async_policy recipe
                     if hasattr(self.config, "use_rollout_log_probs") and self.config.use_rollout_log_probs:
@@ -612,12 +654,14 @@ class DataParallelPPOActor(BasePPOActor):
 
         # Compute perturbation sigma statistics if available
         if len(sigma_tensors) > 0:
-            # sigma_tensors contains scalar tensors (mean of vocab_size sigmas)
-            all_sigmas = torch.stack(sigma_tensors)  # stack scalar tensors
-            metrics['actor/perturb_sigma_mean'] = all_sigmas.mean().item()
-            metrics['actor/perturb_sigma_std'] = all_sigmas.std().item()
-            metrics['actor/perturb_sigma_min'] = all_sigmas.min().item()
-            metrics['actor/perturb_sigma_max'] = all_sigmas.max().item()   
+            # Stack all sigma vectors: (num_micro_batches, vocab_size)
+            stacked_sigmas = torch.stack(sigma_tensors, dim=0)
+            
+            # Compute statistics across all sigma values
+            metrics['actor/perturb_sigma_mean'] = stacked_sigmas.mean().item()
+            metrics['actor/perturb_sigma_std'] = stacked_sigmas.std().item()
+            metrics['actor/perturb_sigma_min'] = stacked_sigmas.min().item()
+            metrics['actor/perturb_sigma_max'] = stacked_sigmas.max().item() 
                      
         self.actor_optimizer.zero_grad()
         return metrics

@@ -407,13 +407,31 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                         use_cache=use_cache,
                         **kwargs
                     )
-                    if self.training:
+                    # Apply perturbation when gradients are enabled (indicating training)
+                    # Use torch.is_grad_enabled() which is more reliable than self.training with FSDP
+                    if torch.is_grad_enabled():
                         # log_sigma has shape (vocab_size,), will broadcast to (batch, seq_len, vocab_size)
                         sigma = torch.exp(self.log_sigma.to(outputs.logits.dtype))
                         epsilon = torch.randn_like(outputs.logits)
                         perturbed_logits = outputs.logits + sigma * epsilon
                         outputs.logits = perturbed_logits
-                        outputs.perturb_sigma = sigma.mean().detach()  # save mean sigma for logging
+                        # Store the full sigma vector (vocab_size,) for later statistics computation
+                        # This avoids relying on output object attributes which may be lost in FSDP processing
+                        perturb_sigma_vector = sigma.detach().cpu()  # (vocab_size,)
+                        # Store in instance variable (survives FSDP processing)
+                        self._last_perturb_sigma = perturb_sigma_vector
+                        # Also try to set on outputs for backward compatibility
+                        object.__setattr__(outputs, 'perturb_sigma', perturb_sigma_vector)
+                        # Debug: log the first time perturbation is applied
+                        if not hasattr(self, '_logged_perturb_applied'):
+                            import torch.distributed as dist
+                            if not dist.is_initialized() or dist.get_rank() == 0:
+                                print(f"[DEBUG] Applied perturbation: sigma shape={perturb_sigma_vector.shape}, mean={perturb_sigma_vector.mean().item():.6f}")
+                                print(f"[DEBUG] Stored full sigma vector in self._last_perturb_sigma")
+                            self._logged_perturb_applied = True
+                    else:
+                        # Clear the sigma when not training
+                        self._last_perturb_sigma = None
                     return outputs
 
                 actor_module.forward = types.MethodType(perturbed_forward, actor_module)

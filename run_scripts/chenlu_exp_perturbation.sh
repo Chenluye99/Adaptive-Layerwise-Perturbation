@@ -56,7 +56,7 @@ MODEL_PATH="Qwen/Qwen2.5-Math-1.5B"
 
 max_prompt_length=$((2048 * 1))
 max_response_length=$((2048))
-train_prompt_bsz=512
+train_prompt_bsz=128 # 512
 n_resp_per_prompt=8
 train_prompt_mini_bsz=32
 loss_agg_mode="token-mean"
