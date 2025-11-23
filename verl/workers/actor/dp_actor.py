@@ -287,29 +287,9 @@ class DataParallelPPOActor(BasePPOActor):
         actual_module = getattr(self.actor_module, '_fsdp_wrapped_module', self.actor_module)
         if hasattr(actual_module, '_last_perturb_sigma') and actual_module._last_perturb_sigma is not None:
             perturb_sigma = actual_module._last_perturb_sigma  # Shape: (vocab_size,)
-            # Debug: Log when perturb_sigma is found from instance variable
-            if not hasattr(self, '_logged_perturb_sigma'):
-                import torch.distributed as dist
-                if not dist.is_initialized() or dist.get_rank() == 0:
-                    print(f"[DEBUG] Found perturb_sigma from model instance: shape={perturb_sigma.shape}, mean={perturb_sigma.mean().item():.6f}")
-                self._logged_perturb_sigma = True
         elif hasattr(output, "perturb_sigma"):
             # Fallback: try to get from output object
             perturb_sigma = output.perturb_sigma
-            if not hasattr(self, '_logged_perturb_from_output'):
-                import torch.distributed as dist
-                if not dist.is_initialized() or dist.get_rank() == 0:
-                    print(f"[DEBUG] Found perturb_sigma from output object: shape={perturb_sigma.shape}")
-                self._logged_perturb_from_output = True
-        else:
-            # Debug: Log when perturb_sigma is missing
-            if not hasattr(self, '_logged_no_perturb_sigma'):
-                import torch.distributed as dist
-                if not dist.is_initialized() or dist.get_rank() == 0:
-                    print(f"[DEBUG] No perturb_sigma found. self.actor_module.training={self.actor_module.training}")
-                    print(f"[DEBUG] torch.is_grad_enabled()={torch.is_grad_enabled()}")
-                    print(f"[DEBUG] hasattr(actual_module, '_last_perturb_sigma')={hasattr(actual_module, '_last_perturb_sigma')}")
-                self._logged_no_perturb_sigma = True
         
         return entropy, log_probs, perturb_sigma
 
@@ -472,18 +452,6 @@ class DataParallelPPOActor(BasePPOActor):
                     # Get perturbation std from config (default 0.0 for no perturbation)
                     use_perturbation = self.config.get("use_perturbation", False)
                     perturb_std = self.config.get("perturb_std", 0.0)
-                    
-                    # Debug: log training state
-                    if not hasattr(self, '_logged_training_state'):
-                        import torch.distributed as dist
-                        if not dist.is_initialized() or dist.get_rank() == 0:
-                            print(f"[DEBUG] In update_policy: self.actor_module.training={self.actor_module.training}")
-                            print(f"[DEBUG] torch.is_grad_enabled()={torch.is_grad_enabled()}")
-                            # Check if FSDP wrapped
-                            if hasattr(self.actor_module, '_fsdp_wrapped_module'):
-                                unwrapped = self.actor_module._fsdp_wrapped_module
-                                print(f"[DEBUG] FSDP unwrapped module training={unwrapped.training}")
-                        self._logged_training_state = True
                     
                     entropy, log_prob, perturb_sigma = self._forward_micro_batch(
                         model_inputs, temperature=temperature, calculate_entropy=calculate_entropy, perturb_std=perturb_std

@@ -422,13 +422,6 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                         self._last_perturb_sigma = perturb_sigma_vector
                         # Also try to set on outputs for backward compatibility
                         object.__setattr__(outputs, 'perturb_sigma', perturb_sigma_vector)
-                        # Debug: log the first time perturbation is applied
-                        if not hasattr(self, '_logged_perturb_applied'):
-                            import torch.distributed as dist
-                            if not dist.is_initialized() or dist.get_rank() == 0:
-                                print(f"[DEBUG] Applied perturbation: sigma shape={perturb_sigma_vector.shape}, mean={perturb_sigma_vector.mean().item():.6f}")
-                                print(f"[DEBUG] Stored full sigma vector in self._last_perturb_sigma")
-                            self._logged_perturb_applied = True
                     else:
                         # Clear the sigma when not training
                         self._last_perturb_sigma = None
