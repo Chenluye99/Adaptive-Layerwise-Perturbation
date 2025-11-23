@@ -189,11 +189,6 @@ class DataParallelPPOActor(BasePPOActor):
                 else:
                     logits_rmpad = output.logits.squeeze(0)  # (total_nnz, vocab_size)
                     
-                    # Apply perturbation before temperature scaling (following mismatch_rl)
-                    if perturb_std > 0:
-                        noise = torch.randn_like(logits_rmpad) * perturb_std
-                        logits_rmpad = logits_rmpad + noise
-                    
                     logits_rmpad.div_(temperature)
 
                     # if use_sp: ((total_nnz / sp) + pad) ; if not use_sp: (batch, seqlen)
@@ -272,11 +267,6 @@ class DataParallelPPOActor(BasePPOActor):
 
                 else:
                     logits = output.logits
-
-                    # Apply perturbation before temperature scaling (following mismatch_rl)
-                    if perturb_std > 0:
-                        noise = torch.randn_like(logits) * perturb_std
-                        logits = logits + noise
                     
                     logits.div_(temperature)
                     logits = logits[:, -response_length - 1 : -1, :]  # (bsz, response_length, vocab_size)
@@ -286,8 +276,13 @@ class DataParallelPPOActor(BasePPOActor):
                             entropy = verl_F.entropy_from_logits(logits)  # (bsz, response_length)
                         else:
                             entropy = torch.utils.checkpoint.checkpoint(verl_F.entropy_from_logits, logits)
-
-            return entropy, log_probs
+            
+            # Return perturb_sigma if it exists, otherwise None
+            perturb_sigma = None
+            if hasattr(output, "perturb_sigma"):
+                perturb_sigma = output.perturb_sigma.detach().cpu()
+            
+            return entropy, log_probs, perturb_sigma
 
     def _optimizer_step(self):
         assert self.config.grad_clip is not None
@@ -353,7 +348,7 @@ class DataParallelPPOActor(BasePPOActor):
             micro_batch = micro_batch.to(get_device_id())
             model_inputs = {**micro_batch.batch, **micro_batch.non_tensor_batch}
             with torch.no_grad():
-                entropy, log_probs = self._forward_micro_batch(
+                entropy, log_probs, _ = self._forward_micro_batch(
                     model_inputs, temperature=temperature, calculate_entropy=calculate_entropy
                 )
             log_probs_lst.append(log_probs)
@@ -410,6 +405,7 @@ class DataParallelPPOActor(BasePPOActor):
         on_policy = len(mini_batches) == 1 and self.config.ppo_epochs == 1
 
         metrics = {}
+        sigma_tensors = []
         for _ in range(self.config.ppo_epochs):
             for batch_idx, mini_batch in enumerate(mini_batches):
                 if self.config.use_dynamic_bsz:
@@ -445,11 +441,15 @@ class DataParallelPPOActor(BasePPOActor):
                         calculate_entropy = True
                     
                     # Get perturbation std from config (default 0.0 for no perturbation)
+                    use_perturbation = self.config.get("use_perturbation", False)
                     perturb_std = self.config.get("perturb_std", 0.0)
                     
-                    entropy, log_prob = self._forward_micro_batch(
+                    entropy, log_prob, perturb_sigma = self._forward_micro_batch(
                         model_inputs, temperature=temperature, calculate_entropy=calculate_entropy, perturb_std=perturb_std
                     )
+                    # Only append if perturb_sigma is not None
+                    if perturb_sigma is not None:
+                        sigma_tensors.append(perturb_sigma)
 
                     # for fully_async_policy recipe
                     if hasattr(self.config, "use_rollout_log_probs") and self.config.use_rollout_log_probs:
@@ -476,7 +476,7 @@ class DataParallelPPOActor(BasePPOActor):
                     # and avoids redundant computation across workers and micro-batches.
 
                     # Check if perturbation is enabled
-                    if perturb_std > 0:
+                    if use_perturbation:
                         # When perturbation is enabled, use special policy loss computation
                         # that accounts for the distribution shift caused by logits perturbation
                         from verl.trainer.ppo.core_algos import compute_policy_loss_perturbed
@@ -484,7 +484,7 @@ class DataParallelPPOActor(BasePPOActor):
                         rollout_log_probs = model_inputs.get("rollout_log_probs", None)
                         if rollout_log_probs is None:
                             raise ValueError(
-                                "rollout_log_probs is required when perturbation is enabled (perturb_std > 0). "
+                                "rollout_log_probs is required when perturbation is enabled (use_perturbation=True). "
                                 "Make sure rollout is configured to calculate_log_probs=True."
                             )
                         
@@ -609,5 +609,15 @@ class DataParallelPPOActor(BasePPOActor):
                 grad_norm = self._optimizer_step()
                 mini_batch_metrics = {"actor/grad_norm": grad_norm.detach().item()}
                 append_to_dict(metrics, mini_batch_metrics)
+
+        # Compute perturbation sigma statistics if available
+        if len(sigma_tensors) > 0:
+            # sigma_tensors contains scalar tensors (mean of vocab_size sigmas)
+            all_sigmas = torch.stack(sigma_tensors)  # stack scalar tensors
+            metrics['actor/perturb_sigma_mean'] = all_sigmas.mean().item()
+            metrics['actor/perturb_sigma_std'] = all_sigmas.std().item()
+            metrics['actor/perturb_sigma_min'] = all_sigmas.min().item()
+            metrics['actor/perturb_sigma_max'] = all_sigmas.max().item()   
+                     
         self.actor_optimizer.zero_grad()
         return metrics

@@ -99,7 +99,7 @@ fi
 
 CKPTS_DIR="/opt/dlami/nvme/chenluy_ckpoints/${project_name}/${EXP_NAME}"
 
-cd /home/chenluy/mismatch-perturbation-on-math
+cd /home/chenluy/mismatch-learn_perturbation-on-math
 
 mkdir -p logs
 

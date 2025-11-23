@@ -59,7 +59,7 @@ exp_name="bypass_qwen2.5-math-1.5b_${dataset_name}_n${n_resp_per_prompt}_mini_bs
 
 CKPTS_DIR="/opt/dlami/nvme/chenluy_ckpoints/${project_name}/${exp_name}"
 
-cd /home/chenluy/mismatch-perturbation-on-math
+cd /home/chenluy/mismatch-learn_perturbation-on-math
 
 # Create logs directory if it doesn't exist
 mkdir -p logs

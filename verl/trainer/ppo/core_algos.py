@@ -1841,7 +1841,7 @@ def compute_policy_loss_perturbed(
     """
     Compute the clipped policy objective with perturbation support.
     
-    This function is used when perturbation is enabled (perturb_std > 0).
+    This function is used when perturbation is enabled.
     It calculates importance ratios using rollout_log_probs instead of old_log_prob
     to properly account for the distribution shift introduced by logits perturbation.
 
@@ -1881,6 +1881,7 @@ def compute_policy_loss_perturbed(
     clip_ratio_low = config.clip_ratio_low if hasattr(config, 'clip_ratio_low') and config.clip_ratio_low is not None else config.clip_ratio
     clip_ratio_high = config.clip_ratio_high if hasattr(config, 'clip_ratio_high') and config.clip_ratio_high is not None else config.clip_ratio
     clip_ratio_c = config.clip_ratio_c if hasattr(config, 'clip_ratio_c') and config.clip_ratio_c is not None else 3.0
+    kl_coef = config.kl_coef if hasattr(config, 'kl_coef') and config.kl_coef is not None else 0.001
     
     # Extract is_geometric from policy_loss config if available
     is_geometric = False
@@ -1948,38 +1949,6 @@ def compute_policy_loss_perturbed(
         else:
             # If max_len == 0, all tokens are masked, set log_importance_ratio to 0
             log_importance_ratio = torch.zeros_like(negative_approx_kl)
-
-    elif loss_mode == "cum-turn":
-        assert turn_end_indicator is not None, "Turn end indicator is required for cum-turn loss mode."
-        B, L = log_prob.shape
-        device = log_prob.device
-
-        valid_token_nums = torch.cumsum(response_mask, dim=-1)
-        cumulative_sum = torch.cumsum(negative_approx_kl * response_mask, dim=-1)
-
-        turn_end_mask = turn_end_indicator.bool()
-        turn_end_mask[:, -1] = True
-        indices = torch.arange(L, device=device).expand(B, -1)
-        masked_indices = torch.where(turn_end_mask, indices, L)
-
-        rev_masked_indices = torch.flip(masked_indices, dims=[-1])
-        rev_end_indices, _ = torch.cummin(rev_masked_indices, dim=-1)
-        end_indices = torch.flip(rev_end_indices, dims=[-1])
-
-        turn_cumulative_sums = torch.gather(cumulative_sum, -1, end_indices)
-        turn_cumulative_counts = torch.gather(valid_token_nums, -1, end_indices)
-
-        # geometric mean
-        if is_geometric:
-            log_ratio_mean = turn_cumulative_sums / (turn_cumulative_counts + 1e-8)
-        else:
-            log_ratio_mean = turn_cumulative_sums
-        kl_values = torch.where(
-            response_mask > 0,
-            log_ratio_mean,
-            torch.zeros_like(cumulative_sum)
-        )  
-        log_importance_ratio = kl_values.detach() + log_prob - log_prob.detach()
     else:
         raise ValueError(f"Unsupported loss_mode: {loss_mode}")
 
@@ -2026,6 +1995,14 @@ def compute_policy_loss_perturbed(
     
     # Aggregate the loss at the sequence level
     pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
+
+    if kl_coef > 0:
+        # use k3 estimator: 0.5 * (log_p - log_q)^2 = 0.5 * (log_ratio_term)^2
+        kl_perturb = 0.5 * (negative_approx_kl ** 2)
+
+        kl_perturb_loss = agg_loss(loss_mat=kl_perturb, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
+        pg_loss = pg_loss + kl_perturb_loss * kl_coef
+        ppo_is_metrics["kl_mismatch_loss"] = kl_perturb_loss.detach().item()
     
     return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics
 

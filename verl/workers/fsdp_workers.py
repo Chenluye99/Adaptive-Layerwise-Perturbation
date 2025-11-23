@@ -382,6 +382,45 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 attn_implementation=attn_implementation,
             )
 
+            if role == "actor" and self.config.actor.get("use_perturbation", False):
+                import math
+                import types
+
+                initial_std = self.config.actor.get("perturb_std", 0.01)
+                
+                # Get vocab_size from model config
+                vocab_size = actor_module.config.vocab_size
+
+                # register a new parameter to the model with vocab_size dimension
+                actor_module.register_parameter(
+                    "log_sigma", 
+                    torch.nn.Parameter(torch.full((vocab_size,), math.log(initial_std), dtype=torch_dtype))
+                )
+
+                original_forward = actor_module.forward
+
+                def perturbed_forward(self, input_ids, attention_mask=None, position_ids=None, use_cache=False, **kwargs):
+                    outputs = original_forward(
+                        input_ids=input_ids,
+                        attention_mask=attention_mask,
+                        position_ids=position_ids,
+                        use_cache=use_cache,
+                        **kwargs
+                    )
+                    if self.training:
+                        # log_sigma has shape (vocab_size,), will broadcast to (batch, seq_len, vocab_size)
+                        sigma = torch.exp(self.log_sigma.to(outputs.logits.dtype))
+                        epsilon = torch.randn_like(outputs.logits)
+                        perturbed_logits = outputs.logits + sigma * epsilon
+                        outputs.logits = perturbed_logits
+                        outputs.perturb_sigma = sigma.mean().detach()  # save mean sigma for logging
+                    return outputs
+
+                actor_module.forward = types.MethodType(perturbed_forward, actor_module)
+                
+                if self.rank == 0:
+                    print(f"Injected log_sigma with shape ({vocab_size},) and perturbed forward. Initial std: {initial_std}")
+                
             # Apply Liger kernel to the model if use_liger is set to True
             if use_liger:
                 from liger_kernel.transformers.monkey_patch import _apply_liger_kernel_to_instance
@@ -698,12 +737,18 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         set_expandable_segments(False)
 
         if peft_config is not None and self.base_sync_done:
-            per_tensor_param = params.items() if isinstance(params, dict) else params  # Fixed: handle dict case
+            # Filter out log_sigma parameter (used for perturbation, not needed in vLLM)
+            if isinstance(params, dict):
+                per_tensor_param = ((name, param) for name, param in params.items() if name != "log_sigma")
+            else:
+                per_tensor_param = ((name, param) for name, param in params if name != "log_sigma")
         else:
             device = get_device_id()  # used when fsdp2 set cpu_offload_policy
+            # Filter out log_sigma parameter (used for perturbation, not needed in vLLM)
             per_tensor_param = (
                 (name, param.to(device, non_blocking=True).full_tensor() if isinstance(param, DTensor) else param)
                 for name, param in params.items()
+                if name != "log_sigma"
             )
 
         if self.config.rollout.free_cache_engine:
@@ -711,9 +756,11 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         log_gpu_memory_usage("After resume weights", logger=logger)
 
         if peft_config is not None and getattr(self.rollout, "sleep_level", None) == 2:
+            # Filter out log_sigma parameter (used for perturbation, not needed in vLLM)
             per_tensor_base_params = (
                 (name, param.to(device, non_blocking=True).full_tensor() if isinstance(param, DTensor) else param)
                 for name, param in base_model_params.items()
+                if name != "log_sigma"
             )
             await self.rollout.update_weights(per_tensor_base_params, base_sync_done=False)
             del base_model_params, per_tensor_base_params
