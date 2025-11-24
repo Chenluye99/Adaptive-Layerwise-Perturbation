@@ -392,9 +392,10 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 vocab_size = actor_module.config.vocab_size
 
                 # register a new parameter to the model with vocab_size dimension
+                # Use float32 for log_sigma to ensure precision
                 actor_module.register_parameter(
                     "log_sigma", 
-                    torch.nn.Parameter(torch.full((vocab_size,), math.log(initial_std), dtype=torch_dtype))
+                    torch.nn.Parameter(torch.full((vocab_size,), math.log(initial_std), dtype=torch.float32))
                 )
 
                 original_forward = actor_module.forward
@@ -411,10 +412,12 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                     # Use torch.is_grad_enabled() which is more reliable than self.training with FSDP
                     if torch.is_grad_enabled():
                         # log_sigma has shape (vocab_size,), will broadcast to (batch, seq_len, vocab_size)
-                        sigma = torch.exp(self.log_sigma.to(outputs.logits.dtype))
+                        # Use float32 for exp to avoid precision issues, then cast to logits dtype
+                        sigma = torch.exp(self.log_sigma.float()).to(outputs.logits.dtype)
                         epsilon = torch.randn_like(outputs.logits)
                         perturbed_logits = outputs.logits + sigma * epsilon
                         outputs.logits = perturbed_logits
+                        
                         # Store the full sigma vector (vocab_size,) for later statistics computation
                         # This avoids relying on output object attributes which may be lost in FSDP processing
                         perturb_sigma_vector = sigma.detach().cpu()  # (vocab_size,)
@@ -422,6 +425,11 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                         self._last_perturb_sigma = perturb_sigma_vector
                         # Also try to set on outputs for backward compatibility
                         object.__setattr__(outputs, 'perturb_sigma', perturb_sigma_vector)
+                        
+                        # Debug print once
+                        if not hasattr(self, '_debug_logged'):
+                            print(f"[DEBUG] In perturbed_forward: log_sigma.requires_grad={self.log_sigma.requires_grad}, is_leaf={self.log_sigma.is_leaf}")
+                            self._debug_logged = True
                     else:
                         # Clear the sigma when not training
                         self._last_perturb_sigma = None
@@ -489,6 +497,15 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 actor_module = get_peft_model(actor_module, LoraConfig(**lora_config))
 
         self.use_orig_params = fsdp_config.get("use_orig_params", False)
+        
+        # Force use_orig_params=True if perturbation is enabled to handle dynamic parameters
+        if self.config.actor.get("use_perturbation", False):
+            self.use_orig_params = True
+            # Cannot modify frozen dataclass directly
+            # The self.use_orig_params=True above is sufficient for the FSDP constructor call below
+            if self.rank == 0:
+                print("[FSDP] Forcing use_orig_params=True for perturbation support")
+
         if self.config.actor.get("freeze_vision_tower", False):
             vision_tower = get_vl_model_vision_tower(actor_module)
             if vision_tower is not None:
@@ -590,8 +607,30 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         if role == "actor" and optim_config is not None:
             from verl.utils.torch_functional import get_constant_schedule_with_warmup, get_cosine_schedule_with_warmup
 
-            actor_optimizer = build_optimizer(actor_module_fsdp.parameters(), optim_config)
-
+            # Separate log_sigma from other parameters to assign a higher learning rate
+            params_without_sigma = []
+            sigma_params = []
+            
+            for name, param in actor_module_fsdp.named_parameters():
+                if "log_sigma" in name:
+                    sigma_params.append(param)
+                else:
+                    params_without_sigma.append(param)
+            
+            # Define parameter groups
+            # Use a much higher LR for log_sigma because its gradient is scaled by sigma (~0.01)
+            # making it ~100x smaller than other gradients
+            perturb_lr = self.config.actor.get("perturb_lr", 1e-2)
+            param_groups = [
+                {'params': params_without_sigma},
+                {'params': sigma_params, 'lr': perturb_lr} 
+            ]
+            
+            actor_optimizer = build_optimizer(param_groups, optim_config)
+            
+            if self.rank == 0:
+                print(f"[Optimizer] Created parameter groups. log_sigma LR: {perturb_lr}, Other params LR: {optim_config.get('lr', 'default')}")
+            
             total_steps = optim_config.get("total_training_steps", 0)
             num_warmup_steps = int(optim_config.get("lr_warmup_steps", -1))
             lr_scheduler_type = optim_config.get("lr_scheduler_type", "constant")

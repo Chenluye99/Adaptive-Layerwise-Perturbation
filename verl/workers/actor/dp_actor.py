@@ -630,6 +630,18 @@ class DataParallelPPOActor(BasePPOActor):
             metrics['actor/perturb_sigma_std'] = stacked_sigmas.std().item()
             metrics['actor/perturb_sigma_min'] = stacked_sigmas.min().item()
             metrics['actor/perturb_sigma_max'] = stacked_sigmas.max().item() 
+            
+            # Add debug info for log_sigma parameter and gradient
+            actual_module = getattr(self.actor_module, '_fsdp_wrapped_module', self.actor_module)
+            if hasattr(actual_module, 'log_sigma'):
+                if actual_module.log_sigma.grad is not None:
+                    metrics['actor/log_sigma_grad_mean'] = actual_module.log_sigma.grad.detach().mean().item()
+                    metrics['actor/log_sigma_grad_norm'] = actual_module.log_sigma.grad.detach().norm().item()
+                    metrics['actor/log_sigma_grad_max'] = actual_module.log_sigma.grad.detach().max().item()
+                else:
+                    metrics['actor/log_sigma_grad_mean'] = 0.0
+                    # Try to find if it's in FSDP flat param (hard to debug, but 0.0 signals issue)
+ 
                      
         self.actor_optimizer.zero_grad()
         return metrics

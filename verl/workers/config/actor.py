@@ -112,6 +112,7 @@ class ActorConfig(BaseConfig):
     loss_agg_mode: str = "token-mean"
     use_perturbation: bool = False
     perturb_std: float = 0.0
+    perturb_lr: float = 1e-2
     kl_coef: float = 0.001
     entropy_coeff: float = 0
     use_kl_loss: bool = False

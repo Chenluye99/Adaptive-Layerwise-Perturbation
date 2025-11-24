@@ -1229,7 +1229,7 @@ class RayPPOTrainer:
                         metrics.update(actor_output_metrics)
 
                     # Save the first step batch data for debugging
-                    if self.global_steps % 10 == 0:
+                    if self.global_steps % 20 == 0:
                         save_dir = os.path.join(self.config.trainer.default_local_dir, "batch_data")
                         os.makedirs(save_dir, exist_ok=True)
                         save_path = os.path.join(save_dir, f"global_steps_{self.global_steps}_batch.pt")
