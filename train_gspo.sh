@@ -20,8 +20,8 @@ LOSS_MODE='sequence' # vanilla, cum-token, cum-turn, sequence
 ADAPT_RATIO=False
 
 # Default values
-CLIP_RATIO_HIGH=3.0
-CLIP_RATIO_LOW=0.5
+CLIP_RATIO_HIGH=0.0004
+CLIP_RATIO_LOW=0.0003
 MAX_TURNS=5
 TRAIN_BATCH_SIZE=128
 VAL_SAMPLE_SIZE=50
@@ -67,8 +67,8 @@ rollout_is_veto_threshold=0
 rollout_is_geometric=False
 
 # Policy loss specific parameters
-ppo_is_geometric=False  # Whether to use geometric aggregation for PPO IS
-clip_ratio_c=3.0  # Lower bound for dual-clip PPO
+ppo_is_geometric=True  # Whether to use geometric aggregation for PPO IS
+clip_ratio_c=100.0  # Lower bound for dual-clip PPO
 
 
 # if resume is True, then set resume_mode to auto
