@@ -1996,6 +1996,13 @@ def compute_policy_loss_perturbed(
     # Aggregate the loss at the sequence level
     pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
 
+    #penalty on perturb distribution
+    #perturb_sigma_vector needs gradient (obtained from fsdp_workers
+    #alpha, beta are two hyperparameters, gamma = alpha / beta is the variance of auxiliary Gaussian distribution (need to be defined
+    #suggest values: alpha = beta = 0.001
+    kl_dis = alpha * perturb_sigma_vector.pow(2) - beta * perturb_sigma_vector.pow(2).log()
+    kl_dis = kl_dis.sum()
+    
     if kl_coef > 0:
         # use k3 estimator: 0.5 * (log_p - log_q)^2 = 0.5 * (log_ratio_term)^2
         kl_perturb = 0.5 * (negative_approx_kl ** 2)
@@ -2004,7 +2011,7 @@ def compute_policy_loss_perturbed(
         pg_loss = pg_loss + kl_perturb_loss * kl_coef
         ppo_is_metrics["kl_mismatch_loss"] = kl_perturb_loss.detach().item()
     
-    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics
+    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, kl_dis
 
 
 # =============================================================================
