@@ -11,7 +11,7 @@ Run:
 
 ```bash
 cd sandbox
-uvicorn sandbox_api:app --host 127.0.0.1 --port 12345 --workers 4
+nohup uvicorn sandbox_api:app --host 127.0.0.1 --port 12345 --workers 4 &
 ```
 
 Test:

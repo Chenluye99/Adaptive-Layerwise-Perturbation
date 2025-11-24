@@ -88,7 +88,7 @@ async def _run_in_firejail(code: str, timeout: float, stdin_data: str = "") -> d
         f"--private={workdir}",
         "--net=none",              # disable network
         # Hard limits to prevent freezing/OOM
-        "--rlimit-as=8192m",       # 8GB max RAM per sandbox (Safe for ~200 concurrent tasks on 2TB host)
+        "--rlimit-as=2048m",       # 2GB max RAM per sandbox (Safe for ~200 concurrent tasks on 2TB host)
         f"--rlimit-cpu={int(timeout) + 2}", # CPU limit (seconds) with larger buffer
         "--rlimit-nproc=256",      # Max processes inside sandbox
         "--",
