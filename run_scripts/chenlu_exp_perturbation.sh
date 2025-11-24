@@ -105,7 +105,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.kl_coef=${KL_COEF} \
     actor_rollout_ref.actor.use_perturbation=${USE_PERTURBATION} \
     actor_rollout_ref.actor.perturb_std=${PERTURB_STD} \
-    actor_rollout_ref.actor.perturb_lr=${PERTURB_LR} \
+    +actor_rollout_ref.actor.perturb_lr=${PERTURB_LR} \
     actor_rollout_ref.actor.policy_loss.loss_mode=${LOSS_MODE} \
     actor_rollout_ref.actor.policy_loss.is_geometric=${GEOMETRIC} \
     actor_rollout_ref.actor.clip_ratio_low=${CLIP_RATIO_LOW} \
