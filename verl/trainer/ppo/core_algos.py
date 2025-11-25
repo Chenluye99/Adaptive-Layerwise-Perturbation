@@ -1835,6 +1835,7 @@ def compute_policy_loss_perturbed(
     loss_mode: str = "sequence",
     turn_end_indicator: torch.Tensor = None,
     rollout_log_probs: torch.Tensor = None,
+    perturb_sigma: torch.Tensor = None,
     void_turn_mask: torch.Tensor = None,
     config = None,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict]:
@@ -1866,6 +1867,8 @@ def compute_policy_loss_perturbed(
         rollout_log_probs (torch.Tensor, optional):
             Rollout log probabilities (without perturbation), shape (batch_size, response_length).
             This is used as the reference for importance sampling when perturbation is enabled.
+        perturb_sigma (torch.Tensor, optional):
+            Perturbation sigma, shape (batch_size, response_length, vocab_size).
         void_turn_mask (torch.Tensor, optional):
             Mask indicating which turns are void, shape (batch_size, response_length).
         config:
@@ -1881,7 +1884,10 @@ def compute_policy_loss_perturbed(
     clip_ratio_low = config.clip_ratio_low if hasattr(config, 'clip_ratio_low') and config.clip_ratio_low is not None else config.clip_ratio
     clip_ratio_high = config.clip_ratio_high if hasattr(config, 'clip_ratio_high') and config.clip_ratio_high is not None else config.clip_ratio
     clip_ratio_c = config.clip_ratio_c if hasattr(config, 'clip_ratio_c') and config.clip_ratio_c is not None else 3.0
-    kl_coef = config.kl_coef if hasattr(config, 'kl_coef') and config.kl_coef is not None else 0.001
+    #kl_coef = config.kl_coef if hasattr(config, 'kl_coef') and config.kl_coef is not None else 0.001
+    alpha = config.alpha if hasattr(config, 'alpha') and config.alpha is not None else 0.001
+    beta = config.beta if hasattr(config, 'beta') and config.beta is not None else 0.001
+    perturb_std = config.perturb_std if hasattr(config, 'perturb_std') and config.perturb_std is not None else 0.01
     
     # Extract is_geometric from policy_loss config if available
     is_geometric = False
@@ -1995,23 +2001,22 @@ def compute_policy_loss_perturbed(
     
     # Aggregate the loss at the sequence level
     pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
-
-    #penalty on perturb distribution
-    #perturb_sigma_vector needs gradient (obtained from fsdp_workers
-    #alpha, beta are two hyperparameters, gamma = alpha / beta is the variance of auxiliary Gaussian distribution (need to be defined
-    #suggest values: alpha = beta = 0.001
-    kl_dis = alpha * perturb_sigma_vector.pow(2) - beta * perturb_sigma_vector.pow(2).log()
-    kl_dis = kl_dis.sum()
     
-    if kl_coef > 0:
-        # use k3 estimator: 0.5 * (log_p - log_q)^2 = 0.5 * (log_ratio_term)^2
-        kl_perturb = 0.5 * (negative_approx_kl ** 2)
+    if alpha > 0 and beta > 0:
+        #penalty on perturb distribution
+        #perturb_sigma needs gradient (obtained from fsdp_workers
+        #alpha, beta are two hyperparameters, gamma = alpha / beta is the variance of auxiliary Gaussian distribution (need to be defined
+        #suggest values: alpha = beta = 0.001
+        kl_dis = alpha * perturb_sigma.pow(2) - beta * perturb_sigma.pow(2).log()
+        kl_dis = kl_dis.mean()
+        # # use k3 estimator: 0.5 * (log_p - log_q)^2 = 0.5 * (log_ratio_term)^2
+        # kl_perturb = 0.5 * (negative_approx_kl ** 2)
 
-        kl_perturb_loss = agg_loss(loss_mat=kl_perturb, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
-        pg_loss = pg_loss + kl_perturb_loss * kl_coef
-        ppo_is_metrics["kl_mismatch_loss"] = kl_perturb_loss.detach().item()
+        # kl_perturb_loss = agg_loss(loss_mat=kl_perturb, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
+        pg_loss = pg_loss + kl_dis
+        ppo_is_metrics["kl_dis_loss"] = kl_dis.detach().item()
     
-    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, kl_dis
+    return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics
 
 
 # =============================================================================

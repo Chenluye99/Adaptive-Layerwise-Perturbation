@@ -12,7 +12,9 @@ PERTURB_STD="${3:-0.02}"        # Perturbation initial std
 GEOMETRIC="${4:-false}"         # Geometric aggregation
 CLIP_RATIO_LOW="${5:-0.2}"       # Clip ratio low
 CLIP_RATIO_HIGH="${6:-0.28}"     # Clip ratio high
-KL_COEF="${7:-0.001}"            # KL coef for perturbation KL penalty
+ALPHA="${7:-0.001}"            # KL coef for perturbation KL penalty
+BETA="${8:-0.001}"            # KL coef for perturbation KL penalty
+PERTURB_LR="${9:-1e-2}"            # Perturbation learning rate
 
 # Get GPUs: use CUDA_VISIBLE_DEVICES if set in script, otherwise auto-detect
 if [ -n "$CUDA_VISIBLE_DEVICES" ]; then
@@ -37,10 +39,12 @@ echo "=========================================="
 echo "Experiment 1: GRPO Baseline"
 echo "Loss Mode: ${LOSS_MODE}"
 echo "Perturb Std: ${PERTURB_STD}"
-echo "KL Coef: ${KL_COEF}"
+echo "Alpha: ${ALPHA}"
+echo "Beta: ${BETA}"
 echo "Geometric: ${GEOMETRIC}"
 echo "Clip Ratio Low: ${CLIP_RATIO_LOW}"
 echo "Clip Ratio High: ${CLIP_RATIO_HIGH}"
+echo "Perturbation Learning Rate: ${PERTURB_LR}"
 echo "Using ${FREE_GPU_COUNT} GPUs: ${FREE_GPUS}"
 echo "Start time: $(date)"
 echo "=========================================="
@@ -63,10 +67,9 @@ loss_agg_mode="token-mean"
 
 # Data files (use absolute paths)
 USE_PERTURBATION=True
-PERTURB_LR=1e-2
 project_name="mismatch_rl_research"
 dataset_name="merged_openr1_guru" # openr1 or merged_openr1_guru
-exp_name="perturb_${LOSS_MODE}_inistd${PERTURB_STD}_clip_${CLIP_RATIO_LOW}_${CLIP_RATIO_HIGH}_kl${KL_COEF}_lr${PERTURB_LR}_qwen2.5-math-1.5b_${dataset_name}_n${n_resp_per_prompt}"
+exp_name="perturb_${LOSS_MODE}_inistd${PERTURB_STD}_clip_${CLIP_RATIO_LOW}_${CLIP_RATIO_HIGH}_alpha${ALPHA}_beta${BETA}_lr${PERTURB_LR}_qwen2.5-math-1.5b_${dataset_name}_n${n_resp_per_prompt}"
 if [ "$GEOMETRIC" = "true" ]; then
     exp_name="${exp_name}_geo"
 fi
@@ -102,7 +105,8 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.entropy_coeff=0 \
     actor_rollout_ref.actor.use_torch_compile=False \
     actor_rollout_ref.actor.fsdp_config.use_orig_params=True \
-    actor_rollout_ref.actor.kl_coef=${KL_COEF} \
+    actor_rollout_ref.actor.alpha=${ALPHA} \
+    actor_rollout_ref.actor.beta=${BETA} \
     actor_rollout_ref.actor.use_perturbation=${USE_PERTURBATION} \
     actor_rollout_ref.actor.perturb_std=${PERTURB_STD} \
     +actor_rollout_ref.actor.perturb_lr=${PERTURB_LR} \

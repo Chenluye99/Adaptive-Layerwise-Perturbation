@@ -420,11 +420,10 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                         
                         # Store the full sigma vector (vocab_size,) for later statistics computation
                         # This avoids relying on output object attributes which may be lost in FSDP processing
-                        perturb_sigma_vector = sigma.detach().cpu()  # (vocab_size,)
                         # Store in instance variable (survives FSDP processing)
-                        self._last_perturb_sigma = perturb_sigma_vector
+                        self._last_perturb_sigma = sigma
                         # Also try to set on outputs for backward compatibility
-                        object.__setattr__(outputs, 'perturb_sigma', perturb_sigma_vector)
+                        object.__setattr__(outputs, 'perturb_sigma', sigma)
                         
                         # Debug print once
                         if not hasattr(self, '_debug_logged'):

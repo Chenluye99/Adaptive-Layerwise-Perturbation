@@ -459,7 +459,7 @@ class DataParallelPPOActor(BasePPOActor):
                     # Collect sigma vectors (vocab_size,) from each micro-batch
                     # Only append if perturb_sigma is not None
                     if perturb_sigma is not None:
-                        sigma_tensors.append(perturb_sigma)  # Each is (vocab_size,)
+                        sigma_tensors.append(perturb_sigma.detach().cpu())  # Each is (vocab_size,)
 
                     # for fully_async_policy recipe
                     if hasattr(self.config, "use_rollout_log_probs") and self.config.use_rollout_log_probs:
@@ -512,6 +512,7 @@ class DataParallelPPOActor(BasePPOActor):
                             loss_mode=loss_mode,
                             turn_end_indicator=turn_end_indicator,
                             rollout_log_probs=rollout_log_probs,
+                            perturb_sigma=perturb_sigma,
                             void_turn_mask=void_turn_mask,
                             config=self.config,
                         )
