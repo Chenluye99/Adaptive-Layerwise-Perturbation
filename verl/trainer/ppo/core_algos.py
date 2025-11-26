@@ -2015,6 +2015,7 @@ def compute_policy_loss_perturbed(
         # kl_perturb_loss = agg_loss(loss_mat=kl_perturb, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
         pg_loss = pg_loss + kl_dis
         ppo_is_metrics["kl_dis_loss"] = kl_dis.detach().item()
+        ppo_is_metrics["ppo_loss"] = pg_loss.detach().item()
     
     return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics
 

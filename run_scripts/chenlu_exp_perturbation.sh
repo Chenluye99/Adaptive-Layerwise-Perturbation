@@ -131,6 +131,7 @@ python3 -m verl.trainer.main_ppo \
     reward_model.reward_manager=batch \
     +algorithm.rollout_correction.rollout_is=null \
     trainer.critic_warmup=0 \
+    trainer.val_before_train=True \
     'trainer.logger=["console","wandb"]' \
     trainer.project_name=${project_name} \
     trainer.experiment_name=${exp_name} \
