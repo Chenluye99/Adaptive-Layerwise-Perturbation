@@ -2002,7 +2002,7 @@ def compute_policy_loss_perturbed(
     # Aggregate the loss at the sequence level
     pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
     
-    if alpha > 0 and beta > 0:
+    if alpha > 0:
         #penalty on perturb distribution
         #perturb_sigma needs gradient (obtained from fsdp_workers
         #alpha, beta are two hyperparameters, gamma = alpha / beta is the variance of auxiliary Gaussian distribution (need to be defined
