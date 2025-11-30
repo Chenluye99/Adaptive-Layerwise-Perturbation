@@ -410,6 +410,32 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 trust_remote_code=trust_remote_code,
                 attn_implementation=attn_implementation,
             )
+
+            # --- [CRITICAL FIX] Force reset 'coef' parameter after loading ---
+            # This handles cases where 'low_cpu_mem_usage=True' or meta device initialization
+            # might leave new parameters uninitialized (garbage values)
+            if self.config.actor.get("use_perturbation", False):
+                perturb_std = float(self.config.actor.get("perturb_std", 1e-2))
+                if self.rank == 0:
+                    print(f"[FSDP Worker] Force resetting perturbation coef to {perturb_std} for all layers...")
+                
+                # Access layers directly (handle Qwen2 structure)
+                layers = None
+                if hasattr(actor_module, "model") and hasattr(actor_module.model, "layers"):
+                    layers = actor_module.model.layers
+                elif hasattr(actor_module, "layers"):
+                    layers = actor_module.layers
+                
+                if layers is not None:
+                    reset_count = 0
+                    for layer in layers:
+                        if hasattr(layer, "coef"):
+                            with torch.no_grad():
+                                layer.coef.fill_(perturb_std)
+                            reset_count += 1
+                    if self.rank == 0:
+                        print(f"[FSDP Worker] Successfully reset coef for {reset_count} layers.")
+            # ---------------------------------------------------------------
                             
             # Apply Liger kernel to the model if use_liger is set to True
             if use_liger:

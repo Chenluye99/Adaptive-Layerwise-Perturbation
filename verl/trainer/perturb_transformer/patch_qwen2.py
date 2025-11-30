@@ -24,19 +24,34 @@ class CustomQwen2DecoderLayer(nn.Module):
         self.initial_coef = getattr(config, "perturb_std", 1e-2)
         
         # 处理 coef (扰动系数)
+        # 确保类型为模型的 dtype (通常是 bfloat16 或 float32)
+        dtype = getattr(config, "torch_dtype", torch.float32)
+        # 如果 config.torch_dtype 是字符串，需要转换
+        if isinstance(dtype, str):
+             if dtype == "bfloat16":
+                 dtype = torch.bfloat16
+             elif dtype == "float16":
+                 dtype = torch.float16
+             else:
+                 dtype = torch.float32
+
         if self.coef_learnable:
             # 如果想让它可训练，需注册为 Parameter
-            self.coef = nn.Parameter(torch.tensor([self.initial_coef]))
+            self.coef = nn.Parameter(torch.tensor([self.initial_coef], dtype=dtype))
         else:
             # 固定值则注册为 buffer (不会被优化器更新，但会随模型保存)
-            self.register_buffer("coef", torch.tensor([self.initial_coef]))
+            self.register_buffer("coef", torch.tensor([self.initial_coef], dtype=dtype))
+        
+        # 强制初始化，防止被 FSDP 或其它机制覆盖为垃圾值
+        with torch.no_grad():
+            self.coef.fill_(self.initial_coef)
         # --------------------------------------------------------
 
         self.self_attn = modeling_qwen2.Qwen2Attention(config=config, layer_idx=layer_idx)
         self.mlp = modeling_qwen2.Qwen2MLP(config)
         self.input_layernorm = modeling_qwen2.Qwen2RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
         self.post_attention_layernorm = modeling_qwen2.Qwen2RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
-        
+
         # --- [关键修复]: 从 config 中读取 layer_types，以匹配原版 Qwen2DecoderLayer 行为 ---
         # 解决 AttributeError: 'Qwen2DecoderLayer' object has no attribute 'attention_type'
         if hasattr(config, "layer_types"):
@@ -148,7 +163,7 @@ def apply_qwen2_patch():
     # Qwen2Model._no_split_modules is ["Qwen2DecoderLayer"]
     CustomQwen2DecoderLayer.__name__ = "Qwen2DecoderLayer"
     CustomQwen2DecoderLayer.__qualname__ = "Qwen2DecoderLayer"
-
+    
     # 核心：替换 transformers 库中的类定义
     modeling_qwen2.Qwen2DecoderLayer = CustomQwen2DecoderLayer
     

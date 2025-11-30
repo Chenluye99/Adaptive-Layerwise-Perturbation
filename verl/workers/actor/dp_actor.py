@@ -475,7 +475,7 @@ class DataParallelPPOActor(BasePPOActor):
                     )
                     # Collect sigma vectors (vocab_size,) from each micro-batch
                     # Only append if perturb_sigma is not None
-                    if perturb_sigma is not None:
+                    if perturb_sigma is not None and perturb_sigma.numel() > 0:
                         sigma_tensors.append(perturb_sigma.detach().cpu())  # Each is (vocab_size,)
 
                     # for fully_async_policy recipe
@@ -645,11 +645,12 @@ class DataParallelPPOActor(BasePPOActor):
             # stacked_sigmas: (num_micro_batches * num_layers,)
             stacked_sigmas = torch.cat(sigma_tensors, dim=0) 
             
-            # Compute statistics across all sigma values
-            metrics['actor/perturb_coef_mean'] = stacked_sigmas.mean().item()
-            metrics['actor/perturb_coef_std'] = stacked_sigmas.std().item()
-            metrics['actor/perturb_coef_min'] = stacked_sigmas.min().item()
-            metrics['actor/perturb_coef_max'] = stacked_sigmas.max().item() 
+            if stacked_sigmas.numel() > 0:
+                # Compute statistics across all sigma values
+                metrics['actor/perturb_sigma_mean'] = stacked_sigmas.mean().item()
+                metrics['actor/perturb_sigma_std'] = stacked_sigmas.std().item()
+                metrics['actor/perturb_sigma_min'] = stacked_sigmas.min().item()
+                metrics['actor/perturb_sigma_max'] = stacked_sigmas.max().item() 
             
             # Add debug info for coef gradients
             actual_module = getattr(self.actor_module, '_fsdp_wrapped_module', self.actor_module)
@@ -665,8 +666,10 @@ class DataParallelPPOActor(BasePPOActor):
                 for layer in layers:
                     if hasattr(layer, "coef") and layer.coef.grad is not None:
                         g = layer.coef.grad.detach()
-                        grad_norms.append(g.norm().item())
-                        grad_means.append(g.mean().item())
+                        # Only compute stats for non-empty local shards
+                        if g.numel() > 0:
+                            grad_norms.append(g.norm().item())
+                            grad_means.append(g.mean().item())
                 
                 if len(grad_norms) > 0:
                      metrics['actor/coef_grad_norm_mean'] = sum(grad_norms) / len(grad_norms)

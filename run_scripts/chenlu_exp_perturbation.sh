@@ -12,9 +12,10 @@ PERTURB_STD="${3:-0.02}"        # Perturbation initial std
 GEOMETRIC="${4:-false}"         # Geometric aggregation
 CLIP_RATIO_LOW="${5:-0.2}"       # Clip ratio low
 CLIP_RATIO_HIGH="${6:-0.28}"     # Clip ratio high
-ALPHA="${7:-0.001}"            # KL coef for perturbation KL penalty
-BETA="${8:-0.001}"            # KL coef for perturbation KL penalty
-PERTURB_LR="${9:-1e-2}"            # Perturbation learning rate
+CLIP_RATIO_C="${7:-10.0}"         # Clip ratio c
+ALPHA="${8:-0.001}"            # KL coef for perturbation KL penalty
+BETA="${9:-0.001}"            # KL coef for perturbation KL penalty
+PERTURB_LR="${10:-1e-2}"            # Perturbation learning rate
 
 # Get GPUs: use CUDA_VISIBLE_DEVICES if set in script, otherwise auto-detect
 if [ -n "$CUDA_VISIBLE_DEVICES" ]; then
@@ -44,6 +45,7 @@ echo "Beta: ${BETA}"
 echo "Geometric: ${GEOMETRIC}"
 echo "Clip Ratio Low: ${CLIP_RATIO_LOW}"
 echo "Clip Ratio High: ${CLIP_RATIO_HIGH}"
+echo "Clip Ratio C: ${CLIP_RATIO_C}"
 echo "Perturbation Learning Rate: ${PERTURB_LR}"
 echo "Using ${FREE_GPU_COUNT} GPUs: ${FREE_GPUS}"
 echo "Start time: $(date)"
@@ -62,7 +64,7 @@ MODEL_PATH="${MODEL_BASE_PATH}/${MODEL_NAME}"
 
 max_prompt_length=$((2048 * 1))
 max_response_length=$((2048))
-train_prompt_bsz=128 #512
+train_prompt_bsz=512
 n_resp_per_prompt=8
 train_prompt_mini_bsz=32
 loss_agg_mode="token-mean"
@@ -71,7 +73,7 @@ loss_agg_mode="token-mean"
 USE_PERTURBATION=True
 project_name="mismatch_rl_research"
 dataset_name="merged_openr1_guru" # openr1 or merged_openr1_guru
-exp_name="all-perturb_${LOSS_MODE}_inistd${PERTURB_STD}_clip_${CLIP_RATIO_LOW}_${CLIP_RATIO_HIGH}_alpha${ALPHA}_beta${BETA}_lr${PERTURB_LR}_${MODEL_NAME}_${dataset_name}_n${n_resp_per_prompt}"
+exp_name="all-perturb_${LOSS_MODE}_inistd${PERTURB_STD}_clip_${CLIP_RATIO_LOW}_${CLIP_RATIO_HIGH}_c${CLIP_RATIO_C}_alpha${ALPHA}_beta${BETA}_lr${PERTURB_LR}_${MODEL_NAME}_${dataset_name}_n${n_resp_per_prompt}"
 if [ "$GEOMETRIC" = "true" ]; then
     exp_name="${exp_name}_geo"
 fi
@@ -98,7 +100,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.optim.lr=1e-6 \
     actor_rollout_ref.model.use_remove_padding=False \
     actor_rollout_ref.actor.ppo_mini_batch_size=${train_prompt_mini_bsz} \
-    actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=8 \
+    actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=4 \
     actor_rollout_ref.actor.use_kl_loss=True \
     actor_rollout_ref.actor.kl_loss_coef=0.001 \
     actor_rollout_ref.actor.kl_loss_type=low_var_kl \
@@ -114,18 +116,18 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.policy_loss.is_geometric=${GEOMETRIC} \
     actor_rollout_ref.actor.clip_ratio_low=${CLIP_RATIO_LOW} \
     actor_rollout_ref.actor.clip_ratio_high=${CLIP_RATIO_HIGH} \
-    actor_rollout_ref.actor.clip_ratio_c=10.0 \
+    actor_rollout_ref.actor.clip_ratio_c=${CLIP_RATIO_C} \
     actor_rollout_ref.actor.loss_agg_mode=${loss_agg_mode} \
     actor_rollout_ref.model.enable_gradient_checkpointing=True \
     actor_rollout_ref.actor.fsdp_config.param_offload=False \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
-    actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=16 \
+    actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=8 \
     actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
     actor_rollout_ref.rollout.name=vllm \
     actor_rollout_ref.rollout.gpu_memory_utilization=0.8 \
     actor_rollout_ref.rollout.n=${n_resp_per_prompt} \
     actor_rollout_ref.rollout.calculate_log_probs=True \
-    actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=16 \
+    actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=8 \
     actor_rollout_ref.ref.fsdp_config.param_offload=True \
     algorithm.use_kl_in_reward=False \
     reward_model.reward_manager=batch \
