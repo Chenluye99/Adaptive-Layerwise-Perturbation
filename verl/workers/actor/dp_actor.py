@@ -279,17 +279,34 @@ class DataParallelPPOActor(BasePPOActor):
                             entropy = torch.utils.checkpoint.checkpoint(verl_F.entropy_from_logits, logits)
             
         
-        # Try to get perturb_sigma vector from model instance variable first (more reliable with FSDP)
-        # This avoids issues with output attributes being lost during FSDP processing
+        # Try to collect coef parameters from all layers (CustomQwen2DecoderLayer)
         perturb_sigma = None
         
         # Get the actual model (unwrap FSDP if needed)
         actual_module = getattr(self.actor_module, '_fsdp_wrapped_module', self.actor_module)
-        if hasattr(actual_module, '_last_perturb_sigma') and actual_module._last_perturb_sigma is not None:
-            perturb_sigma = actual_module._last_perturb_sigma  # Shape: (vocab_size,)
-        elif hasattr(output, "perturb_sigma"):
-            # Fallback: try to get from output object
-            perturb_sigma = output.perturb_sigma
+        
+        # Attempt to find layers list
+        layers = None
+        # For Qwen2: model.layers (if wrapped in AutoModel)
+        if hasattr(actual_module, "model") and hasattr(actual_module.model, "layers"):
+            layers = actual_module.model.layers
+        elif hasattr(actual_module, "layers"):
+            layers = actual_module.layers
+            
+        if layers is not None:
+            coef_list = []
+            for layer in layers:
+                # Check for 'coef' attribute
+                if hasattr(layer, "coef"):
+                    coef_list.append(layer.coef)
+            
+            if len(coef_list) > 0:
+                # Concatenate all coefs into a single tensor: (num_layers,)
+                perturb_sigma = torch.cat(coef_list) 
+        
+        # Fallback to legacy/other implementations if not found
+        if perturb_sigma is None:
+            print("WARNING: perturb_sigma is not found")
         
         return entropy, log_probs, perturb_sigma
 
@@ -621,27 +638,41 @@ class DataParallelPPOActor(BasePPOActor):
                 mini_batch_metrics = {"actor/grad_norm": grad_norm.detach().item()}
                 append_to_dict(metrics, mini_batch_metrics)
 
-        # Compute perturbation sigma statistics if available
+        # Compute perturbation sigma/coef statistics if available
         if len(sigma_tensors) > 0:
-            # Stack all sigma vectors: (num_micro_batches, vocab_size)
-            stacked_sigmas = torch.stack(sigma_tensors, dim=0)
+            # Stack all sigma vectors. 
+            # sigma_tensors[i] is (num_layers,) tensor from one micro-batch
+            # stacked_sigmas: (num_micro_batches * num_layers,)
+            stacked_sigmas = torch.cat(sigma_tensors, dim=0) 
             
             # Compute statistics across all sigma values
-            metrics['actor/perturb_sigma_mean'] = stacked_sigmas.mean().item()
-            metrics['actor/perturb_sigma_std'] = stacked_sigmas.std().item()
-            metrics['actor/perturb_sigma_min'] = stacked_sigmas.min().item()
-            metrics['actor/perturb_sigma_max'] = stacked_sigmas.max().item() 
+            metrics['actor/perturb_coef_mean'] = stacked_sigmas.mean().item()
+            metrics['actor/perturb_coef_std'] = stacked_sigmas.std().item()
+            metrics['actor/perturb_coef_min'] = stacked_sigmas.min().item()
+            metrics['actor/perturb_coef_max'] = stacked_sigmas.max().item() 
             
-            # Add debug info for log_sigma parameter and gradient
+            # Add debug info for coef gradients
             actual_module = getattr(self.actor_module, '_fsdp_wrapped_module', self.actor_module)
-            if hasattr(actual_module, 'log_sigma'):
-                if actual_module.log_sigma.grad is not None:
-                    metrics['actor/log_sigma_grad_mean'] = actual_module.log_sigma.grad.detach().mean().item()
-                    metrics['actor/log_sigma_grad_norm'] = actual_module.log_sigma.grad.detach().norm().item()
-                    metrics['actor/log_sigma_grad_max'] = actual_module.log_sigma.grad.detach().max().item()
+            layers = None
+            if hasattr(actual_module, "model") and hasattr(actual_module.model, "layers"):
+                layers = actual_module.model.layers
+            elif hasattr(actual_module, "layers"):
+                layers = actual_module.layers
+                
+            if layers is not None:
+                grad_norms = []
+                grad_means = []
+                for layer in layers:
+                    if hasattr(layer, "coef") and layer.coef.grad is not None:
+                        g = layer.coef.grad.detach()
+                        grad_norms.append(g.norm().item())
+                        grad_means.append(g.mean().item())
+                
+                if len(grad_norms) > 0:
+                     metrics['actor/coef_grad_norm_mean'] = sum(grad_norms) / len(grad_norms)
+                     metrics['actor/coef_grad_mean'] = sum(grad_means) / len(grad_means)
                 else:
-                    metrics['actor/log_sigma_grad_mean'] = 0.0
-                    # Try to find if it's in FSDP flat param (hard to debug, but 0.0 signals issue)
+                     metrics['actor/coef_grad_norm_mean'] = 0.0
  
                      
         self.actor_optimizer.zero_grad()

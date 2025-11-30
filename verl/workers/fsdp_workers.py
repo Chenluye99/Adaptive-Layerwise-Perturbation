@@ -45,6 +45,14 @@ except ImportError:
 import verl.utils.torch_functional as verl_F
 from verl import DataProto
 from verl.models.transformers.monkey_patch import apply_monkey_patch
+
+# Apply Qwen2 patch in worker process
+try:
+    from verl.trainer.perturb_transformer.patch_qwen2 import apply_qwen2_patch
+    apply_qwen2_patch()
+except ImportError:
+    print("WARNING: Failed to apply Qwen2 patch in fsdp_workers.py")
+
 from verl.single_controller.base import Worker
 from verl.single_controller.base.decorator import Dispatch, make_nd_compute_dataproto_dispatch_fn, register
 from verl.utils import hf_processor, hf_tokenizer
@@ -336,6 +344,27 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
             "eos_token_id": self.tokenizer.eos_token_id,
             "pad_token_id": self.tokenizer.pad_token_id,
         }
+
+        # --- [Add this block] Inject perturbation parameters from Hydra config to Model config ---
+        # This allows script arguments (e.g., PERTURB_STD) to override config.json values
+        if self.config.actor.get("use_perturbation", False):
+            override_config_kwargs["use_perturbation"] = True
+            
+            # Inject perturb_std
+            if self.config.actor.get("perturb_std", None) is not None:
+                override_config_kwargs["perturb_std"] = float(self.config.actor.get("perturb_std"))
+            
+            # Inject coef_learnable (optional, if you want to control it via script)
+            if self.config.actor.get("coef_learnable", None) is not None:
+                override_config_kwargs["coef_learnable"] = self.config.actor.get("coef_learnable")
+
+            if self.rank == 0:
+                print(f"[FSDP Worker] Injected perturbation config: "
+                      f"use_perturbation={override_config_kwargs.get('use_perturbation')}, "
+                      f"perturb_std={override_config_kwargs.get('perturb_std')}, "
+                      f"coef_learnable={override_config_kwargs.get('coef_learnable', 'default')}")
+        # -------------------------------------------------------------------------------------
+
         override_config_kwargs.update(override_model_config)
         update_model_config(actor_model_config, override_config_kwargs=override_config_kwargs)
         if self.rank == 0:
@@ -381,64 +410,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 trust_remote_code=trust_remote_code,
                 attn_implementation=attn_implementation,
             )
-
-            if role == "actor" and self.config.actor.get("use_perturbation", False):
-                import math
-                import types
-
-                initial_std = self.config.actor.get("perturb_std", 0.01)
-                
-                # Get vocab_size from model config
-                vocab_size = actor_module.config.vocab_size
-
-                # register a new parameter to the model with vocab_size dimension
-                # Use float32 for log_sigma to ensure precision
-                actor_module.register_parameter(
-                    "log_sigma", 
-                    torch.nn.Parameter(torch.full((vocab_size,), math.log(initial_std), dtype=torch.float32))
-                )
-
-                original_forward = actor_module.forward
-
-                def perturbed_forward(self, input_ids, attention_mask=None, position_ids=None, use_cache=False, **kwargs):
-                    outputs = original_forward(
-                        input_ids=input_ids,
-                        attention_mask=attention_mask,
-                        position_ids=position_ids,
-                        use_cache=use_cache,
-                        **kwargs
-                    )
-                    # Apply perturbation when gradients are enabled (indicating training)
-                    # Use torch.is_grad_enabled() which is more reliable than self.training with FSDP
-                    if torch.is_grad_enabled():
-                        # log_sigma has shape (vocab_size,), will broadcast to (batch, seq_len, vocab_size)
-                        # Use float32 for exp to avoid precision issues, then cast to logits dtype
-                        sigma = torch.exp(self.log_sigma.float()).to(outputs.logits.dtype)
-                        epsilon = torch.randn_like(outputs.logits)
-                        perturbed_logits = outputs.logits + sigma * epsilon
-                        outputs.logits = perturbed_logits
-                        
-                        # Store the full sigma vector (vocab_size,) for later statistics computation
-                        # This avoids relying on output object attributes which may be lost in FSDP processing
-                        # Store in instance variable (survives FSDP processing)
-                        self._last_perturb_sigma = sigma
-                        # Also try to set on outputs for backward compatibility
-                        object.__setattr__(outputs, 'perturb_sigma', sigma)
-                        
-                        # Debug print once
-                        if not hasattr(self, '_debug_logged'):
-                            print(f"[DEBUG] In perturbed_forward: log_sigma.requires_grad={self.log_sigma.requires_grad}, is_leaf={self.log_sigma.is_leaf}")
-                            self._debug_logged = True
-                    else:
-                        # Clear the sigma when not training
-                        self._last_perturb_sigma = None
-                    return outputs
-
-                actor_module.forward = types.MethodType(perturbed_forward, actor_module)
-                
-                if self.rank == 0:
-                    print(f"Injected log_sigma with shape ({vocab_size},) and perturbed forward. Initial std: {initial_std}")
-                
+                            
             # Apply Liger kernel to the model if use_liger is set to True
             if use_liger:
                 from liger_kernel.transformers.monkey_patch import _apply_liger_kernel_to_instance
@@ -606,29 +578,28 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         if role == "actor" and optim_config is not None:
             from verl.utils.torch_functional import get_constant_schedule_with_warmup, get_cosine_schedule_with_warmup
 
-            # Separate log_sigma from other parameters to assign a higher learning rate
-            params_without_sigma = []
-            sigma_params = []
+            # Separate perturbation parameters (coef/log_sigma) from other parameters
+            params_without_perturb = []
+            perturb_params = []
             
             for name, param in actor_module_fsdp.named_parameters():
-                if "log_sigma" in name:
-                    sigma_params.append(param)
+                # Check for 'coef' (new implementation) or 'log_sigma' (legacy)
+                if "coef" in name or "log_sigma" in name:
+                    perturb_params.append(param)
                 else:
-                    params_without_sigma.append(param)
+                    params_without_perturb.append(param)
             
             # Define parameter groups
-            # Use a much higher LR for log_sigma because its gradient is scaled by sigma (~0.01)
-            # making it ~100x smaller than other gradients
             perturb_lr = self.config.actor.get("perturb_lr", 1e-2)
             param_groups = [
-                {'params': params_without_sigma},
-                {'params': sigma_params, 'lr': perturb_lr} 
+                {'params': params_without_perturb},
+                {'params': perturb_params, 'lr': perturb_lr} 
             ]
             
             actor_optimizer = build_optimizer(param_groups, optim_config)
             
             if self.rank == 0:
-                print(f"[Optimizer] Created parameter groups. log_sigma LR: {perturb_lr}, Other params LR: {optim_config.get('lr', 'default')}")
+                print(f"[Optimizer] Created parameter groups. Perturbation (coef/log_sigma) LR: {perturb_lr}, Other params LR: {optim_config.get('lr', 'default')}")
             
             total_steps = optim_config.get("total_training_steps", 0)
             num_warmup_steps = int(optim_config.get("lr_warmup_steps", -1))

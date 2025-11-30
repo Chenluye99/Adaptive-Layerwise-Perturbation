@@ -59,8 +59,6 @@ exp_name="grpo_baseline_qwen2.5-math-1.5b_${dataset_name}_n${n_resp_per_prompt}_
 
 CKPTS_DIR="/opt/dlami/nvme/chenluy_ckpoints/${project_name}/${exp_name}"
 
-cd /home/chenluy/mismatch-learn_perturbation-on-math
-
 # Create logs directory if it doesn't exist
 mkdir -p logs
 

@@ -493,7 +493,11 @@ class vLLMRollout(BaseRollout):
 
             model = self.inference_engine.llm_engine.model_executor.driver_worker.worker.model_runner.model
             patch_vllm_moe_model_weight_loader(model)
-            model.load_weights(weights)
+
+            # Filter out perturbation parameters (coef, log_sigma) that are not in standard vLLM models
+            # vLLM uses its own model implementation which doesn't have these custom parameters
+            filtered_weights = ((name, param) for name, param in weights if "coef" not in name)
+            model.load_weights(filtered_weights)
 
 
 # https://github.com/vllm-project/vllm/issues/13175
@@ -648,7 +652,11 @@ class vLLMAsyncRollout(BaseRollout):
 
             model = self.inference_engine.worker.model_runner.model
             patch_vllm_moe_model_weight_loader(model)
-            model.load_weights(weights)
+
+            # Filter out perturbation parameters (coef, log_sigma) that are not in standard vLLM models
+            # vLLM uses its own model implementation which doesn't have these custom parameters
+            filtered_weights = ((name, param) for name, param in weights if "coef" not in name)
+            model.load_weights(filtered_weights)
 
     def generate_sequences(self, prompts: DataProto) -> DataProto:
         """Batch generate sequences in sync mode."""

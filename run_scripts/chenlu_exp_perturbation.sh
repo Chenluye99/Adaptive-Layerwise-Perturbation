@@ -56,11 +56,13 @@ export RAY_TMPDIR=/opt/dlami/nvme/ray_tmp
 
 
 #source "${SCRIPT_DIR}/setup_env.sh"
-MODEL_PATH="Qwen/Qwen2.5-Math-1.5B"
+MODEL_BASE_PATH="/home/chenluy/mismatch-all_perturbation-on-math/models"
+MODEL_NAME="qwen2-1_5b-custom"
+MODEL_PATH="${MODEL_BASE_PATH}/${MODEL_NAME}"
 
 max_prompt_length=$((2048 * 1))
 max_response_length=$((2048))
-train_prompt_bsz=512
+train_prompt_bsz=128 #512
 n_resp_per_prompt=8
 train_prompt_mini_bsz=32
 loss_agg_mode="token-mean"
@@ -69,14 +71,12 @@ loss_agg_mode="token-mean"
 USE_PERTURBATION=True
 project_name="mismatch_rl_research"
 dataset_name="merged_openr1_guru" # openr1 or merged_openr1_guru
-exp_name="perturb_${LOSS_MODE}_inistd${PERTURB_STD}_clip_${CLIP_RATIO_LOW}_${CLIP_RATIO_HIGH}_alpha${ALPHA}_beta${BETA}_lr${PERTURB_LR}_qwen2.5-math-1.5b_${dataset_name}_n${n_resp_per_prompt}"
+exp_name="all-perturb_${LOSS_MODE}_inistd${PERTURB_STD}_clip_${CLIP_RATIO_LOW}_${CLIP_RATIO_HIGH}_alpha${ALPHA}_beta${BETA}_lr${PERTURB_LR}_${MODEL_NAME}_${dataset_name}_n${n_resp_per_prompt}"
 if [ "$GEOMETRIC" = "true" ]; then
     exp_name="${exp_name}_geo"
 fi
 
 CKPTS_DIR="/opt/dlami/nvme/chenluy_ckpoints/${project_name}/${exp_name}"
-
-cd /home/chenluy/mismatch-learn_perturbation-on-math
 
 # Create logs directory if it doesn't exist
 mkdir -p logs
@@ -119,13 +119,13 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.model.enable_gradient_checkpointing=True \
     actor_rollout_ref.actor.fsdp_config.param_offload=False \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
-    actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=8 \
+    actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=16 \
     actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
     actor_rollout_ref.rollout.name=vllm \
     actor_rollout_ref.rollout.gpu_memory_utilization=0.8 \
     actor_rollout_ref.rollout.n=${n_resp_per_prompt} \
     actor_rollout_ref.rollout.calculate_log_probs=True \
-    actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=8 \
+    actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=16 \
     actor_rollout_ref.ref.fsdp_config.param_offload=True \
     algorithm.use_kl_in_reward=False \
     reward_model.reward_manager=batch \
