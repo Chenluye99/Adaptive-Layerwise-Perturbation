@@ -1,5 +1,18 @@
 #!/bin/bash
-# Experiment 1: GRPO Baseline (no rollout correction)
+#1. 创建一个存放模型的文件夹，例如 ./models/qwen2-1_5b-custom
+# mkdir -p ./models/qwen2-1_5b-custom
+
+#2. 开始下载
+# huggingface-cli download Qwen/Qwen2.5-Math-1.5B \
+#     --local-dir ./models/qwen2-1_5b-custom \
+#     --local-dir-use-symlinks False \
+#     --resume-download
+
+# 3. 修改config.json，添加
+#   "use_perturbation": true,
+#   "coef_learnable": true,
+#   "perturb_std": 1e-2
+
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
