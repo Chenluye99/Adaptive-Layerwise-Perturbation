@@ -411,13 +411,15 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 attn_implementation=attn_implementation,
             )
 
-            # --- [CRITICAL FIX] Force reset 'coef' parameter after loading ---
+            # --- [CRITICAL FIX] Force reset 'log_coef' parameter after loading ---
             # This handles cases where 'low_cpu_mem_usage=True' or meta device initialization
             # might leave new parameters uninitialized (garbage values)
             if self.config.actor.get("use_perturbation", False):
+                import math
                 perturb_std = float(self.config.actor.get("perturb_std", 1e-2))
+                log_perturb_std = math.log(perturb_std)
                 if self.rank == 0:
-                    print(f"[FSDP Worker] Force resetting perturbation coef to {perturb_std} for all layers...")
+                    print(f"[FSDP Worker] Force resetting perturbation log_coef to {log_perturb_std} (std={perturb_std}) for all layers...")
                 
                 # Access layers directly (handle Qwen2 structure)
                 layers = None
@@ -429,12 +431,12 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 if layers is not None:
                     reset_count = 0
                     for layer in layers:
-                        if hasattr(layer, "coef"):
+                        if hasattr(layer, "log_coef"):
                             with torch.no_grad():
-                                layer.coef.fill_(perturb_std)
+                                layer.log_coef.fill_(log_perturb_std)
                             reset_count += 1
                     if self.rank == 0:
-                        print(f"[FSDP Worker] Successfully reset coef for {reset_count} layers.")
+                        print(f"[FSDP Worker] Successfully reset log_coef for {reset_count} layers.")
             # ---------------------------------------------------------------
                             
             # Apply Liger kernel to the model if use_liger is set to True
@@ -609,8 +611,8 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
             perturb_params = []
             
             for name, param in actor_module_fsdp.named_parameters():
-                # Check for 'coef' (new implementation) or 'log_sigma' (legacy)
-                if "coef" in name or "log_sigma" in name:
+                # Check for 'log_coef' (new implementation)
+                if "log_coef" in name:
                     perturb_params.append(param)
                 else:
                     params_without_perturb.append(param)

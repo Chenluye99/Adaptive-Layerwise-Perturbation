@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import math
 from transformers.models.qwen2 import modeling_qwen2
 from transformers.models.qwen2.configuration_qwen2 import Qwen2Config
 from transformers.activations import ACT2FN
@@ -37,14 +38,15 @@ class CustomQwen2DecoderLayer(nn.Module):
 
         if self.coef_learnable:
             # 如果想让它可训练，需注册为 Parameter
-            self.coef = nn.Parameter(torch.tensor([self.initial_coef], dtype=dtype))
+            # 使用 log 空间优化，保证 std 始终非负
+            self.log_coef = nn.Parameter(torch.tensor([math.log(self.initial_coef)], dtype=dtype))
         else:
-            # 固定值则注册为 buffer (不会被优化器更新，但会随模型保存)
-            self.register_buffer("coef", torch.tensor([self.initial_coef], dtype=dtype))
+            # 固定值则注册为 buffer
+            self.register_buffer("log_coef", torch.tensor([math.log(self.initial_coef)], dtype=dtype))
         
-        # 强制初始化，防止被 FSDP 或其它机制覆盖为垃圾值
+        # 强制初始化
         with torch.no_grad():
-            self.coef.fill_(self.initial_coef)
+            self.log_coef.fill_(math.log(self.initial_coef))
         # --------------------------------------------------------
 
         self.self_attn = modeling_qwen2.Qwen2Attention(config=config, layer_idx=layer_idx)
@@ -77,7 +79,8 @@ class CustomQwen2DecoderLayer(nn.Module):
         # 仅在开启 smooth 且处于训练模式时执行
         if self.smooth and self.training:
             # 1. 准备系数 (确保在正确的 device)
-            current_coef = self.coef.to(hidden_states.device)
+            # 从 log 空间恢复 std: std = exp(log_std)
+            current_coef = self.log_coef.to(hidden_states.device).exp()
             
             # 2. 生成噪声并注入 (Element-wise 操作，非常快)
             # torch.rand_like 生成 [0, 1) 的均匀分布噪声

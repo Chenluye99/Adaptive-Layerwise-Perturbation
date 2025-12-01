@@ -296,9 +296,10 @@ class DataParallelPPOActor(BasePPOActor):
         if layers is not None:
             coef_list = []
             for layer in layers:
-                # Check for 'coef' attribute
-                if hasattr(layer, "coef"):
-                    coef_list.append(layer.coef)
+                # Check for 'log_coef' attribute
+                if hasattr(layer, "log_coef"):
+                    # Convert back to std for logging and loss calculation
+                    coef_list.append(layer.log_coef.exp())
             
             if len(coef_list) > 0:
                 # Concatenate all coefs into a single tensor: (num_layers,)
@@ -664,8 +665,8 @@ class DataParallelPPOActor(BasePPOActor):
                 grad_norms = []
                 grad_means = []
                 for layer in layers:
-                    if hasattr(layer, "coef") and layer.coef.grad is not None:
-                        g = layer.coef.grad.detach()
+                    if hasattr(layer, "log_coef") and layer.log_coef.grad is not None:
+                        g = layer.log_coef.grad.detach()
                         # Only compute stats for non-empty local shards
                         if g.numel() > 0:
                             grad_norms.append(g.norm().item())
