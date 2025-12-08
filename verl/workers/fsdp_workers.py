@@ -26,6 +26,15 @@ from torch.distributed.device_mesh import init_device_mesh
 import verl.utils.torch_functional as verl_F
 from omegaconf import DictConfig, open_dict
 from verl import DataProto
+from verl.models.transformers.monkey_patch import apply_monkey_patch
+
+# Apply Qwen2 patch in worker process
+try:
+    from verl.trainer.perturb_transformer.patch_qwen2 import apply_qwen2_patch
+    apply_qwen2_patch()
+except ImportError:
+    print("WARNING: Failed to apply Qwen2 patch in fsdp_workers.py")
+
 from verl.single_controller.base import Worker
 from verl.single_controller.base.decorator import register, Dispatch
 from verl.utils import hf_tokenizer, hf_processor
@@ -180,6 +189,27 @@ class ActorRolloutRefWorker(Worker):
             'eos_token_id': self.tokenizer.eos_token_id,
             'pad_token_id': self.tokenizer.pad_token_id,
         }
+
+        # --- [Add this block] Inject perturbation parameters from Hydra config to Model config ---
+        # This allows script arguments (e.g., PERTURB_STD) to override config.json values
+        if self.config.actor.get("use_perturbation", False):
+            override_config_kwargs["use_perturbation"] = True
+
+            # Inject perturb_std
+            if self.config.actor.get("perturb_std", None) is not None:
+                override_config_kwargs["perturb_std"] = float(self.config.actor.get("perturb_std"))
+
+            # Inject coef_learnable (optional, if you want to control it via script)
+            if self.config.actor.get("coef_learnable", None) is not None:
+                override_config_kwargs["coef_learnable"] = self.config.actor.get("coef_learnable")
+
+            if self.rank == 0:
+                print(f"[FSDP Worker] Injected perturbation config: "
+                      f"use_perturbation={override_config_kwargs.get('use_perturbation')}, "
+                      f"perturb_std={override_config_kwargs.get('perturb_std')}, "
+                      f"coef_learnable={override_config_kwargs.get('coef_learnable', 'default')}")
+        # -------------------------------------------------------------------------------------
+
         override_config_kwargs.update(override_model_config)
         update_model_config(actor_model_config, override_config_kwargs=override_config_kwargs)
         if self.rank == 0:
@@ -201,15 +231,49 @@ class ActorRolloutRefWorker(Worker):
                                                               config=actor_model_config,
                                                               attn_implementation='flash_attention_2',
                                                               trust_remote_code=trust_remote_code)
+            # --- [CRITICAL FIX] Force reset 'log_coef' parameter after loading ---
+            # This handles cases where 'low_cpu_mem_usage=True' or meta device initialization
+            # might leave new parameters uninitialized (garbage values)
+            if self.config.actor.get("use_perturbation", False):
+                import math
+                perturb_std = float(self.config.actor.get("perturb_std", 1e-2))
+                log_perturb_std = math.log(perturb_std)
+                if self.rank == 0:
+                    print(f"[FSDP Worker] Force resetting perturbation log_coef to {log_perturb_std} (std={perturb_std}) for all layers...")
 
-            if use_remove_padding or self.ulysses_sequence_parallel_size > 1:
-                from verl.models.transformers.monkey_patch import apply_monkey_patch
-                apply_monkey_patch(model=actor_module, ulysses_sp_size=self.ulysses_sequence_parallel_size)
+                # Access layers directly (handle Qwen2 structure)
+                layers = None
+                if hasattr(actor_module, "model") and hasattr(actor_module.model, "layers"):
+                    layers = actor_module.model.layers
+                elif hasattr(actor_module, "layers"):
+                    layers = actor_module.layers
+
+                if layers is not None:
+                    reset_count = 0
+                    for layer in layers:
+                        if hasattr(layer, "log_coef"):
+                            with torch.no_grad():
+                                layer.log_coef.fill_(log_perturb_std)
+                            reset_count += 1
+                    if self.rank == 0:
+                        print(f"[FSDP Worker] Successfully reset log_coef for {reset_count} layers.")
 
             # Apply Liger kernel to the model if use_liger is set to True
             if use_liger:
                 from liger_kernel.transformers.monkey_patch import _apply_liger_kernel_to_instance
                 _apply_liger_kernel_to_instance(model=actor_module)
+
+            fused_kernel_options = self.config.model.get("fused_kernel_options", None)
+            fused_kernels_backend = (
+                fused_kernel_options.get("impl_backend", None) if fused_kernel_options is not None else None
+            )
+            apply_monkey_patch(
+                model=actor_module,
+                use_remove_padding=use_remove_padding,
+                ulysses_sp_size=self.ulysses_sequence_parallel_size,
+                use_fused_kernels=False,
+                fused_kernels_backend=fused_kernels_backend,
+            )
 
             # some parameters may not in torch_dtype. TODO(zhangchi.usc1992) remove this after we switch to fsdp2
             actor_module.to(torch_dtype)
@@ -217,6 +281,16 @@ class ActorRolloutRefWorker(Worker):
             if enable_gradient_checkpointing:
                 actor_module.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant': False})
         torch.distributed.barrier()
+
+        self.use_orig_params = fsdp_config.get("use_orig_params", False)
+        
+        # Force use_orig_params=True if perturbation is enabled to handle dynamic parameters
+        if self.config.actor.get("use_perturbation", False):
+            self.use_orig_params = True
+            # Cannot modify frozen dataclass directly
+            # The self.use_orig_params=True above is sufficient for the FSDP constructor call below
+            if self.rank == 0:
+                print("[FSDP] Forcing use_orig_params=True for perturbation support")
 
         if self.rank == 0:
             print_model_size(actor_module)
@@ -255,7 +329,7 @@ class ActorRolloutRefWorker(Worker):
             actor_module,
             cpu_offload=cpu_offload,
             param_init_fn=init_fn,
-            use_orig_params=False,
+            use_orig_params=self.use_orig_params,
             auto_wrap_policy=auto_wrap_policy,
             device_id=torch.cuda.current_device(),
             sharding_strategy=sharding_strategy,  # zero3
@@ -268,8 +342,27 @@ class ActorRolloutRefWorker(Worker):
 
         # TODO: add more optimizer args into config
         if role == 'actor' and optim_config is not None:
-            from verl.utils.torch_functional import get_constant_schedule_with_warmup
-            actor_optimizer = optim.AdamW(actor_module_fsdp.parameters(),
+            from verl.utils.torch_functional import get_constant_schedule_with_warmup            
+
+            # Separate perturbation parameters (coef/log_sigma) from other parameters
+            params_without_perturb = []
+            perturb_params = []
+
+            for name, param in actor_module_fsdp.named_parameters():
+                # Check for 'log_coef' (new implementation)
+                if "log_coef" in name:
+                    perturb_params.append(param)
+                else:
+                    params_without_perturb.append(param)
+
+            # Define parameter groups
+            perturb_lr = self.config.actor.get("perturb_lr", 1e-2)
+            param_groups = [
+                {'params': params_without_perturb},
+                {'params': perturb_params, 'lr': perturb_lr} 
+            ]
+
+            actor_optimizer = optim.AdamW(param_groups,
                                           lr=optim_config.lr,
                                           betas=optim_config.get('betas', (0.9, 0.99)),
                                           weight_decay=optim_config.get('weight_decay', 1e-2))
@@ -1001,7 +1094,7 @@ class RewardModelWorker(Worker):
 
     def _forward_micro_batch(self, micro_batch):
         from flash_attn.bert_padding import pad_input, unpad_input, index_first_axis, rearrange
-        from verl.utils.ulysses import ulysses_pad_and_slice_inputs, gather_outpus_and_unpad
+        from verl.utils.ulysses import ulysses_pad_and_slice_inputs, gather_outputs_and_unpad
 
         with torch.no_grad(), torch.autocast(device_type='cuda', dtype=torch.bfloat16):
             input_ids = micro_batch['input_ids']
@@ -1034,7 +1127,7 @@ class RewardModelWorker(Worker):
 
                 # gather output if sp > 1
                 if self.ulysses_sequence_parallel_size > 1:
-                    reward_rmpad = gather_outpus_and_unpad(reward_rmpad,
+                    reward_rmpad = gather_outputs_and_unpad(reward_rmpad,
                                                            gather_dim=0,
                                                            unpad_dim=0,
                                                            padding_size=pad_size)

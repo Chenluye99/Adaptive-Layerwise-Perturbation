@@ -849,6 +849,7 @@ def compute_policy_loss_perturbed(
     loss_mode: str = "sequence",
     turn_end_indicator: torch.Tensor = None,
     rollout_log_probs: torch.Tensor = None,
+    perturb_sigma: torch.Tensor = None,
     void_turn_mask: torch.Tensor = None,
     config = None,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict, dict, dict, dict]:
@@ -875,6 +876,8 @@ def compute_policy_loss_perturbed(
             Turn end indicator, shape (batch_size, response_length).
         rollout_log_probs (torch.Tensor, optional):
             Rollout log probabilities, shape (batch_size, response_length).
+        perturb_sigma (torch.Tensor, optional):
+            Perturbation sigma, shape (batch_size, response_length).
         void_turn_mask (torch.Tensor, optional):
             Mask indicating which turns are void, shape (batch_size, response_length).
         config:
@@ -953,38 +956,6 @@ def compute_policy_loss_perturbed(
             # If max_len == 0, all tokens are masked, set log_importance_ratio to 0
             log_importance_ratio = torch.zeros_like(negative_approx_kl)
 
-    elif loss_mode == "cum-turn":
-        assert turn_end_indicator is not None, "Turn end indicator is required for cum-turn loss mode."
-        B, L = old_log_prob.shape
-        device = old_log_prob.device
-
-        valid_token_nums = torch.cumsum(response_mask, dim=-1)
-        cumulative_sum = torch.cumsum(negative_approx_kl * response_mask, dim=-1)
-
-        turn_end_mask = turn_end_indicator.bool()
-        turn_end_mask[:, -1] = True
-        indices = torch.arange(L, device=device).expand(B, -1)
-        masked_indices = torch.where(turn_end_mask, indices, L)
-
-        rev_masked_indices = torch.flip(masked_indices, dims=[-1])
-        rev_end_indices, _ = torch.cummin(rev_masked_indices, dim=-1)
-        end_indices = torch.flip(rev_end_indices, dims=[-1])
-
-        turn_cumulative_sums = torch.gather(cumulative_sum, -1, end_indices)
-        turn_cumulative_counts = torch.gather(valid_token_nums, -1, end_indices)
-
-        # geomatric mean
-        if is_geometric:
-            log_ratio_mean = turn_cumulative_sums / (turn_cumulative_counts + 1e-8)
-        else:
-            log_ratio_mean = turn_cumulative_sums
-        kl_values = torch.where(
-            response_mask > 0,
-            log_ratio_mean,
-            torch.zeros_like(cumulative_sum)
-        )  
-        log_importance_ratio = kl_values.detach() + log_prob - log_prob.detach()
-
 
     # Calculate importance ratios
     log_importance_ratio = torch.clamp(log_importance_ratio, min=-20.0, max=20.0)
@@ -1026,8 +997,7 @@ def compute_policy_loss_perturbed(
     
     # Aggregate the loss at the sequence level
     pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
-    
-    # Return two separate metrics dictionaries
+
     return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics
 
 

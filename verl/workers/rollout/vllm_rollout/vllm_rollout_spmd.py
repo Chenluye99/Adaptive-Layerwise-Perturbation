@@ -25,7 +25,7 @@ When working with Megatron:
 - After inference, all the parameters that doesn't belong to this pp rank is freed.
 """
 import numpy as np
-from typing import List
+from typing import List, Generator
 from contextlib import contextmanager
 from omegaconf import DictConfig
 import torch
@@ -312,6 +312,23 @@ class vLLMRollout(BaseRollout):
 
         return DataProto(batch=batch, non_tensor_batch=non_tensor_batch)
 
+    def update_weights(self, weights: Generator[tuple[str, torch.Tensor], None, None], **kwargs):
+        """Update the weights of the rollout model with perturbation filtering."""
+        from verl.utils.vllm.patch import patch_vllm_moe_model_weight_loader
+
+        # 获取 vLLM 底层的 model 实例
+        # 注意：这个路径通常适用于 vLLM 的 standard executor
+        model = self.inference_engine.llm_engine.model_executor.driver_worker.worker.model_runner.model
+        
+        patch_vllm_moe_model_weight_loader(model)
+
+        # 过滤掉扰动参数 (coef, log_sigma) 以防止 vLLM 报错
+        filtered_weights = (
+            (name, param) for name, param in weights 
+            if "coef" not in name and "log_sigma" not in name
+        )
+
+        model.load_weights(filtered_weights)
 
         #     response = []
         #     for output in outputs:

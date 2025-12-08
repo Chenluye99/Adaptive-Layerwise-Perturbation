@@ -1,3 +1,18 @@
+#!/bin/bash
+#1. 创建一个存放模型的文件夹，例如 ./models/qwen2-7b-custom
+# mkdir -p ./models/qwen2-7b-custom
+
+#2. 开始下载
+# huggingface-cli download Qwen/Qwen2.5-7B \
+#     --local-dir ./models/qwen2-7b-custom \
+#     --local-dir-use-symlinks False \
+#     --resume-download
+
+# 3. 修改config.json，添加
+#   "use_perturbation": true,
+#   "coef_learnable": true,
+#   "perturb_std": 1e-2
+
 # Sandbox configuration
 export SANDBOX_ENDPOINT=http://127.0.0.1:12345/faas/sandbox/
 export WANDB_API_KEY="a17294c76f5787d04c92fd978d0f1a29133756e2"
@@ -9,7 +24,7 @@ PROJECT_NAME='TIR'
 RUN_NAME="simpletir"
 CONFIG_NAME="simpletir_trainer"
 
-MODEL_PATH='Qwen' # the parent dir of the checkpoint
+MODEL_PATH="/home/chenluy/mismatch_all_perturbation_agent/models" # the parent dir of the checkpoint
 DATA_PATH=$(pwd)/datasets # the dir containing data like deepscaler/train (see datasets/)
 CHECKPOINT_PATH="/opt/dlami/nvme/${PROJECT_NAME}" # the dir to save the checkpoint
 LOG_PATH="./logs/${PROJECT_NAME}" # the dir to save the log
@@ -18,7 +33,9 @@ GPUS_PER_NODE=8
 RESUME=False 
 LOSS_MODE='sequence' # vanilla, cum-token, cum-turn, sequence
 ADAPT_RATIO=False
+USE_PERTURBATION=True
 PERTURB_STD=1e-8
+PERTURB_LR=1e-2
 
 # Default values
 CLIP_RATIO_HIGH=3.0
@@ -165,6 +182,7 @@ while [[ "$#" -gt 0 ]]; do
     --loss_mode) LOSS_MODE="$2"; shift 2 ;;
     --adapt_ratio) ADAPT_RATIO="$2"; shift 2 ;;
     --perturb_std) PERTURB_STD="$2"; shift 2 ;;
+    --perturb_lr) PERTURB_LR="$2"; shift 2 ;;
     --rejection_sample) REJECTION_SAMPLE="$2"; shift 2 ;;
     --sp_size) SP_SIZE="$2"; shift 2 ;;
     --train_dataset) TRAIN_DATASET=($2); shift 2 ;;
@@ -220,11 +238,11 @@ SUFFIX+="_ppogeo${ppo_is_geometric}"
 SUFFIX+="_ris${rollout_is}"
 SUFFIX+="_isth${rollout_is_threshold}"
 SUFFIX+="_islvl${rollout_is_level}"
-SUFFIX+="_maxpro${MAX_PROMPT_LENGTH}"
-SUFFIX+="_maxres${MAX_RESPONSE_LENGTH}"
 SUFFIX+="_batch${TRAIN_BATCH_SIZE}"
 SUFFIX+="_ppomini${PPO_MINI_BATCH_SIZE}"
+SUFFIX+="_useperturb${USE_PERTURBATION}"
 SUFFIX+="_perturbstd${PERTURB_STD}"
+SUFFIX+="_perturblr${PERTURB_LR}"
 echo "Generated SUFFIX: $SUFFIX"
 
 RUN_NAME="$RUN_NAME$SUFFIX"
@@ -259,6 +277,7 @@ echo "Rollout IS Level: $rollout_is_level"
 echo "Rollout IS Mode: $rollout_is_mode"
 echo "Adapt Ratio: $ADAPT_RATIO"
 echo "Perturb Std: $PERTURB_STD"
+echo "Perturb LR: $PERTURB_LR"
 # set ppo micro token
 PPO_MICRO_TOKEN=$(generate_model_micro_token "$MODEL_NAME")
 echo "PPO_MICRO_TOKEN: $PPO_MICRO_TOKEN"
@@ -325,7 +344,9 @@ PYTHONUNBUFFERED=1 python -m recipe.simpletir.main_simpletir \
     actor_rollout_ref.actor.clip_ratio_c=$clip_ratio_c \
     actor_rollout_ref.actor.adapt_ratio=$ADAPT_RATIO \
     actor_rollout_ref.actor.policy_loss.is_geometric=$ppo_is_geometric \
-    actor_rollout_ref.actor.policy_loss.perturb_std=$PERTURB_STD \
+    actor_rollout_ref.actor.use_perturbation=$USE_PERTURBATION \
+    actor_rollout_ref.actor.perturb_std=$PERTURB_STD \
+    actor_rollout_ref.actor.perturb_lr=$PERTURB_LR \
     actor_rollout_ref.actor.fsdp_config.param_offload=$ACTOR_PARAMETER_OFFLOAD \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=$ACTOR_OPTIMIZER_OFFLOAD \
     actor_rollout_ref.actor.rollout_is=$rollout_is \

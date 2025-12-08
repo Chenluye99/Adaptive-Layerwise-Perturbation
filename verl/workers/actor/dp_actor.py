@@ -162,7 +162,38 @@ class DataParallelPPOActor(BasePPOActor):
                 log_probs = logprobs_from_logits(logits, micro_batch['responses'])
                 entropy = verl_F.entropy_from_logits(logits)  # (bsz, response_length)
 
-            return entropy, log_probs
+        # Try to collect coef parameters from all layers (CustomQwen2DecoderLayer)
+        perturb_sigma = None
+        
+        # Get the actual model (unwrap FSDP if needed)
+        actual_module = getattr(self.actor_module, '_fsdp_wrapped_module', self.actor_module)
+        
+        # Attempt to find layers list
+        layers = None
+        # For Qwen2: model.layers (if wrapped in AutoModel)
+        if hasattr(actual_module, "model") and hasattr(actual_module.model, "layers"):
+            layers = actual_module.model.layers
+        elif hasattr(actual_module, "layers"):
+            layers = actual_module.layers
+            
+        if layers is not None:
+            coef_list = []
+            for layer in layers:
+                # Check for 'log_coef' attribute
+                if hasattr(layer, "log_coef"):
+                    # Convert back to std for logging and loss calculation
+                    coef_list.append(layer.log_coef.exp())
+            
+            if len(coef_list) > 0:
+                # Concatenate all coefs into a single tensor: (num_layers,)
+                perturb_sigma = torch.cat(coef_list) 
+        
+        # Fallback to legacy/other implementations if not found
+        if perturb_sigma is None:
+            print("WARNING: perturb_sigma is not found")
+        
+        return entropy, log_probs, perturb_sigma
+
 
     def _optimizer_step(self):
         assert self.config.grad_clip is not None
@@ -226,7 +257,7 @@ class DataParallelPPOActor(BasePPOActor):
                 micro_batch = {**micro_batch.batch, **micro_batch.non_tensor_batch}
 
             with torch.no_grad():
-                _, log_probs = self._forward_micro_batch(micro_batch, temperature=temperature)
+                entropy, log_probs, _ = self._forward_micro_batch(micro_batch, temperature=temperature)
             log_probs_lst.append(log_probs)
         log_probs = torch.concat(log_probs_lst, dim=0)
 
@@ -282,7 +313,12 @@ class DataParallelPPOActor(BasePPOActor):
             dataloader = batch.split(self.config.ppo_mini_batch_size)
 
         metrics = {}
-        
+        sigma_tensors = []  # Will store (vocab_size,) tensors
+
+        # Get perturbation std from config (default 0.0 for no perturbation)
+        use_perturbation = self.config.get("use_perturbation", False)
+        perturb_std = self.config.get("perturb_std", 0.0)
+
         for epoch in range(self.config.ppo_epochs):
             # Storage for log_probs and micro_idx
             all_log_probs = []
@@ -336,8 +372,11 @@ class DataParallelPPOActor(BasePPOActor):
                     clip_ratio_c = self.config.get('clip_ratio_c', 3.0)
 
                     # all return: (bsz, response_length)
-                    perturb_std = self.config.get("perturb_std", 0)
-                    entropy, log_prob = self._forward_micro_batch(micro_batch=data, temperature=temperature, perturb_std=perturb_std)
+                    entropy, log_prob, perturb_sigma = self._forward_micro_batch(micro_batch=data, temperature=temperature, perturb_std=perturb_std)
+                    # Collect sigma vectors (vocab_size,) from each micro-batch
+                    # Only append if perturb_sigma is not None
+                    if perturb_sigma is not None and perturb_sigma.numel() > 0:
+                        sigma_tensors.append(perturb_sigma.detach().cpu())  # Each is (vocab_size,)
 
                     batch_size = log_prob.size(0)
                     minibatch_log_probs.append(log_prob.detach().cpu())
@@ -374,7 +413,7 @@ class DataParallelPPOActor(BasePPOActor):
                             void_turn_mask=void_turn_mask,
                             config=self.config,
                         )
-                    elif perturb_std:
+                    elif use_perturbation:
                         pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics = core_algos.compute_policy_loss_perturbed(
                             old_log_prob=old_log_prob,
                             log_prob=log_prob,
@@ -384,6 +423,7 @@ class DataParallelPPOActor(BasePPOActor):
                             loss_mode=self.config.policy_loss.loss_mode,
                             turn_end_indicator=data.get('critic_response_mask', None),
                             rollout_log_probs=rollout_log_probs,
+                            perturb_sigma=perturb_sigma,
                             void_turn_mask=void_turn_mask,
                             config=self.config,
                         )                        
@@ -507,6 +547,45 @@ class DataParallelPPOActor(BasePPOActor):
         self.actor_optimizer.zero_grad()
         
         # Concatenate all log_probs and micro_indices
+                # Compute perturbation sigma/coef statistics if available
+        if len(sigma_tensors) > 0:
+            # Stack all sigma vectors. 
+            # sigma_tensors[i] is (num_layers,) tensor from one micro-batch
+            # stacked_sigmas: (num_micro_batches * num_layers,)
+            stacked_sigmas = torch.cat(sigma_tensors, dim=0) 
+
+            if stacked_sigmas.numel() > 0:
+                # Compute statistics across all sigma values
+                metrics['actor/perturb_sigma_mean'] = stacked_sigmas.mean().item()
+                metrics['actor/perturb_sigma_std'] = stacked_sigmas.std().item()
+                metrics['actor/perturb_sigma_min'] = stacked_sigmas.min().item()
+                metrics['actor/perturb_sigma_max'] = stacked_sigmas.max().item() 
+
+            # Add debug info for coef gradients
+            actual_module = getattr(self.actor_module, '_fsdp_wrapped_module', self.actor_module)
+            layers = None
+            if hasattr(actual_module, "model") and hasattr(actual_module.model, "layers"):
+                layers = actual_module.model.layers
+            elif hasattr(actual_module, "layers"):
+                layers = actual_module.layers
+
+            if layers is not None:
+                grad_norms = []
+                grad_means = []
+                for layer in layers:
+                    if hasattr(layer, "log_coef") and layer.log_coef.grad is not None:
+                        g = layer.log_coef.grad.detach()
+                        # Only compute stats for non-empty local shards
+                        if g.numel() > 0:
+                            grad_norms.append(g.norm().item())
+                            grad_means.append(g.mean().item())
+
+                if len(grad_norms) > 0:
+                     metrics['actor/coef_grad_norm_mean'] = sum(grad_norms) / len(grad_norms)
+                     metrics['actor/coef_grad_mean'] = sum(grad_means) / len(grad_means)
+                else:
+                     metrics['actor/coef_grad_norm_mean'] = 0.0
+
         if len(all_log_probs) > 0:
             metrics['updated_log_probs'] = torch.cat(all_log_probs, dim=0)  # (batch_size, response_length)
             metrics['ppo_micro_indices'] = torch.cat(all_batch_indices, dim=0)  # (batch_size,)
