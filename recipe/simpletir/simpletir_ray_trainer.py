@@ -994,9 +994,7 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
             data_source=sample_data_source,
         )
 
-        reward_tensor = (
-            torch.cat(reward_tensor_lst, dim=0).sum(-1).cpu()
-        )  # (batch_size,)
+        reward_tensor = torch.cat([r.sum(-1).cpu() for r in reward_tensor_lst], dim=0)
         data_sources = np.concatenate(data_source_lst, axis=0)
 
         # evaluate test_score based on data source
