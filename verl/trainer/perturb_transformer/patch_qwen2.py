@@ -23,6 +23,12 @@ class CustomQwen2DecoderLayer(nn.Module):
         self.smooth = getattr(config, "use_perturbation", False)
         self.coef_learnable = getattr(config, "coef_learnable", False)
         self.initial_coef = getattr(config, "perturb_std", 1e-2)
+        self.layer_idx = layer_idx
+        
+        # [内存优化] 只在特定层启用扰动（例如每N层一次）
+        # 可以通过 config.perturb_layer_stride 配置，默认为1（每层都扰动）
+        perturb_stride = getattr(config, "perturb_layer_stride", 1)
+        self.should_perturb = (layer_idx % perturb_stride == 0) if self.smooth else False
         
         # 处理 coef (扰动系数)
         # 确保类型为模型的 dtype (通常是 bfloat16 或 float32)
@@ -76,17 +82,20 @@ class CustomQwen2DecoderLayer(nn.Module):
     ) -> torch.Tensor:
         
         # === 优化后的逻辑：只采样一次 (Noise Injection) ===
-        # 仅在开启 smooth 且处于训练模式时执行
-        if self.smooth and self.training:
+        # 仅在开启 smooth 且处于训练模式且当前层需要扰动时执行
+        if self.should_perturb and self.training:
             # 1. 准备系数 (确保在正确的 device)
             # 从 log 空间恢复 std: std = exp(log_std)
             current_coef = self.log_coef.to(hidden_states.device).exp()
             
             # 2. 生成噪声并注入 (Element-wise 操作，非常快)
             # torch.rand_like 生成 [0, 1) 的均匀分布噪声
-            noise = torch.rand_like(hidden_states)
-            perturbed_states = hidden_states + current_coef * noise
-            
+            # [Memory Optimization] Use temporary tensor for noise to allow immediate memory release
+            # torch.rand_like creates a tensor with requires_grad=False by default.
+            # detach() ensures noise is not part of the graph (double safety).
+            # CRITICAL: This operation must remain OUTSIDE of torch.no_grad() to maintain gradients for hidden_states and current_coef!
+            perturbed_states = hidden_states + current_coef * torch.rand_like(hidden_states).detach()
+
             # 3. 执行一次 Forward
             # 直接返回结果
             # 显式传入 update_key_value=True，确保 KV Cache 逻辑正确

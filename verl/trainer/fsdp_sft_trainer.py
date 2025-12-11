@@ -49,7 +49,7 @@ from verl.utils.debug import log_gpu_memory_usage
 from peft import LoraConfig, TaskType, get_peft_model
 
 from verl.workers.sharding_manager import FSDPUlyssesShardingManager
-from verl.utils.ulysses import ulysses_pad_and_slice_inputs, gather_outpus_and_unpad
+from verl.utils.ulysses import ulysses_pad_and_slice_inputs, gather_outputs_and_unpad
 from verl import DataProto
 
 logger = logging.getLogger(__file__)
@@ -349,7 +349,7 @@ class FSDPSFTTrainer(object):
                     input_ids_rmpad_rolled = input_ids_rmpad_rolled.to(logits_rmpad.device)
                     loss = loss_fct(logits_rmpad, input_ids_rmpad_rolled)
                     # Gather and unpad for sequence parallelism
-                    loss = gather_outpus_and_unpad(loss, gather_dim=0, unpad_dim=0, padding_size=pad_size)
+                    loss = gather_outputs_and_unpad(loss, gather_dim=0, unpad_dim=0, padding_size=pad_size)
 
                     # This is the loss collected from all ulysses ranks
                     full_loss = pad_input(hidden_states=loss.unsqueeze(-1),

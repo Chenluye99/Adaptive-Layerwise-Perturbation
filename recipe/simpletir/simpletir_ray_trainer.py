@@ -1583,6 +1583,10 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                         
                         # Extract raw tensors before reduce_metrics
                         raw_metrics = actor_output.meta_info["metrics"]
+
+                        if "perturb_sigma_tensor" in raw_metrics:
+                            batch.non_tensor_batch["perturb_sigma"] = raw_metrics["perturb_sigma_tensor"]
+
                         if "updated_log_probs" in raw_metrics:
                             # Check if it's a list or tensor
                             if isinstance(raw_metrics["updated_log_probs"], (list, tuple)):
@@ -1594,6 +1598,18 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                                 updated_log_probs = raw_metrics["updated_log_probs"].flatten(0, -2)
                                 ppo_micro_indices = raw_metrics["ppo_micro_indices"].flatten(0, -1)
                             
+                            sp_size = self.config.actor_rollout_ref.actor.get("ulysses_sequence_parallel_size", 1)
+                            if sp_size > 1:
+                                bsz = batch.batch.batch_size[0]
+                                
+                                # Fix updated_log_probs: [SP*B, S] -> [B, SP*S]
+                                if updated_log_probs.shape[0] == bsz * sp_size:
+                                    updated_log_probs = updated_log_probs.view(sp_size, bsz, -1).transpose(0, 1).flatten(1, 2)
+                                
+                                # Fix ppo_micro_indices: [SP*B] -> [B] (Take the first shard as they should be identical or we select consistent indices)
+                                if ppo_micro_indices.shape[0] == bsz * sp_size:
+                                    ppo_micro_indices = ppo_micro_indices.view(sp_size, bsz)[0]
+
                             batch.batch["updated_log_probs"] = updated_log_probs
                             batch.batch["ppo_micro_indices"] = ppo_micro_indices
                         

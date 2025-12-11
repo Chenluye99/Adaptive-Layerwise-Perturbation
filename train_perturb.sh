@@ -16,7 +16,7 @@
 # Sandbox configuration
 export SANDBOX_ENDPOINT=http://127.0.0.1:12345/faas/sandbox/
 export WANDB_API_KEY="a17294c76f5787d04c92fd978d0f1a29133756e2"
-export WANDB_ENTITY="machine-learning0"
+export WANDB_ENTITY="mismatch"
 
 export RAY_TMPDIR=/opt/dlami/nvme/ray_tmp
 
@@ -24,7 +24,7 @@ PROJECT_NAME='TIR'
 RUN_NAME="simpletir"
 CONFIG_NAME="simpletir_trainer"
 
-MODEL_PATH="/home/chenluy/mismatch_all_perturbation_agent/models" # the parent dir of the checkpoint
+MODEL_PATH="/home/chenluy/mismatch_all_perturb_agent/models" # the parent dir of the checkpoint
 DATA_PATH=$(pwd)/datasets # the dir containing data like deepscaler/train (see datasets/)
 CHECKPOINT_PATH="/opt/dlami/nvme/${PROJECT_NAME}" # the dir to save the checkpoint
 LOG_PATH="./logs/${PROJECT_NAME}" # the dir to save the log
@@ -36,6 +36,7 @@ ADAPT_RATIO=False
 USE_PERTURBATION=True
 PERTURB_STD=1e-8
 PERTURB_LR=1e-2
+PERTURB_LAYER_STRIDE=null  # null 表示使用 config.json 中的值，设置数字（如2或4）则会覆盖
 
 # Default values
 CLIP_RATIO_HIGH=3.0
@@ -50,20 +51,20 @@ MAX_PROMPT_LENGTH=16000
 MAX_RESPONSE_LENGTH=8000
 MAX_OBS_LENGTH=256
 PPO_MINI_BATCH_SIZE=32
-PPO_MICRO_TOKEN=24000
+PPO_MICRO_TOKEN=6000
 TOTAL_EPOCHS=100
 TRAIN_DATASET=("simplelr_math_35/train" "deepscaler/train")
 VALID_DATASET=("simplelr_math_35/test" "deepscaler/aime" "deepscaler/aime25")
 ROLLOUT_GPU_MEMORY_UTIL=0.7
-ACTOR_OPTIMIZER_OFFLOAD=False
-ACTOR_PARAMETER_OFFLOAD=False
+ACTOR_OPTIMIZER_OFFLOAD=True
+ACTOR_PARAMETER_OFFLOAD=True
 MODEL_NAME=Qwen2.5-7B
 SAVE_FREQ=20
 TEST_FREQ=20
 REMOVE_CLIP=False # mask the over-long response that is clipped
 ROLLOUT_TENSOR_MODEL_PARALLEL_SIZE=1
 REJECTION_SAMPLE=False # move all correct/ wrong samples
-SP_SIZE=1
+SP_SIZE=4
 GRAD_CLIP=1.0
 ACC_FILTER=0.0_1.0
 START_CLIP_STEP=20
@@ -183,6 +184,7 @@ while [[ "$#" -gt 0 ]]; do
     --adapt_ratio) ADAPT_RATIO="$2"; shift 2 ;;
     --perturb_std) PERTURB_STD="$2"; shift 2 ;;
     --perturb_lr) PERTURB_LR="$2"; shift 2 ;;
+    --perturb_layer_stride) PERTURB_LAYER_STRIDE="$2"; shift 2 ;;
     --rejection_sample) REJECTION_SAMPLE="$2"; shift 2 ;;
     --sp_size) SP_SIZE="$2"; shift 2 ;;
     --train_dataset) TRAIN_DATASET=($2); shift 2 ;;
@@ -281,7 +283,7 @@ echo "Perturb LR: $PERTURB_LR"
 # set ppo micro token
 PPO_MICRO_TOKEN=$(generate_model_micro_token "$MODEL_NAME")
 echo "PPO_MICRO_TOKEN: $PPO_MICRO_TOKEN"
-LOG_PROB_MICRO_TOKEN=$((PPO_MICRO_TOKEN * 2))
+LOG_PROB_MICRO_TOKEN=$((PPO_MICRO_TOKEN))
 max_num_batched_tokens=$(expr $MAX_PROMPT_LENGTH + $MAX_RESPONSE_LENGTH + 1000)
 
 
@@ -347,6 +349,8 @@ PYTHONUNBUFFERED=1 python -m recipe.simpletir.main_simpletir \
     actor_rollout_ref.actor.use_perturbation=$USE_PERTURBATION \
     actor_rollout_ref.actor.perturb_std=$PERTURB_STD \
     actor_rollout_ref.actor.perturb_lr=$PERTURB_LR \
+    actor_rollout_ref.actor.perturb_layer_stride=$PERTURB_LAYER_STRIDE \
+    actor_rollout_ref.model.enable_gradient_checkpointing=False \
     actor_rollout_ref.actor.fsdp_config.param_offload=$ACTOR_PARAMETER_OFFLOAD \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=$ACTOR_OPTIMIZER_OFFLOAD \
     actor_rollout_ref.actor.rollout_is=$rollout_is \

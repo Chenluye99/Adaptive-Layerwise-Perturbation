@@ -198,6 +198,10 @@ class ActorRolloutRefWorker(Worker):
             # Inject perturb_std
             if self.config.actor.get("perturb_std", None) is not None:
                 override_config_kwargs["perturb_std"] = float(self.config.actor.get("perturb_std"))
+            
+            # Inject perturb_layer_stride (for memory optimization)
+            if self.config.actor.get("perturb_layer_stride", None) is not None:
+                override_config_kwargs["perturb_layer_stride"] = int(self.config.actor.get("perturb_layer_stride"))
 
             # Inject coef_learnable (optional, if you want to control it via script)
             if self.config.actor.get("coef_learnable", None) is not None:
@@ -263,16 +267,10 @@ class ActorRolloutRefWorker(Worker):
                 from liger_kernel.transformers.monkey_patch import _apply_liger_kernel_to_instance
                 _apply_liger_kernel_to_instance(model=actor_module)
 
-            fused_kernel_options = self.config.model.get("fused_kernel_options", None)
-            fused_kernels_backend = (
-                fused_kernel_options.get("impl_backend", None) if fused_kernel_options is not None else None
-            )
             apply_monkey_patch(
                 model=actor_module,
                 use_remove_padding=use_remove_padding,
                 ulysses_sp_size=self.ulysses_sequence_parallel_size,
-                use_fused_kernels=False,
-                fused_kernels_backend=fused_kernels_backend,
             )
 
             # some parameters may not in torch_dtype. TODO(zhangchi.usc1992) remove this after we switch to fsdp2
@@ -805,7 +803,7 @@ class CriticWorker(Worker):
             use_remove_padding = config.model.get('use_remove_padding', False)
             if use_remove_padding or self.ulysses_sequence_parallel_size > 1:
                 from verl.models.transformers.monkey_patch import apply_monkey_patch
-                apply_monkey_patch(model=critic_module, ulysses_sp_size=self.ulysses_sequence_parallel_size)
+                apply_monkey_patch(model=critic_module, use_remove_padding=use_remove_padding, ulysses_sp_size=self.ulysses_sequence_parallel_size)
 
             # some parameters may not in torch_dtype
             critic_module.to(torch_dtype)
@@ -1061,9 +1059,10 @@ class RewardModelWorker(Worker):
                                                                             attn_implementation='flash_attention_2',
                                                                             trust_remote_code=trust_remote_code)
 
-            if config.model.get('use_remove_padding', False) or self.ulysses_sequence_parallel_size > 1:
+            use_remove_padding = config.model.get('use_remove_padding', False)
+            if use_remove_padding or self.ulysses_sequence_parallel_size > 1:
                 from verl.models.transformers.monkey_patch import apply_monkey_patch
-                apply_monkey_patch(model=reward_module, ulysses_sp_size=self.ulysses_sequence_parallel_size)
+                apply_monkey_patch(model=reward_module, use_remove_padding=use_remove_padding, ulysses_sp_size=self.ulysses_sequence_parallel_size)
 
             reward_module.to(torch.bfloat16)
 

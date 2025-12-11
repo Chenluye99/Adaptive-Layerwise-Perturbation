@@ -36,6 +36,7 @@ actor_rollout_ref:
     rollout_is_veto_threshold: 0
     rollout_is_geometric: False   
     perturb_std: 0
+    perturb_layer_stride: null  # null 表示使用 config.json 中的值，设置数字则会覆盖
     policy_loss:
       loss_mode: vanilla
       is_geometric: False
@@ -53,6 +54,7 @@ actor_rollout_ref:
     mask_void_turns: True
   model:
     use_remove_padding: True
+    enable_gradient_checkpointing: False
   rollout:
     temperature: 1.0
     min_p: 0.0

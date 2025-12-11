@@ -28,7 +28,7 @@ from verl.trainer.ppo import core_algos
 from verl.workers.critic import BasePPOCritic
 from verl.utils.py_functional import append_to_dict
 from verl.utils.torch_functional import masked_mean
-from verl.utils.ulysses import ulysses_pad_and_slice_inputs, gather_outpus_and_unpad
+from verl.utils.ulysses import ulysses_pad_and_slice_inputs, gather_outputs_and_unpad
 from verl.utils.seqlen_balancing import rearrange_micro_batches, get_reverse_idx
 
 from flash_attn.bert_padding import pad_input, unpad_input, rearrange, index_first_axis
@@ -94,7 +94,7 @@ class DataParallelPPOCritic(BasePPOCritic):
 
                 # gather output if sp > 1
                 if self.ulysses_sequence_parallel_size > 1:
-                    values_rmpad = gather_outpus_and_unpad(values_rmpad,
+                    values_rmpad = gather_outputs_and_unpad(values_rmpad,
                                                            gather_dim=0,
                                                            unpad_dim=0,
                                                            padding_size=pad_size)

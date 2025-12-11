@@ -27,7 +27,7 @@ from verl.trainer.ppo import core_algos
 from verl.workers.actor import BasePPOActor
 from verl.utils.py_functional import append_to_dict
 from verl.utils.torch_functional import logprobs_from_logits, masked_mean
-from verl.utils.ulysses import ulysses_pad_and_slice_inputs, gather_outpus_and_unpad
+from verl.utils.ulysses import ulysses_pad_and_slice_inputs, gather_outputs_and_unpad
 from verl.utils.seqlen_balancing import rearrange_micro_batches, get_reverse_idx
 import verl.utils.torch_functional as verl_F
 
@@ -113,10 +113,6 @@ class DataParallelPPOActor(BasePPOActor):
                                            **multi_modal_inputs,
                                            use_cache=False)  # prevent model thinks we are generating
                 logits_rmpad = output.logits.squeeze(0)  # (total_nnz, vocab_size)
-                if perturb_std > 0:
-                    noise = torch.randn_like(logits_rmpad) * perturb_std
-                    logits_rmpad += noise
-
                 logits_rmpad.div_(temperature)
 
                 # compute entropy
@@ -128,8 +124,8 @@ class DataParallelPPOActor(BasePPOActor):
                 # gather log_prob if sp > 1
                 if self.use_ulysses_sp:
                     # gather and unpad for the ulysses sp
-                    log_probs = gather_outpus_and_unpad(log_probs, gather_dim=0, unpad_dim=0, padding_size=pad_size)
-                    entropy_rmpad = gather_outpus_and_unpad(entropy_rmpad,
+                    log_probs = gather_outputs_and_unpad(log_probs, gather_dim=0, unpad_dim=0, padding_size=pad_size)
+                    entropy_rmpad = gather_outputs_and_unpad(entropy_rmpad,
                                                             gather_dim=0,
                                                             unpad_dim=0,
                                                             padding_size=pad_size)
@@ -154,9 +150,6 @@ class DataParallelPPOActor(BasePPOActor):
                                            **multi_modal_inputs,
                                            use_cache=False)  # prevent model thinks we are generating
                 logits = output.logits
-                if perturb_std > 0:
-                    noise = torch.randn_like(logits) * perturb_std
-                    logits += noise
                 logits.div_(temperature)
                 logits = logits[:, -response_length - 1:-1, :]  # (bsz, response_length, vocab_size)
                 log_probs = logprobs_from_logits(logits, micro_batch['responses'])
@@ -373,10 +366,9 @@ class DataParallelPPOActor(BasePPOActor):
 
                     # all return: (bsz, response_length)
                     entropy, log_prob, perturb_sigma = self._forward_micro_batch(micro_batch=data, temperature=temperature, perturb_std=perturb_std)
-                    # Collect sigma vectors (vocab_size,) from each micro-batch
                     # Only append if perturb_sigma is not None
                     if perturb_sigma is not None and perturb_sigma.numel() > 0:
-                        sigma_tensors.append(perturb_sigma.detach().cpu())  # Each is (vocab_size,)
+                        sigma_tensors.append(perturb_sigma.detach().cpu()) 
 
                     batch_size = log_prob.size(0)
                     minibatch_log_probs.append(log_prob.detach().cpu())
@@ -560,6 +552,7 @@ class DataParallelPPOActor(BasePPOActor):
                 metrics['actor/perturb_sigma_std'] = stacked_sigmas.std().item()
                 metrics['actor/perturb_sigma_min'] = stacked_sigmas.min().item()
                 metrics['actor/perturb_sigma_max'] = stacked_sigmas.max().item() 
+                metrics['perturb_sigma_tensor'] = stacked_sigmas[0].detach().cpu()
 
             # Add debug info for coef gradients
             actual_module = getattr(self.actor_module, '_fsdp_wrapped_module', self.actor_module)

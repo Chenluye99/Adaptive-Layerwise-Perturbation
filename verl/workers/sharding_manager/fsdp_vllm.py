@@ -88,14 +88,19 @@ class FSDPVLLMShardingManager(BaseShardingManager):
         # Copy, not share memory
         load_format = 'hf' if self.full_params else 'dtensor'
 
+        params_filtered = {k: v for k, v in params.items() if 'log_coef' not in k}
+        num_filtered = len(params) - len(params_filtered)
+        if num_filtered > 0:
+            logger.info(f"Filtered out {num_filtered} log_coef parameters before syncing to vLLM")
+
         if vllm_version in ('0.4.2', '0.5.4', '0.6.3'):
-            self.inference_engine.sync_model_weights(params, load_format=load_format)
+            self.inference_engine.sync_model_weights(params_filtered, load_format=load_format)
         else:
             self.inference_engine.wake_up()
             world_size = torch.distributed.get_world_size()
             model = self.inference_engine.llm_engine.model_executor.driver_worker.worker.model_runner.model
             loaded_params = model.load_weights(
-                ((name, param.full_tensor() if world_size != 1 else param) for name, param in params.items()))
+                ((name, param.full_tensor() if world_size != 1 and hasattr(param, 'full_tensor') else param) for name, param in params_filtered.items()))
             logger.info(f"vLLM load wegiths, loaded_params: {len(loaded_params)}")
 
         log_gpu_memory_usage('After sync model weights in sharding manager', logger=logger)
