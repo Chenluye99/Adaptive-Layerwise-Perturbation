@@ -907,7 +907,7 @@ def compute_policy_loss_perturbed(
     importance_ratios = torch.zeros_like(negative_approx_kl)
     if loss_mode == 'token':
         log_importance_ratio = negative_approx_kl
-    if loss_mode == "sequence":
+    elif loss_mode == "sequence":
         seq_lengths = torch.sum(response_mask, dim=-1).clamp(min=1)
         kl_values = torch.sum(negative_approx_kl * response_mask, dim=-1)
         if is_geometric:

@@ -141,7 +141,7 @@ async def _run_in_firejail(code: str, timeout: float, stdin_data: str = "") -> d
 # ---------------- FastAPI wiring ----------------
 
 app = FastAPI()
-POOL = asyncio.Semaphore(30)  # 20 per worker * 8 workers = 160 total concurrent sandboxes
+POOL = asyncio.Semaphore(46)  # 20 per worker * 8 workers = 160 total concurrent sandboxes
 
 
 @app.post("/faas/sandbox/", response_model=RunResult)

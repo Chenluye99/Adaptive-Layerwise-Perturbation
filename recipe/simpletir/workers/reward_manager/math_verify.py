@@ -66,7 +66,7 @@ class MathRewardManager:
     The Reward Manager is borrowed from https://github.com/PRIME-RL/PRIME
     """
 
-    def __init__(self, tokenizer, num_examine, compute_score=None, record_dir=None) -> None:
+    def __init__(self, tokenizer, num_examine, compute_score=None, record_dir=None, max_concurrent_tasks=32) -> None:
         self.tokenizer = tokenizer
         self.num_examine = num_examine  # the number of batches of decoded responses to print to the console
         self.compute_score = compute_score or _default_compute_score
@@ -74,6 +74,7 @@ class MathRewardManager:
         self.timeout_seconds = 60
         self.record_dir = Path(record_dir) / "step_records"
         self.record_dir.mkdir(parents=True, exist_ok=True)
+        self.max_concurrent_tasks = max_concurrent_tasks
 
     def math_compute_score_parallel_with_ray(
         self, data_sources, solution_strs, ground_truths, extra_infos
@@ -86,74 +87,81 @@ class MathRewardManager:
             f"Scoring process started over {len(solution_strs)} samples, waiting for results..."
         )
 
-        futures = []
-        for i in range(len(solution_strs)):
-            ground_truth = ground_truths[i]
-            solution_str = solution_strs[i]
-            data_source = data_sources[i]
-            extra_info = extra_infos[i]
-
-            future = reward_func_timeout_ray.remote(
-                self.compute_score,
-                self.timeout_seconds,
-                data_source,
-                solution_str,
-                ground_truth,
-                extra_info,
-            )
-            futures.append(future)
-
         default_fail_score = {
             "score": 0.0,
             "extra_info": {"is_filter": 1},
         }  # Default on error which should be filtered
 
-        for i, future in enumerate(futures):
-            try:
-                task_result = ray.get(future, timeout=self.timeout_seconds)
+        # Process in batches to limit concurrent tasks
+        total_samples = len(solution_strs)
+        for batch_start in range(0, total_samples, self.max_concurrent_tasks):
+            batch_end = min(batch_start + self.max_concurrent_tasks, total_samples)
+            
+            # Submit batch of tasks
+            futures = []
+            for i in range(batch_start, batch_end):
+                ground_truth = ground_truths[i]
+                solution_str = solution_strs[i]
+                data_source = data_sources[i]
+                extra_info = extra_infos[i]
 
-                if isinstance(task_result, dict):
-                    assert "extra_info" in task_result, (
-                        f"Extra info missing in task_result dict for item {i}. Result: {task_result}"
-                    )
-                    score_result = task_result
-                    if "is_filter" not in task_result["extra_info"]:
-                        score_result["extra_info"].update({"is_filter": 0})
-                elif isinstance(task_result, (int, float)):
-                    score_result = {
-                        "score": float(task_result),
-                        "extra_info": {"is_filter": 0},
-                    }
-                else:
+                future = reward_func_timeout_ray.remote(
+                    self.compute_score,
+                    self.timeout_seconds,
+                    data_source,
+                    solution_str,
+                    ground_truth,
+                    extra_info,
+                )
+                futures.append((i, future))
+
+            # Wait for all tasks in this batch to complete
+            for i, future in futures:
+                try:
+                    task_result = ray.get(future, timeout=self.timeout_seconds)
+
+                    if isinstance(task_result, dict):
+                        assert "extra_info" in task_result, (
+                            f"Extra info missing in task_result dict for item {i}. Result: {task_result}"
+                        )
+                        score_result = task_result
+                        if "is_filter" not in task_result["extra_info"]:
+                            score_result["extra_info"].update({"is_filter": 0})
+                    elif isinstance(task_result, (int, float)):
+                        score_result = {
+                            "score": float(task_result),
+                            "extra_info": {"is_filter": 0},
+                        }
+                    else:
+                        print(
+                            f"Unexpected task_result type for item {i}: {type(task_result)}. Using default score. Result: {task_result}"
+                        )
+                        ray.cancel(future, force=True)
+                        score_result = default_fail_score
+                except GetTimeoutError:
                     print(
-                        f"Unexpected task_result type for item {i}: {type(task_result)}. Using default score. Result: {task_result}"
+                        f"Timeout processing item {i} (gold='{str(ground_truths[i])[:50]}...', target='{str(solution_strs[i])[:50]}...'). Using default score."
                     )
+                    score_result = default_fail_score
+                except Exception as e:
+                    print(
+                        f"Error processing item {i} (gold='{str(ground_truths[i])[:50]}...', target='{str(solution_strs[i])[:50]}...'): {e}"
+                    )
+                    import traceback
+
+                    traceback.print_exc()
                     ray.cancel(future, force=True)
                     score_result = default_fail_score
-            except GetTimeoutError:
-                print(
-                    f"Timeout processing item {i} (gold='{str(ground_truths[i])[:50]}...', target='{str(solution_strs[i])[:50]}...'). Using default score."
-                )
-                score_result = default_fail_score
-            except Exception as e:
-                print(
-                    f"Error processing item {i} (gold='{str(ground_truths[i])[:50]}...', target='{str(solution_strs[i])[:50]}...'): {e}"
-                )
-                import traceback
 
-                traceback.print_exc()
-                ray.cancel(future, force=True)
-                score_result = default_fail_score
+                scores[i] = float(score_result.get("score", 0.0))
 
-            scores[i] = float(score_result.get("score", 0.0))
-
-            if "extra_info" in score_result and isinstance(
-                score_result["extra_info"], dict
-            ):
-                for key, value in score_result["extra_info"].items():
-                    if key not in extra_info_dict:
-                        extra_info_dict[key] = [0.0] * len(solution_strs)
-                    extra_info_dict[key][i] = value
+                if "extra_info" in score_result and isinstance(
+                    score_result["extra_info"], dict
+                ):
+                    for key, value in score_result["extra_info"].items():
+                        if key not in extra_info_dict:
+                            extra_info_dict[key] = [0.0] * len(solution_strs)
+                        extra_info_dict[key][i] = value
 
         return scores, extra_info_dict
 
