@@ -58,7 +58,7 @@ class DataParallelPPOActor(BasePPOActor):
             if self.config.get('use_torch_compile', True)  #  use torch compile by default
             else verl_F.entropy_from_logits)
 
-    def _forward_micro_batch(self, micro_batch, temperature, perturb_std=0) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _forward_micro_batch(self, micro_batch, temperature) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Returns: 
             entropy: # (bs, response_len)
@@ -310,7 +310,6 @@ class DataParallelPPOActor(BasePPOActor):
 
         # Get perturbation std from config (default 0.0 for no perturbation)
         use_perturbation = self.config.get("use_perturbation", False)
-        perturb_std = self.config.get("perturb_std", 0.0)
 
         for epoch in range(self.config.ppo_epochs):
             # Storage for log_probs and micro_idx
@@ -365,7 +364,7 @@ class DataParallelPPOActor(BasePPOActor):
                     clip_ratio_c = self.config.get('clip_ratio_c', 3.0)
 
                     # all return: (bsz, response_length)
-                    entropy, log_prob, perturb_sigma = self._forward_micro_batch(micro_batch=data, temperature=temperature, perturb_std=perturb_std)
+                    entropy, log_prob, perturb_sigma = self._forward_micro_batch(micro_batch=data, temperature=temperature)
                     # Only append if perturb_sigma is not None
                     if perturb_sigma is not None and perturb_sigma.numel() > 0:
                         sigma_tensors.append(perturb_sigma.detach().cpu()) 
@@ -379,7 +378,7 @@ class DataParallelPPOActor(BasePPOActor):
                     rollout_is_metrics = {}
                     original_rollout_is_metrics = {}
 
-                    if self.config.policy_loss.loss_mode in ["sequence", "cum-token", "cum-turn"] and not self.config.get("adapt_ratio", False) and perturb_std == 0:
+                    if self.config.policy_loss.loss_mode in ["sequence", "cum-token", "cum-turn"] and not self.config.get("adapt_ratio", False) and use_perturbation==False:
                         pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics, original_rollout_is_metrics, original_ppo_is_metrics = core_algos.compute_policy_loss_various_level(
                             old_log_prob=old_log_prob,
                             log_prob=log_prob,
@@ -392,7 +391,7 @@ class DataParallelPPOActor(BasePPOActor):
                             void_turn_mask=void_turn_mask,
                             config=self.config,
                         )
-                    elif self.config.policy_loss.loss_mode in ["sequence", "cum-token", "cum-turn"] and self.config.get("adapt_ratio", False) and perturb_std == 0:
+                    elif self.config.policy_loss.loss_mode in ["sequence", "cum-token", "cum-turn"] and self.config.get("adapt_ratio", False) and use_perturbation==False:
                         pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower, ppo_is_metrics, rollout_is_metrics = core_algos.compute_policy_loss_various_level_adapt_ratio(
                             old_log_prob=old_log_prob,
                             log_prob=log_prob,
