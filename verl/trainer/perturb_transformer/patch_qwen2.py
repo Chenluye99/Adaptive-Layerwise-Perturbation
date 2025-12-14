@@ -79,30 +79,19 @@ class CustomQwen2DecoderLayer(nn.Module):
         # === 优化后的逻辑：只采样一次 (Noise Injection) ===
         # 仅在开启 smooth 且处于训练模式且当前层需要扰动时执行
         if self.smooth and self.training:
-            # 共享噪声 buffer（所有层/调用复用同一块显存，避免每层单独分配）
-            if not hasattr(CustomQwen2DecoderLayer, "_shared_noise_buf"):
-                CustomQwen2DecoderLayer._shared_noise_buf = torch.empty(0, device=hidden_states.device, dtype=hidden_states.dtype)
-            noise_buf = CustomQwen2DecoderLayer._shared_noise_buf
-            if (noise_buf.device != hidden_states.device) or (noise_buf.dtype != hidden_states.dtype) or (noise_buf.numel() < hidden_states.numel()):
-                noise_buf = torch.empty_like(hidden_states)
-                CustomQwen2DecoderLayer._shared_noise_buf = noise_buf
-            noise = noise_buf.view_as(hidden_states)
-            noise.normal_(mean=0.0, std=1.0)  # 高斯噪声，复用同一块内存
-
             # 1. 准备系数 (确保在正确的 device)
             # 从 log 空间恢复 std: std = exp(log_std)
             current_coef = self.log_coef.to(hidden_states.device).exp()
             
             # 2. 生成噪声并注入 (Element-wise 操作，非常快)
-            # [Memory Optimization] Use temporary tensor for noise to allow immediate memory release
-            # 使用原位加法，避免创建新的 perturbed_states 副本
-            hidden_states = hidden_states.add_(current_coef * noise)
-
+            # torch.randn_like 生成 [0, 1) 的高斯分布噪声
+            perturbed_states = hidden_states + current_coef * (torch.randn_like(hidden_states).detach())
+            
             # 3. 执行一次 Forward
             # 直接返回结果
             # 显式传入 update_key_value=True，确保 KV Cache 逻辑正确
             return self._process(
-                hidden_states=hidden_states, 
+                hidden_states=perturbed_states, 
                 attention_mask=attention_mask, 
                 position_ids=position_ids, 
                 past_key_values=past_key_values, 
