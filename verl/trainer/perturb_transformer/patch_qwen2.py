@@ -83,8 +83,8 @@ class CustomQwen2DecoderLayer(nn.Module):
             current_coef = self.log_coef.to(hidden_states.device).exp()
             
             # 2. 生成噪声并注入 (Element-wise 操作，非常快)
-            # torch.rand_like 生成 [0, 1) 的均匀分布噪声
-            noise = torch.rand_like(hidden_states)
+            # torch.rand_like 生成 [0, 1) 的高斯分布噪声
+            noise = torch.randn_like(hidden_states).detach()
             perturbed_states = hidden_states + current_coef * noise
             
             # 3. 执行一次 Forward
