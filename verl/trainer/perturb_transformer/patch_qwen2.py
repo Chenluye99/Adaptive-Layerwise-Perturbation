@@ -85,13 +85,15 @@ class CustomQwen2DecoderLayer(nn.Module):
             
             # 2. 生成噪声并注入 (Element-wise 操作，非常快)
             # torch.randn_like 生成 [0, 1) 的高斯分布噪声
-            perturbed_states = hidden_states + current_coef * (torch.randn_like(hidden_states).detach())
+            with torch.no_grad():
+                noise = torch.randn_like(hidden_states).detach()
+            hidden_states = hidden_states + current_coef * noise
             
             # 3. 执行一次 Forward
             # 直接返回结果
             # 显式传入 update_key_value=True，确保 KV Cache 逻辑正确
             return self._process(
-                hidden_states=perturbed_states, 
+                hidden_states=hidden_states, 
                 attention_mask=attention_mask, 
                 position_ids=position_ids, 
                 past_key_values=past_key_values, 
