@@ -358,11 +358,16 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
             if self.config.actor.get("coef_learnable", None) is not None:
                 override_config_kwargs["coef_learnable"] = self.config.actor.get("coef_learnable")
 
+            # Change!! Inject perturb layers
+            if sefl.config.actoor.get("perturb_layers", None) is not None:
+                override_config_kwargs["perturb_layers"] = list(self.config.actor.get("perturb_layers"))
+                
             if self.rank == 0:
                 print(f"[FSDP Worker] Injected perturbation config: "
                       f"use_perturbation={override_config_kwargs.get('use_perturbation')}, "
                       f"perturb_std={override_config_kwargs.get('perturb_std')}, "
-                      f"coef_learnable={override_config_kwargs.get('coef_learnable', 'default')}")
+                      f"coef_learnable={override_config_kwargs.get('coef_learnable', 'default')},"
+                      f"perturb_layers={override_config_kwargs.get('perturb_layers', 'ALL')}")
         # -------------------------------------------------------------------------------------
 
         override_config_kwargs.update(override_model_config)
@@ -420,7 +425,11 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 log_perturb_std = math.log(perturb_std)
                 if self.rank == 0:
                     print(f"[FSDP Worker] Force resetting perturbation log_coef to {log_perturb_std} (std={perturb_std}) for all layers...")
-                
+                #change!! + sanity check
+                perturb_layers = self.config.actor.get("perturb_layers", None)
+                if perturb_layers is not None:
+                    assert isinstance(perturb_layers, (list, tuple)), \
+                        f"perturb_layers must be list/tuple, got {type(perturb_layers)}: {perturb_layers}"
                 # Access layers directly (handle Qwen2 structure)
                 layers = None
                 if hasattr(actor_module, "model") and hasattr(actor_module.model, "layers"):
@@ -430,11 +439,16 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 
                 if layers is not None:
                     reset_count = 0
-                    for layer in layers:
-                        if hasattr(layer, "log_coef"):
+                    #change!! perturb on specific layers
+                    
+                    perturb_layers = set(self.config.actor.perturb_layers)
+
+                    for i, layer in enumerate(layers):
+                        if i in perturb_layers and hasattr(layer, "log_coef"):
                             with torch.no_grad():
                                 layer.log_coef.fill_(log_perturb_std)
                             reset_count += 1
+    
                     if self.rank == 0:
                         print(f"[FSDP Worker] Successfully reset log_coef for {reset_count} layers.")
             # ---------------------------------------------------------------
