@@ -23,7 +23,14 @@ class CustomQwen2DecoderLayer(nn.Module):
         self.smooth = getattr(config, "use_perturbation", False)
         self.coef_learnable = getattr(config, "coef_learnable", False)
         self.initial_coef = getattr(config, "perturb_std", 1e-2)
-        
+
+        self.perturb_layers = getattr(config, "perturb_layers", None)   
+
+        self.enable_perturb = (
+            self.smooth
+            and self.perturb_layers is not None
+            and layer_idx in self.perturb_layers
+        )        
         # 处理 coef (扰动系数)
         # 确保类型为模型的 dtype (通常是 bfloat16 或 float32)
         dtype = getattr(config, "torch_dtype", torch.float32)
@@ -36,7 +43,7 @@ class CustomQwen2DecoderLayer(nn.Module):
              else:
                  dtype = torch.float32
 
-        if self.coef_learnable:
+        if self.coef_learnable and self.enable_perturb:
             # 如果想让它可训练，需注册为 Parameter
             # 使用 log 空间优化，保证 std 始终非负
             self.log_coef = nn.Parameter(torch.tensor([math.log(self.initial_coef)], dtype=dtype))
@@ -77,7 +84,7 @@ class CustomQwen2DecoderLayer(nn.Module):
         
         # === 优化后的逻辑：只采样一次 (Noise Injection) ===
         # 仅在开启 smooth 且处于训练模式时执行
-        if self.smooth and self.training:
+        if self.enable_perturb and self.training:
             # 1. 准备系数 (确保在正确的 device)
             # 从 log 空间恢复 std: std = exp(log_std)
             current_coef = self.log_coef.to(hidden_states.device).exp()
