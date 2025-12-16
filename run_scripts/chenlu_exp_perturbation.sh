@@ -28,6 +28,7 @@ CLIP_RATIO_HIGH="${6:-0.28}"     # Clip ratio high
 CLIP_RATIO_C="${7:-10.0}"         # Clip ratio c
 ALPHA="${8:-0.001}"            # KL coef for perturbation KL penalty
 BETA="${9:-0.001}"            # KL coef for perturbation KL penalty
+PERTURB_LAYER="[0,1]"   #change!!! add the perturbed layer index
 PERTURB_LR="${10:-1e-2}"            # Perturbation learning rate
 
 # Get GPUs: use CUDA_VISIBLE_DEVICES if set in script, otherwise auto-detect
@@ -124,6 +125,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.beta=${BETA} \
     actor_rollout_ref.actor.use_perturbation=${USE_PERTURBATION} \
     actor_rollout_ref.actor.perturb_std=${PERTURB_STD} \
+    actor_rollout_ref.actor.perturb_layers=${PERTURB_LAYER} \   
     +actor_rollout_ref.actor.perturb_lr=${PERTURB_LR} \
     actor_rollout_ref.actor.policy_loss.loss_mode=${LOSS_MODE} \
     actor_rollout_ref.actor.policy_loss.is_geometric=${GEOMETRIC} \
