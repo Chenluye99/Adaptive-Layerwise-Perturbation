@@ -26,6 +26,7 @@ CONFIG_NAME="simpletir_trainer"
 
 MODEL_PATH="/home/chenluy/mismatch_all_perturb_agent/models" # the parent dir of the checkpoint
 DATA_PATH=$(pwd)/datasets # the dir containing data like deepscaler/train (see datasets/)
+export DATA_PATH
 CHECKPOINT_PATH="/opt/dlami/nvme/${PROJECT_NAME}" # the dir to save the checkpoint
 LOG_PATH="./logs/${PROJECT_NAME}" # the dir to save the log
 NNODES=1
@@ -55,7 +56,7 @@ PPO_MICRO_TOKEN=5000
 TOTAL_EPOCHS=100
 TRAIN_DATASET=("simplelr_math_35/train" "deepscaler/train")
 VALID_DATASET=("simplelr_math_35/test" "deepscaler/aime" "deepscaler/aime25")
-ROLLOUT_GPU_MEMORY_UTIL=0.3
+ROLLOUT_GPU_MEMORY_UTIL=0.35
 ACTOR_OPTIMIZER_OFFLOAD=True
 ACTOR_PARAMETER_OFFLOAD=True
 MODEL_NAME=Qwen2.5-7B
@@ -334,6 +335,7 @@ PYTHONUNBUFFERED=1 python -m recipe.simpletir.main_simpletir \
     data.val_files=$VALID_FILES \
     data.train_batch_size=$TRAIN_BATCH_SIZE \
     data.val_sample_size=$VAL_SAMPLE_SIZE \
+    data.val_batch_size=256 \
     data.max_prompt_length=$MAX_PROMPT_LENGTH \
     data.max_response_length=$MAX_RESPONSE_LENGTH \
     actor_rollout_ref.model.path=$MODEL_PATH/$MODEL_NAME \

@@ -39,24 +39,32 @@ def _timeout_handler(signum, frame):
 def reward_func_timeout_ray(
     func: Callable, timeout_seconds: int, *args: Any, **kwargs: Any
 ):
-    """A decorator that applies a timeout to the decorated function using signal.
+    """A decorator that applies a timeout to the decorated function using signal and multiprocessing.
 
     Args:
         timeout_seconds (int): Number of seconds before timing out the decorated function.
-            Defaults to 10 seconds.
 
     Notes:
-        Only works on Unix systems as it uses signal.alarm.
+        Uses both signal.alarm and exception handling for robustness.
     """
+    import logging
+    
     old_handler = signal.getsignal(signal.SIGALRM)
     signal.signal(signal.SIGALRM, _timeout_handler)
     signal.alarm(timeout_seconds)
     try:
-        return func(*args, **kwargs)
+        result = func(*args, **kwargs)
+        signal.alarm(0)  # Cancel alarm on success
+        return result
     except TimeoutError:
-        return {"score": 0.0, "extra_info": {"is_filter": "1"}}
+        logging.warning(f"Function timed out after {timeout_seconds}s (signal.alarm)")
+        return {"score": 0.0, "extra_info": {"is_filter": 1}}
+    except Exception as e:
+        # Catch any other errors and log them
+        logging.warning(f"Function failed with exception: {type(e).__name__}: {str(e)[:100]}")
+        return {"score": 0.0, "extra_info": {"is_filter": 1}}
     finally:
-        # cancel alarm and restore old handler
+        # Always cancel alarm and restore old handler
         signal.alarm(0)
         signal.signal(signal.SIGALRM, old_handler)
 
@@ -66,12 +74,12 @@ class MathRewardManager:
     The Reward Manager is borrowed from https://github.com/PRIME-RL/PRIME
     """
 
-    def __init__(self, tokenizer, num_examine, compute_score=None, record_dir=None, max_concurrent_tasks=32) -> None:
+    def __init__(self, tokenizer, num_examine, compute_score=None, record_dir=None, max_concurrent_tasks=16) -> None:
         self.tokenizer = tokenizer
         self.num_examine = num_examine  # the number of batches of decoded responses to print to the console
         self.compute_score = compute_score or _default_compute_score
         self.step = None
-        self.timeout_seconds = 60
+        self.timeout_seconds = 120
         self.record_dir = Path(record_dir) / "step_records"
         self.record_dir.mkdir(parents=True, exist_ok=True)
         self.max_concurrent_tasks = max_concurrent_tasks
@@ -79,6 +87,7 @@ class MathRewardManager:
     def math_compute_score_parallel_with_ray(
         self, data_sources, solution_strs, ground_truths, extra_infos
     ):
+        import time
         scores: List[float] = [0.0] * len(solution_strs)
         extra_info_dict: Dict[
             str, List[float]
@@ -94,8 +103,15 @@ class MathRewardManager:
 
         # Process in batches to limit concurrent tasks
         total_samples = len(solution_strs)
-        for batch_start in range(0, total_samples, self.max_concurrent_tasks):
+        completed_samples = 0
+        start_time = time.time()
+        
+        for batch_idx, batch_start in enumerate(range(0, total_samples, self.max_concurrent_tasks)):
             batch_end = min(batch_start + self.max_concurrent_tasks, total_samples)
+            batch_size = batch_end - batch_start
+            
+            print(f"[Scoring] Processing batch {batch_idx + 1}/{(total_samples + self.max_concurrent_tasks - 1) // self.max_concurrent_tasks}, samples {batch_start}-{batch_end-1} ({batch_size} tasks)")
+            batch_start_time = time.time()
             
             # Submit batch of tasks
             futures = []
@@ -115,54 +131,126 @@ class MathRewardManager:
                 )
                 futures.append((i, future))
 
-            # Wait for all tasks in this batch to complete
-            for i, future in futures:
+            # Wait for all tasks in this batch to complete using ray.wait for better control
+            remaining_futures = [(i, f) for i, f in futures]
+            batch_timeout = self.timeout_seconds + 100  # Give extra time for the batch
+            batch_deadline = time.time() + batch_timeout
+            
+            while remaining_futures and time.time() < batch_deadline:
+                # Wait for any task to complete, with shorter timeout
+                wait_timeout = min(10.0, batch_deadline - time.time())
+                if wait_timeout <= 0:
+                    print(f"[Scoring] Batch {batch_idx + 1} timeout after {batch_timeout}s, cancelling {len(remaining_futures)} remaining tasks")
+                    break
+                
                 try:
-                    task_result = ray.get(future, timeout=self.timeout_seconds)
+                    # Wait for at least one task to complete
+                    ready_refs = [f for _, f in remaining_futures]
+                    ready, not_ready = ray.wait(ready_refs, num_returns=1, timeout=wait_timeout)
+                    
+                    if not ready:
+                        # No tasks completed in this wait period, continue waiting
+                        continue
+                    
+                    # Process completed tasks
+                    ready_set = set(ready)
+                    completed_in_round = []
+                    still_remaining = []
+                    
+                    for i, future in remaining_futures:
+                        if future in ready_set:
+                            completed_in_round.append((i, future))
+                        else:
+                            still_remaining.append((i, future))
+                    
+                    remaining_futures = still_remaining
+                    
+                    # Process the completed tasks
+                    for i, future in completed_in_round:
+                        try:
+                            # Use a short timeout since the task is already ready
+                            task_result = ray.get(future, timeout=5.0)
 
-                    if isinstance(task_result, dict):
-                        assert "extra_info" in task_result, (
-                            f"Extra info missing in task_result dict for item {i}. Result: {task_result}"
-                        )
-                        score_result = task_result
-                        if "is_filter" not in task_result["extra_info"]:
-                            score_result["extra_info"].update({"is_filter": 0})
-                    elif isinstance(task_result, (int, float)):
-                        score_result = {
-                            "score": float(task_result),
-                            "extra_info": {"is_filter": 0},
-                        }
-                    else:
-                        print(
-                            f"Unexpected task_result type for item {i}: {type(task_result)}. Using default score. Result: {task_result}"
-                        )
-                        ray.cancel(future, force=True)
-                        score_result = default_fail_score
-                except GetTimeoutError:
-                    print(
-                        f"Timeout processing item {i} (gold='{str(ground_truths[i])[:50]}...', target='{str(solution_strs[i])[:50]}...'). Using default score."
-                    )
-                    score_result = default_fail_score
+                            if isinstance(task_result, dict):
+                                assert "extra_info" in task_result, (
+                                    f"Extra info missing in task_result dict for item {i}. Result: {task_result}"
+                                )
+                                score_result = task_result
+                                if "is_filter" not in task_result["extra_info"]:
+                                    score_result["extra_info"].update({"is_filter": 0})
+                            elif isinstance(task_result, (int, float)):
+                                score_result = {
+                                    "score": float(task_result),
+                                    "extra_info": {"is_filter": 0},
+                                }
+                            else:
+                                print(
+                                    f"[Scoring] Unexpected task_result type for item {i}: {type(task_result)}. Using default score."
+                                )
+                                ray.cancel(future, force=True)
+                                score_result = default_fail_score
+                        except GetTimeoutError:
+                            print(
+                                f"[Scoring] Timeout getting result for item {i}. Using default score."
+                            )
+                            ray.cancel(future, force=True)
+                            score_result = default_fail_score
+                        except Exception as e:
+                            print(
+                                f"[Scoring] Error processing item {i}: {e}. Using default score."
+                            )
+                            import traceback
+                            traceback.print_exc()
+                            ray.cancel(future, force=True)
+                            score_result = default_fail_score
+
+                        scores[i] = float(score_result.get("score", 0.0))
+
+                        if "extra_info" in score_result and isinstance(
+                            score_result["extra_info"], dict
+                        ):
+                            for key, value in score_result["extra_info"].items():
+                                if key not in extra_info_dict:
+                                    extra_info_dict[key] = [0.0] * len(solution_strs)
+                                extra_info_dict[key][i] = value
+                        
+                        completed_samples += 1
+                    
                 except Exception as e:
-                    print(
-                        f"Error processing item {i} (gold='{str(ground_truths[i])[:50]}...', target='{str(solution_strs[i])[:50]}...'): {e}"
-                    )
+                    print(f"[Scoring] Error in ray.wait: {e}")
                     import traceback
-
                     traceback.print_exc()
-                    ray.cancel(future, force=True)
-                    score_result = default_fail_score
+                    # Continue to next iteration
+                    continue
+            
+            # Cancel any remaining tasks that didn't complete
+            if remaining_futures:
+                print(f"[Scoring] Cancelling {len(remaining_futures)} incomplete tasks in batch {batch_idx + 1}")
+                for i, future in remaining_futures:
+                    try:
+                        ray.cancel(future, force=True)
+                        scores[i] = 0.0
+                        if "is_filter" not in extra_info_dict:
+                            extra_info_dict["is_filter"] = [0.0] * len(solution_strs)
+                        extra_info_dict["is_filter"][i] = 1
+                    except:
+                        pass
+                    completed_samples += 1
+            
+            batch_elapsed = time.time() - batch_start_time
+            total_elapsed = time.time() - start_time
+            avg_time_per_sample = total_elapsed / max(completed_samples, 1)
+            remaining_samples = total_samples - completed_samples
+            eta_seconds = avg_time_per_sample * remaining_samples
+            
+            print(f"[Scoring] Batch {batch_idx + 1} completed in {batch_elapsed:.1f}s, "
+                  f"Progress: {completed_samples}/{total_samples} ({100*completed_samples/total_samples:.1f}%), "
+                  f"ETA: {eta_seconds/60:.1f} min")
 
-                scores[i] = float(score_result.get("score", 0.0))
-
-                if "extra_info" in score_result and isinstance(
-                    score_result["extra_info"], dict
-                ):
-                    for key, value in score_result["extra_info"].items():
-                        if key not in extra_info_dict:
-                            extra_info_dict[key] = [0.0] * len(solution_strs)
-                        extra_info_dict[key][i] = value
-
+        total_time = time.time() - start_time
+        print(f"[Scoring] All scoring completed in {total_time:.1f}s ({total_time/60:.1f} min), "
+              f"avg {total_time/total_samples:.2f}s per sample")
+        
         return scores, extra_info_dict
 
     def __call__(self, data: DataProto):

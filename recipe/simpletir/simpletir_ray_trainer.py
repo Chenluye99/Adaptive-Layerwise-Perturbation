@@ -341,7 +341,7 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
 
         # register wandb generation logger
         self.validation_generations_logger = {}
-        val_file_prefix = os.environ.get("DATA_PATH", "/home/chenluy/SimpleTIR/datasets/")
+        val_file_prefix = os.environ.get("DATA_PATH", "/home/chenluy/mismatch_all_perturb_agent/datasets/")
         for val_file in config.data.val_files:
             # Remove the data path prefix and .parquet extension to get the key
             if val_file.startswith(val_file_prefix):
