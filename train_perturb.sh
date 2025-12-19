@@ -284,7 +284,7 @@ echo "Perturb LR: $PERTURB_LR"
 # set ppo micro token
 PPO_MICRO_TOKEN=$(generate_model_micro_token "$MODEL_NAME")
 echo "PPO_MICRO_TOKEN: $PPO_MICRO_TOKEN"
-LOG_PROB_MICRO_TOKEN=$((PPO_MICRO_TOKEN))
+LOG_PROB_MICRO_TOKEN=$((PPO_MICRO_TOKEN * 2))
 max_num_batched_tokens=$(expr $MAX_PROMPT_LENGTH + $MAX_RESPONSE_LENGTH + 1000)
 
 
