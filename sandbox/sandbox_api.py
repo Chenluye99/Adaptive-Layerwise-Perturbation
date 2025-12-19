@@ -34,6 +34,8 @@ ByteIntl Seed-Sandbox. A simple curl test:
 import asyncio
 import os
 import shutil
+import signal
+import subprocess
 import tempfile
 from datetime import datetime
 from enum import Enum
@@ -72,24 +74,33 @@ class RunResult(BaseModel):
 # ---------------- Core runner ----------------
 
 async def _run_in_firejail(code: str, timeout: float, stdin_data: str = "") -> dict:
-    """Execute *code* inside a fresh Firejail sandbox and return stdout/stderr."""
+    """Execute *code* inside a fresh Firejail sandbox and return stdout/stderr.
+    
+    Enhanced with multiple layers of protection against runaway processes:
+    1. Firejail's built-in resource limits and timeout
+    2. Process group management for proper cleanup
+    3. Multi-stage termination (SIGTERM → SIGKILL)
+    4. Asyncio timeout as final safeguard
+    """
 
     # 1) Write user code to a tmpfs directory → zero-copy, fast cleanup
     workdir = Path(tempfile.mkdtemp(prefix="fj_", dir="/dev/shm"))
     src = workdir / "main.py"
     src.write_text(code)
 
-    # 2) Build Firejail command line
-    # Resource limits tailored for 192-core host
+    # 2) Build Firejail command line with enhanced protections
+    # Add --timeout as a hard kill timer (wall-clock time)
+    hard_timeout = int(timeout) + 5  # Give extra buffer for graceful shutdown
     cmd = [
         "firejail",
         "--quiet",
         "--profile=/etc/firejail/default.profile",
         f"--private={workdir}",
         "--net=none",              # disable network
-        # Hard limits to prevent freezing/OOM
-        "--rlimit-as=2048m",       # 2GB max RAM per sandbox (Safe for ~200 concurrent tasks on 2TB host)
-        f"--rlimit-cpu={int(timeout) + 2}", # CPU limit (seconds) with larger buffer
+        f"--timeout=00:00:{hard_timeout}",  # HARD timeout: firejail will kill tree after this
+        # Resource limits
+        "--rlimit-as=2048m",       # 2GB max RAM per sandbox
+        f"--rlimit-cpu={int(timeout) + 2}",  # CPU time limit
         "--rlimit-nproc=256",      # Max processes inside sandbox
         "--",
         "python3",
@@ -100,7 +111,8 @@ async def _run_in_firejail(code: str, timeout: float, stdin_data: str = "") -> d
     whitelist = ("PATH", "LANG", "LC_ALL", "PYTHONIOENCODING", "TERM")
     clean_env = {k: os.environ[k] for k in whitelist if k in os.environ}
 
-    # 4) Launch subprocess under asyncio, enforce wall-clock timeout
+    # 4) Launch subprocess with process group for proper cleanup
+    # start_new_session=True ensures we can kill the entire process tree
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         stdin=asyncio.subprocess.PIPE,
@@ -108,6 +120,7 @@ async def _run_in_firejail(code: str, timeout: float, stdin_data: str = "") -> d
         stderr=asyncio.subprocess.PIPE,
         cwd=workdir,
         env=clean_env,
+        start_new_session=True,  # Create new process group
     )
 
     try:
@@ -117,14 +130,22 @@ async def _run_in_firejail(code: str, timeout: float, stdin_data: str = "") -> d
             timeout=timeout
         )
     except asyncio.TimeoutError:
-        proc.kill()
-        await proc.wait()
+        # Multi-stage cleanup to ensure complete process termination
+        await _cleanup_process_tree(proc)
         shutil.rmtree(workdir, ignore_errors=True)
         return {
             "status": RunStatus.timeout,
             "stdout": "",
             "stderr": "Timeout\n",
         }
+    finally:
+        # Extra safety: ensure process is cleaned up even if communicate() succeeds
+        # but process is still running (shouldn't happen, but defensive programming)
+        if proc.returncode is None:
+            try:
+                await _cleanup_process_tree(proc)
+            except Exception:
+                pass
 
     status = RunStatus.success if proc.returncode == 0 else RunStatus.runtime_error
 
@@ -136,6 +157,67 @@ async def _run_in_firejail(code: str, timeout: float, stdin_data: str = "") -> d
         "stdout": stdout.decode(),
         "stderr": stderr.decode(),
     }
+
+
+async def _cleanup_process_tree(proc: asyncio.subprocess.Process) -> None:
+    """
+    Aggressively cleanup a process and its entire tree.
+    Multi-stage approach:
+    1. SIGTERM to process group (graceful)
+    2. Wait briefly
+    3. SIGKILL to process group (force)
+    4. SIGKILL to process itself (fallback)
+    """
+    if proc.returncode is not None:
+        # Already terminated
+        return
+    
+    try:
+        # Stage 1: Try graceful termination of entire process group
+        try:
+            pgid = os.getpgid(proc.pid)
+            os.killpg(pgid, signal.SIGTERM)
+        except (ProcessLookupError, OSError):
+            # Process or group doesn't exist, try process directly
+            try:
+                proc.terminate()
+            except ProcessLookupError:
+                return
+        
+        # Stage 2: Wait briefly for graceful shutdown (0.5 seconds)
+        try:
+            await asyncio.wait_for(proc.wait(), timeout=0.5)
+            return  # Success!
+        except asyncio.TimeoutError:
+            pass  # Continue to force kill
+        
+        # Stage 3: Force kill the entire process group
+        try:
+            pgid = os.getpgid(proc.pid)
+            os.killpg(pgid, signal.SIGKILL)
+        except (ProcessLookupError, OSError):
+            pass
+        
+        # Stage 4: Force kill the process itself as final fallback
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
+        
+        # Wait for cleanup with timeout
+        try:
+            await asyncio.wait_for(proc.wait(), timeout=1.0)
+        except asyncio.TimeoutError:
+            # Process is really stuck, but we've done all we can
+            pass
+            
+    except Exception as e:
+        # Ultimate fallback: just try to kill the process
+        try:
+            proc.kill()
+            await asyncio.wait_for(proc.wait(), timeout=1.0)
+        except Exception:
+            pass  # Nothing more we can do
 
 
 # ---------------- FastAPI wiring ----------------
