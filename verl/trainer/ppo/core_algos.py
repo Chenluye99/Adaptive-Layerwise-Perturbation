@@ -898,7 +898,6 @@ def compute_policy_loss_perturbed(
         "The lower bound of the clip_ratio_c for dual-clip PPO should be greater than 1.0,"
         + f" but get the value: {clip_ratio_c}."
     )
-    original_response_mask = response_mask.clone()
     if config.mask_void_turns and void_turn_mask is not None:
         void_turn_mask_float = void_turn_mask.float().reshape(-1, 1)
         response_mask = response_mask * void_turn_mask_float
