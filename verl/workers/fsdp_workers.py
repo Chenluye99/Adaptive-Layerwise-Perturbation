@@ -199,9 +199,16 @@ class ActorRolloutRefWorker(Worker):
             if self.config.actor.get("perturb_std", None) is not None:
                 override_config_kwargs["perturb_std"] = float(self.config.actor.get("perturb_std"))
             
-            # Inject perturb_layer_stride (for memory optimization)
-            if self.config.actor.get("perturb_layer_stride", None) is not None:
-                override_config_kwargs["perturb_layer_stride"] = int(self.config.actor.get("perturb_layer_stride"))
+
+            # Inject perturb_start_layer and perturb_end_layer (layer range control)
+            if self.config.actor.get("perturb_start_layer", None) is not None:
+                override_config_kwargs["perturb_start_layer"] = int(self.config.actor.get("perturb_start_layer"))
+            
+            if self.config.actor.get("perturb_end_layer", None) is not None:
+                perturb_end_layer = self.config.actor.get("perturb_end_layer")
+                # Handle "null" string from shell script
+                if perturb_end_layer != "null" and perturb_end_layer is not None:
+                    override_config_kwargs["perturb_end_layer"] = int(perturb_end_layer)
 
             # Inject coef_learnable (optional, if you want to control it via script)
             if self.config.actor.get("coef_learnable", None) is not None:
@@ -211,6 +218,8 @@ class ActorRolloutRefWorker(Worker):
                 print(f"[FSDP Worker] Injected perturbation config: "
                       f"use_perturbation={override_config_kwargs.get('use_perturbation')}, "
                       f"perturb_std={override_config_kwargs.get('perturb_std')}, "
+                      f"perturb_start_layer={override_config_kwargs.get('perturb_start_layer', 0)}, "
+                      f"perturb_end_layer={override_config_kwargs.get('perturb_end_layer', 'all')}, "
                       f"coef_learnable={override_config_kwargs.get('coef_learnable', 'default')}")
         # -------------------------------------------------------------------------------------
 

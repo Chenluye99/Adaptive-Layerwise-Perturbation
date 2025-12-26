@@ -37,7 +37,8 @@ ADAPT_RATIO=False
 USE_PERTURBATION=True
 PERTURB_STD=1e-8
 PERTURB_LR=1e-2
-PERTURB_LAYER_STRIDE=null  # null 表示使用 config.json 中的值，设置数字（如2或4）则会覆盖
+PERTURB_START_LAYER=0  # 开始扰动的层索引（包含），默认从第0层开始
+PERTURB_END_LAYER=null  # 结束扰动的层索引（不包含），null 表示到最后一层
 
 # Default values
 CLIP_RATIO_HIGH=3.0
@@ -185,7 +186,8 @@ while [[ "$#" -gt 0 ]]; do
     --adapt_ratio) ADAPT_RATIO="$2"; shift 2 ;;
     --perturb_std) PERTURB_STD="$2"; shift 2 ;;
     --perturb_lr) PERTURB_LR="$2"; shift 2 ;;
-    --perturb_layer_stride) PERTURB_LAYER_STRIDE="$2"; shift 2 ;;
+    --perturb_start_layer) PERTURB_START_LAYER="$2"; shift 2 ;;
+    --perturb_end_layer) PERTURB_END_LAYER="$2"; shift 2 ;;
     --rejection_sample) REJECTION_SAMPLE="$2"; shift 2 ;;
     --sp_size) SP_SIZE="$2"; shift 2 ;;
     --train_dataset) TRAIN_DATASET=($2); shift 2 ;;
@@ -348,7 +350,8 @@ PYTHONUNBUFFERED=1 python -m recipe.simpletir.main_simpletir \
     actor_rollout_ref.actor.use_perturbation=$USE_PERTURBATION \
     actor_rollout_ref.actor.perturb_std=$PERTURB_STD \
     actor_rollout_ref.actor.perturb_lr=$PERTURB_LR \
-    actor_rollout_ref.actor.perturb_layer_stride=$PERTURB_LAYER_STRIDE \
+    actor_rollout_ref.actor.perturb_start_layer=$PERTURB_START_LAYER \
+    actor_rollout_ref.actor.perturb_end_layer=$PERTURB_END_LAYER \
     actor_rollout_ref.model.enable_gradient_checkpointing=False \
     actor_rollout_ref.actor.fsdp_config.param_offload=$ACTOR_PARAMETER_OFFLOAD \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=$ACTOR_OPTIMIZER_OFFLOAD \

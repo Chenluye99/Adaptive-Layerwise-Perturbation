@@ -25,6 +25,18 @@ class CustomQwen2DecoderLayer(nn.Module):
         self.initial_coef = getattr(config, "perturb_std", 1e-2)
         self.layer_idx = layer_idx
         
+        # --- [新增]: 读取层范围参数，判断当前层是否需要扰动 ---
+        perturb_start_layer = getattr(config, "perturb_start_layer", 0)
+        perturb_end_layer = getattr(config, "perturb_end_layer", None)  # None 表示到最后一层
+        
+        # 如果 perturb_end_layer 为 None，则扰动到最后一层
+        if perturb_end_layer is None:
+            perturb_end_layer = getattr(config, "num_hidden_layers", float('inf'))
+        
+        # 判断当前层是否在扰动范围内
+        self.layer_needs_perturbation = (perturb_start_layer <= layer_idx < perturb_end_layer)
+        # -----------------------------------------------------------
+        
         # 处理 coef (扰动系数)
         # 确保类型为模型的 dtype (通常是 bfloat16 或 float32)
         dtype = getattr(config, "torch_dtype", torch.float32)
@@ -78,7 +90,7 @@ class CustomQwen2DecoderLayer(nn.Module):
         
         # === 优化后的逻辑：只采样一次 (Noise Injection) ===
         # 仅在开启 smooth 且处于训练模式且当前层需要扰动时执行
-        if self.smooth and self.training:
+        if self.smooth and self.training and self.layer_needs_perturbation:
             # 1. 准备系数 (确保在正确的 device)
             # 从 log 空间恢复 std: std = exp(log_std)
             current_coef = self.log_coef.to(hidden_states.device).exp()
