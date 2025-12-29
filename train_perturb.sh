@@ -53,7 +53,8 @@ MAX_PROMPT_LENGTH=16000
 MAX_RESPONSE_LENGTH=8000
 MAX_OBS_LENGTH=256
 PPO_MINI_BATCH_SIZE=32
-PPO_MICRO_TOKEN=5500
+PPO_MICRO_TOKEN=6000
+SP_SIZE=4
 TOTAL_EPOCHS=100
 TRAIN_DATASET=("simplelr_math_35/train" "deepscaler/train")
 VALID_DATASET=("simplelr_math_35/test" "deepscaler/aime" "deepscaler/aime25")
@@ -66,7 +67,6 @@ TEST_FREQ=20
 REMOVE_CLIP=False # mask the over-long response that is clipped
 ROLLOUT_TENSOR_MODEL_PARALLEL_SIZE=1
 REJECTION_SAMPLE=False # move all correct/ wrong samples
-SP_SIZE=4
 GRAD_CLIP=1.0
 ACC_FILTER=0.0_1.0
 START_CLIP_STEP=20
@@ -245,6 +245,7 @@ SUFFIX+="_ppomini${PPO_MINI_BATCH_SIZE}"
 SUFFIX+="_useperturb${USE_PERTURBATION}"
 SUFFIX+="_perturbstd${PERTURB_STD}"
 SUFFIX+="_perturblr${PERTURB_LR}"
+SUFFIX+="_layer${PERTURB_START_LAYER}-${PERTURB_END_LAYER}"
 echo "Generated SUFFIX: $SUFFIX"
 
 RUN_NAME="$RUN_NAME$SUFFIX"
