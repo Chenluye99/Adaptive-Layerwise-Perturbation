@@ -9,9 +9,9 @@ PROJECT_NAME='TIR'
 RUN_NAME="simpletir"
 CONFIG_NAME="simpletir_trainer"
 
-MODEL_PATH='Qwen' # the parent dir of the checkpoint
-DATA_PATH='/home/chenluy/SimpleTIR/datasets' # the dir containing data like deepscaler/train (see datasets/)
-CHECKPOINT_PATH="/opt/dlami/nvme/${PROJECT_NAME}" # the dir to save the checkpoint
+MODEL_PATH="${MODEL_PATH:-Qwen}" # the parent dir of the checkpoint
+DATA_PATH="${DATA_PATH:-/home/chenluy/mismatch_all_perturb_agent/datasets}" # the dir containing data like deepscaler/train (see datasets/)
+CHECKPOINT_PATH="${CHECKPOINT_PATH:-/opt/dlami/nvme/${PROJECT_NAME}}" # the dir to save the checkpoint
 LOG_PATH="./logs/${PROJECT_NAME}" # the dir to save the log
 NNODES=1
 GPUS_PER_NODE=8 
@@ -287,6 +287,17 @@ echo "VALID_FILES: $VALID_FILES"
 
 echo "CONFIG_NAME: $CONFIG_NAME"
 
+# Set local_dir based on VAL_ONLY mode
+if [ "$VAL_ONLY" = "True" ]; then
+    # For validation only, use CHECKPOINT_PATH directly without RUN_NAME
+    LOCAL_DIR="$CHECKPOINT_PATH"
+    echo "VAL_ONLY mode: Using LOCAL_DIR=$LOCAL_DIR"
+else
+    # For training, use CHECKPOINT_PATH/RUN_NAME
+    LOCAL_DIR="$CHECKPOINT_PATH/$RUN_NAME"
+    echo "Training mode: Using LOCAL_DIR=$LOCAL_DIR"
+fi
+
 # Example of using the variables
 sleep 3
 PYTHONUNBUFFERED=1 python -m recipe.simpletir.main_simpletir \
@@ -333,7 +344,7 @@ PYTHONUNBUFFERED=1 python -m recipe.simpletir.main_simpletir \
     trainer.save_freq=$SAVE_FREQ \
     trainer.test_freq=$TEST_FREQ \
     trainer.val_before_train=$VAL_BEFORE_TRAIN \
-    trainer.default_local_dir=$CHECKPOINT_PATH/$RUN_NAME \
+    trainer.default_local_dir=$LOCAL_DIR \
     trainer.total_epochs=$TOTAL_EPOCHS \
     trainer.resume_mode=$RESUME_MODE \
     trainer.resume_from_path=$RESUME_FROM_PATH \

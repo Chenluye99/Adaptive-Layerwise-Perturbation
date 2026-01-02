@@ -250,26 +250,31 @@ class ActorRolloutRefWorker(Worker):
             if self.config.actor.get("use_perturbation", False):
                 import math
                 perturb_std = float(self.config.actor.get("perturb_std", 1e-2))
-                log_perturb_std = math.log(perturb_std)
-                if self.rank == 0:
-                    print(f"[FSDP Worker] Force resetting perturbation log_coef to {log_perturb_std} (std={perturb_std}) for all layers...")
-
-                # Access layers directly (handle Qwen2 structure)
-                layers = None
-                if hasattr(actor_module, "model") and hasattr(actor_module.model, "layers"):
-                    layers = actor_module.model.layers
-                elif hasattr(actor_module, "layers"):
-                    layers = actor_module.layers
-
-                if layers is not None:
-                    reset_count = 0
-                    for layer in layers:
-                        if hasattr(layer, "log_coef"):
-                            with torch.no_grad():
-                                layer.log_coef.fill_(log_perturb_std)
-                            reset_count += 1
+                # Protect against log(0) or log(negative)
+                if perturb_std <= 0:
                     if self.rank == 0:
-                        print(f"[FSDP Worker] Successfully reset log_coef for {reset_count} layers.")
+                        print(f"[FSDP Worker] Warning: perturb_std={perturb_std} is invalid (<=0), skipping perturbation reset")
+                else:
+                    log_perturb_std = math.log(perturb_std)
+                    if self.rank == 0:
+                        print(f"[FSDP Worker] Force resetting perturbation log_coef to {log_perturb_std} (std={perturb_std}) for all layers...")
+
+                    # Access layers directly (handle Qwen2 structure)
+                    layers = None
+                    if hasattr(actor_module, "model") and hasattr(actor_module.model, "layers"):
+                        layers = actor_module.model.layers
+                    elif hasattr(actor_module, "layers"):
+                        layers = actor_module.layers
+
+                    if layers is not None:
+                        reset_count = 0
+                        for layer in layers:
+                            if hasattr(layer, "log_coef"):
+                                with torch.no_grad():
+                                    layer.log_coef.fill_(log_perturb_std)
+                                reset_count += 1
+                        if self.rank == 0:
+                            print(f"[FSDP Worker] Successfully reset log_coef for {reset_count} layers.")
 
             # Apply Liger kernel to the model if use_liger is set to True
             if use_liger:

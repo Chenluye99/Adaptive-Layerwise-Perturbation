@@ -23,6 +23,10 @@ class CustomQwen2DecoderLayer(nn.Module):
         self.smooth = getattr(config, "use_perturbation", False)
         self.coef_learnable = getattr(config, "coef_learnable", False)
         self.initial_coef = getattr(config, "perturb_std", 1e-2)
+        # 如果 perturb_std <= 0，强制关闭扰动
+        if self.initial_coef <= 0:
+            self.smooth = False
+            self.initial_coef = 1e-2  # 设置一个安全的默认值
         self.layer_idx = layer_idx
         
         # --- [新增]: 读取层范围参数，判断当前层是否需要扰动 ---

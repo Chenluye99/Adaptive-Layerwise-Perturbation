@@ -11,8 +11,6 @@ python3 download_datasets.py \
     "weqweasdas/math500" \
     "weqweasdas/minerva_math" \
     "weqweasdas/olympiadbench" \
-    "weqweasdas/aime24" \
-    "Chenlu123/aime25" \
     "Chenlu123/hmmt0225" \
   --output_dir /home/chenluy/mismatch_all_perturb_agent/datasets \
   --split train

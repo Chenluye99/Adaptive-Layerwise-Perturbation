@@ -688,18 +688,21 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
             range(0, len(inputs), self.config.actor_rollout_ref.rollout.val_kwargs.n)
         )
 
-        if self.config.trainer.output_acc_to_file:
-            file_name = table_name.replace("/", "-")
-            with open(f"{file_name}_acc.txt", "w") as f:
-                for i, index in enumerate(unique_indexes):
-                    question = (
-                        inputs[index]
-                        .split("User Question:")[-1]
-                        .split("Assistant:")[0]
-                        .strip()
-                    )
-                    f.write(f"problem {i + 1}: {question}\n")
-                    f.write(f"avg score: {avg_scores[i]}\n\n")
+        # if self.config.trainer.output_acc_to_file:
+        #     file_name = table_name.replace("/", "-")
+        #     # Get the checkpoint path from config (parent directory of default_local_dir)
+        #     checkpoint_base = os.path.dirname(self.config.trainer.default_local_dir)
+        #     acc_file_path = os.path.join(checkpoint_base, f"{file_name}_acc.txt")
+        #     with open(acc_file_path, "w") as f:
+        #         for i, index in enumerate(unique_indexes):
+        #             question = (
+        #                 inputs[index]
+        #                 .split("User Question:")[-1]
+        #                 .split("Assistant:")[0]
+        #                 .strip()
+        #             )
+        #             f.write(f"problem {i + 1}: {question}\n")
+        #             f.write(f"avg score: {avg_scores[i]}\n\n")
 
         # prepare for true and false indexes
         avg_scores = np.repeat(avg_scores, 2)
@@ -732,19 +735,21 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
             # get current time
             import time
 
-            current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-            # create a folder with current time
-            folder_name = f"{file_name}/{current_time}"
-            os.makedirs(folder_name, exist_ok=True)
-            # we have both good and bad samples in inputs/outputs. So len(inputs) = 2*number_of_questions
-            for i in range(len(inputs) // 2):
-                with open(f"{folder_name}/problem-{i}-good.txt", "w") as f:
-                    f.write(f"Score: {output_scores[i * 2]}\n\n")
-                    f.write(f"{outputs[i * 2]}\n\n")
-                with open(f"{folder_name}/problem-{i}-bad.txt", "w") as f:
-                    f.write(f"Score: {output_scores[i * 2 + 1]}\n\n")
-                    f.write(f"{outputs[i * 2 + 1]}\n\n")
-            print(f"Accuracy results saved to {table_name}")
+            # current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+            # create a folder with current time in checkpoint_base directory
+            # checkpoint_base = os.path.dirname(self.config.trainer.default_local_dir)
+            # folder_name = os.path.join(checkpoint_base, f"{file_name}/{current_time}")
+            # os.makedirs(folder_name, exist_ok=True)
+            # # we have both good and bad samples in inputs/outputs. So len(inputs) = 2*number_of_questions
+            # for i in range(len(inputs) // 2):
+            #     with open(f"{folder_name}/problem-{i}-good.txt", "w") as f:
+            #         f.write(f"Score: {output_scores[i * 2]}\n\n")
+            #         f.write(f"{outputs[i * 2]}\n\n")
+            #     with open(f"{folder_name}/problem-{i}-bad.txt", "w") as f:
+            #         f.write(f"Score: {output_scores[i * 2 + 1]}\n\n")
+            #         f.write(f"{outputs[i * 2 + 1]}\n\n")
+            # print(f"Accuracy results saved to {checkpoint_base}/{file_name}_acc.txt")
+            pass
 
         samples = list(zip(inputs, outputs, output_scores, avg_scores))
 
@@ -1062,6 +1067,19 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
             val_metrics = self._validate()
             pprint(f"Initial validation metrics: {val_metrics}")
             logger.log(data=val_metrics, step=self.global_steps)
+            
+            # Save validation metrics to file if output_acc_to_file is enabled
+            if self.config.trainer.get("output_acc_to_file", False):
+                score_file_path = os.path.join(self.config.trainer.default_local_dir, "validation_scores.txt")
+                os.makedirs(self.config.trainer.default_local_dir, exist_ok=True)
+                with open(score_file_path, "w") as f:
+                    f.write(f"Validation Metrics (Step {self.global_steps}):\n")
+                    f.write("=" * 80 + "\n\n")
+                    for key, value in sorted(val_metrics.items()):
+                        f.write(f"{key}: {value}\n")
+                    f.write("\n" + "=" * 80 + "\n")
+                print(f"Validation scores saved to {score_file_path}")
+            
             if self.config.trainer.get("val_only", False):
                 return
 
