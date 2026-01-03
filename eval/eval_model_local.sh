@@ -2,7 +2,7 @@
 #!/bin/bash
 
 # Configuration
-base_output_dir="/home/chenluy/mismatch_all_perturb_agent/eval/gen_data/simpletir__maxturn5_batch256_ppomini32_lossmodevanilla_maskvoidturnsTrue_risTrue_islvlsequence_isth5.0_deepscaler_merge_train_Qwen2.5-7B"
+base_output_dir="/home/chenluy/mismatch_all_perturb_agent/eval/gen_data/simpletir_cliph3.0_clipl0.5_clipc5.0_maxturn5_maskvoidTrue_oversample1_losssequence_adaptratioFalse_ppogeoFalse_risTrue_isth2.0_isthlower0.0_isveto0_islvlsequence_batch256_ppomini32_deepscaler_merge_train_Qwen2.5-7B"
 mkdir -p $base_output_dir
 
 K=32
@@ -13,11 +13,11 @@ BASE_MODEL_PATH="Qwen/Qwen2.5-7B"
 
 # Model and dataset arrays
 models=()
-base_model_path="/opt/dlami/nvme/chenluy_ckpoints/test/simpletir__maxturn5_batch256_ppomini32_lossmodevanilla_maskvoidturnsTrue_risTrue_islvlsequence_isth5.0_deepscaler_merge_train_Qwen2.5-7B"
+base_model_path="/opt/dlami/nvme/chenluy_ckpoints/test/simpletir_cliph3.0_clipl0.5_clipc5.0_maxturn5_maskvoidTrue_oversample1_losssequence_adaptratioFalse_ppogeoFalse_risTrue_isth2.0_isthlower0.0_isveto0_islvlsequence_batch256_ppomini32_deepscaler_merge_train_Qwen2.5-7B"
 
 # merge the model
 echo "=== Starting model merging ==="
-for step in $(seq 100 20 200); do
+for step in $(seq 200 20 300); do
     actor_dir="$base_model_path/global_step_$step/actor"
     merged_dir="$base_model_path/global_step_$step/merged"
     
@@ -56,7 +56,7 @@ print('✓ Tokenizer files copied to merged directory')
 done
 
 # Generate model paths for global_step_20 to global_step_220 (increment by 20)
-for step in $(seq 100 20 200); do
+for step in $(seq 200 20 300); do
     models+=("$base_model_path/global_step_$step/merged")
 done
 
