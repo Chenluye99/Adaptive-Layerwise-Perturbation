@@ -359,7 +359,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 override_config_kwargs["coef_learnable"] = self.config.actor.get("coef_learnable")
 
             # Change!! Inject perturb layers
-            if sefl.config.actoor.get("perturb_layers", None) is not None:
+            if self.config.actor.get("perturb_layers", None) is not None:
                 override_config_kwargs["perturb_layers"] = list(self.config.actor.get("perturb_layers"))
                 
             if self.rank == 0:
