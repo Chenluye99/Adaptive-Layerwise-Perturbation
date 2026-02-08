@@ -8,6 +8,7 @@
 import os
 import re
 import sys
+import csv
 from pathlib import Path
 from collections import defaultdict
 import matplotlib.pyplot as plt
@@ -19,37 +20,47 @@ import numpy as np
 # 数据集列表
 DATASETS = ['weqweasdas/math500', 'weqweasdas/minerva_math', 'weqweasdas/olympiadbench', 'weqweasdas/aime24', 'Chenlu123/aime25']
 
+DATASET_DISPLAY_NAMES = {
+    'weqweasdas/math500': 'Math500',
+    'weqweasdas/minerva_math': 'Minerva Math',
+    'weqweasdas/olympiadbench': 'Olympiad Bench',
+    'weqweasdas/aime24': 'AIME24',
+    'Chenlu123/aime25': 'AIME25',
+}
+
+MIN_PLOT_STEP = 40
+
 # 实验配置
 EXPERIMENTS = {
     'ppo': {
         'path': '/home/zhang430/mismatch-perturbation-on-math/eval_benchmark/results/grpo_baseline_qwen2.5-math-1.5b_merged_openr1_guru_n8_prompt_bsz_512_mini_bsz_32',
-        'label': 'GRPO (sequence)',
+        'label': 'Seq-GRPO',
         'color': '#2E86AB',  # 蓝色
-        'linestyle': '-',
-    },
-    'mis': {
-        'path': '/home/zhang430/mismatch-perturbation-on-math/eval_benchmark/results/grpo_mis_qwen2.5-math-1.5b_loss_sequence_clip_0.5_3.0',
-        'label': 'MIS (sequence)',
-        'color': '#06A77D',  # 绿色
-        'linestyle': '-',
-    },
-    'bypass': {
-        'path': '/home/zhang430/mismatch-perturbation-on-math/eval_benchmark/results/exp_grpo_bypass_analysis_qwen_qwen2_5_math_1_5b_merged_openr1_guru_sequence_n8_bz512_mini_bz32',
-        'label': 'Bypass (sequence)',
-        'color': '#F24236',  # 红色
-        'linestyle': '-',
-    },
-    'perturb': {
-        'path': '/home/zhang430/mismatch-perturbation-on-math/eval_benchmark/results/ablation_qwen2_5_math_1_5b_layers_all',
-        'label': 'Perturbation (sequence)',
-        'color': '#F18F01',  # 橙色
         'linestyle': '-',
     },
     # token-level experiments
     'tis_token': {
         'path': '/home/zhang430/mismatch-perturbation-on-math/eval_benchmark/results/grpo_tis_qwen2.5-math-1.5b_merged_openr1_guru_n8_sequence_mask_th3.0_prompt_bsz_512',
-        'label': 'MIS (token)',
+        'label': 'token-MIS',
         'color': '#6C5CE7',  # 紫色
+        'linestyle': '-',
+    },
+    'mis': {
+        'path': '/home/zhang430/mismatch-perturbation-on-math/eval_benchmark/results/grpo_mis_qwen2.5-math-1.5b_loss_sequence_clip_0.5_3.0',
+        'label': 'Seq-MIS',
+        'color': '#06A77D',  # 绿色
+        'linestyle': '-',
+    },
+    'bypass': {
+        'path': '/home/zhang430/mismatch-perturbation-on-math/eval_benchmark/results/exp_grpo_bypass_analysis_qwen_qwen2_5_math_1_5b_merged_openr1_guru_sequence_n8_bz512_mini_bz32',
+        'label': 'Seq-Bypass',
+        'color': '#F24236',  # 红色
+        'linestyle': '-',
+    },
+    'perturb': {
+        'path': '/home/zhang430/mismatch-perturbation-on-math/eval_benchmark/results/ablation_qwen2_5_math_1_5b_layers_all',
+        'label': 'Seq-ALP',
+        'color': '#F18F01',  # 橙色
         'linestyle': '-',
     },
 }
@@ -142,6 +153,91 @@ def calculate_average(scores_dict, step):
     return None
 
 
+def get_scores_after_min_step(step_to_score, min_step=MIN_PLOT_STEP):
+    """Filter step->score dict to only keep step >= min_step, ordered by step."""
+    steps = sorted(step for step in step_to_score if step >= min_step)
+    return steps, [step_to_score[step] for step in steps]
+
+
+def get_last_score_after_min_step(scores_dict, dataset, min_step=MIN_PLOT_STEP):
+    """Get the last available score with step >= min_step for a dataset."""
+    dataset_scores = scores_dict.get(dataset, {})
+    valid_steps = [step for step in dataset_scores if step >= min_step]
+    if not valid_steps:
+        return None
+    last_step = max(valid_steps)
+    return dataset_scores[last_step]
+
+
+def export_main_results_table(all_experiments_data, output_dir='figures', min_step=MIN_PLOT_STEP):
+    """Export main-result table (last checkpoint >= min_step) as CSV/Markdown/LaTeX."""
+    os.makedirs(output_dir, exist_ok=True)
+
+    headers = ['Method'] + [DATASET_DISPLAY_NAMES[d] for d in DATASETS] + ['Average']
+    rows = []
+
+    for exp_key, exp_config in EXPERIMENTS.items():
+        if exp_key not in all_experiments_data:
+            continue
+        scores_dict = all_experiments_data[exp_key]
+
+        row = {'Method': exp_config['label']}
+        valid_values = []
+        for dataset in DATASETS:
+            score = get_last_score_after_min_step(scores_dict, dataset, min_step=min_step)
+            if score is None:
+                row[DATASET_DISPLAY_NAMES[dataset]] = None
+            else:
+                value = score * 100.0
+                row[DATASET_DISPLAY_NAMES[dataset]] = value
+                valid_values.append(value)
+
+        row['Average'] = float(np.mean(valid_values)) if valid_values else None
+        rows.append(row)
+
+    if not rows:
+        print(f"⚠ 无法导出主结果表：没有 step >= {min_step} 的数据")
+        return
+
+    def fmt(value):
+        return '-' if value is None else f"{value:.2f}"
+
+    csv_path = os.path.join(output_dir, 'single-turn-main-results.csv')
+    md_path = os.path.join(output_dir, 'single-turn-main-results.md')
+    tex_path = os.path.join(output_dir, 'single-turn-main-results.tex')
+
+    with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(headers)
+        for row in rows:
+            writer.writerow([row[h] if row[h] is not None else '' for h in headers])
+
+    with open(md_path, 'w', encoding='utf-8') as f:
+        f.write(f"Main Results (last checkpoint score, step >= {min_step})\n\n")
+        f.write("| " + " | ".join(headers) + " |\n")
+        f.write("| " + " | ".join(['---'] * len(headers)) + " |\n")
+        for row in rows:
+            f.write("| " + " | ".join([row['Method']] + [fmt(row[h]) for h in headers[1:]]) + " |\n")
+
+    with open(tex_path, 'w', encoding='utf-8') as f:
+        f.write("% Main Results (last checkpoint score, step >= ")
+        f.write(str(min_step))
+        f.write(")\n")
+        f.write("\\begin{tabular}{l" + "c" * (len(headers) - 1) + "}\n")
+        f.write("\\toprule\n")
+        f.write(" & ".join(headers) + " \\\\\n")
+        f.write("\\midrule\n")
+        for row in rows:
+            values = [row['Method']] + [fmt(row[h]) for h in headers[1:]]
+            f.write(" & ".join(values) + " \\\\\n")
+        f.write("\\bottomrule\n")
+        f.write("\\end{tabular}\n")
+
+    print(f"✓ 主结果表已保存: {csv_path}")
+    print(f"✓ 主结果表已保存: {md_path}")
+    print(f"✓ 主结果表已保存: {tex_path}")
+
+
 def plot_comparison(all_experiments_data, output_dir='figures'):
     """Create comparison plot with average across datasets."""
     
@@ -174,31 +270,6 @@ def plot_comparison(all_experiments_data, output_dir='figures'):
     fig.suptitle('Test Performance on Single-Turn Math Reasoning Tasks', 
                  fontsize=18, fontweight='bold')
     
-    # 先收集所有实验的最大step，用于设置x轴范围
-    all_max_steps = []
-    for exp_key, exp_config in EXPERIMENTS.items():
-        if exp_key not in all_experiments_data:
-            continue
-        scores_dict = all_experiments_data[exp_key]
-        if not scores_dict:
-            continue
-        for dataset in DATASETS + ['average']:
-            if dataset == 'average':
-                all_steps = set().union(*[set(s.keys()) for s in scores_dict.values()])
-            else:
-                if dataset in scores_dict:
-                    all_steps = set(scores_dict[dataset].keys())
-                else:
-                    continue
-            if all_steps:
-                all_max_steps.append(max(all_steps))
-    
-    # 确定x轴最大范围（至少500步，确保MIS实验的500步可见）
-    max_step = max(all_max_steps) if all_max_steps else 500
-    if max_step < 500:
-        max_step = 500
-    x_max = max_step + 20  # 稍微超出一点以便数据点更清晰
-    
     # Plot each dataset
     for dataset, display_name, row, col in plot_configs:
         ax = axes[row, col]
@@ -217,7 +288,7 @@ def plot_comparison(all_experiments_data, output_dir='figures'):
             if dataset == 'average':
                 # Calculate average for each step
                 all_steps = set().union(*[set(s.keys()) for s in scores_dict.values()])
-                steps = sorted(all_steps)
+                steps = sorted(step for step in all_steps if step >= MIN_PLOT_STEP)
                 avg_scores = []
                 valid_steps = []
                 for step in steps:
@@ -235,8 +306,11 @@ def plot_comparison(all_experiments_data, output_dir='figures'):
             else:
                 # Regular dataset
                 if dataset in scores_dict and scores_dict[dataset]:
-                    steps = sorted(scores_dict[dataset].keys())
-                    dataset_scores = [scores_dict[dataset][s] for s in steps]
+                    steps, dataset_scores = get_scores_after_min_step(
+                        scores_dict[dataset], min_step=MIN_PLOT_STEP
+                    )
+                    if not steps:
+                        continue
                     
                     subplot_max_steps.append(max(steps))
                     ax.plot(steps, dataset_scores, marker='o', linewidth=2, 
@@ -311,6 +385,7 @@ def main():
     print("开始绘制图形...")
     output_dir = os.path.join(SCRIPT_ROOT, 'figures')
     plot_comparison(all_experiments_data, output_dir)
+    export_main_results_table(all_experiments_data, output_dir, min_step=MIN_PLOT_STEP)
     
     print()
     print("=" * 80)

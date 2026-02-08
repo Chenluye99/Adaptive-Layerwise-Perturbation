@@ -110,14 +110,16 @@ def pass_at_k(scores_list, k: int, n_trials: int = N_TRIALS, seed: int = 42):
 
 def shorten_exp_name(name: str) -> str:
     """Map experiment names to legend labels."""
+    if "grpo_tis_" in name:
+        return "token-MIS"
     if "ablation_qwen2_5_math_1_5b_layers_all" in name:
-        return "Perturbation(Ours)"
+        return "Seq-ALP"
     if "exp_grpo_bypass_analysis" in name:
-        return "Bypass"
+        return "Seq-Bypass"
     if "grpo_baseline" in name:
-        return "GRPO"
+        return "Seq-GRPO"
     if "grpo_mis_" in name:
-        return "MIS"
+        return "Seq-MIS"
     if len(name) > 28:
         return name[:25] + "..."
     return name
@@ -125,11 +127,15 @@ def shorten_exp_name(name: str) -> str:
 
 def main():
     import argparse
+    script_root = Path(__file__).resolve().parent
+    project_root = script_root.parent
     parser = argparse.ArgumentParser(description="Pass@k analysis and plot")
     parser.add_argument("--base_dir", type=str,
-                        default="/home/zhang430/mismatch-perturbation-on-math/eval_benchmark/passk_results",
+                        default=str(project_root / "eval_benchmark" / "passk_results"),
                         help="Directory containing exp/step/dataset/sample_scores.jsonl")
-    parser.add_argument("--output", type=str, default="passk_analysis.png", help="Output figure path")
+    parser.add_argument("--output", type=str,
+                        default=str(script_root / "figures" / "passk_analysis.png"),
+                        help="Output figure path")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -227,10 +233,16 @@ def main():
     for j in range(n_plots, len(axes)):
         axes[j].set_visible(False)
 
+    output_path = Path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
     plt.tight_layout()
-    plt.savefig(args.output, dpi=150, bbox_inches="tight")
+    plt.savefig(str(output_path), dpi=150, bbox_inches="tight")
+    output_pdf = str(output_path.with_suffix(".pdf"))
+    plt.savefig(output_pdf, bbox_inches="tight")
     plt.close()
-    print(f"Saved plot to {args.output}")
+    print(f"Saved plot to {output_path}")
+    print(f"Saved plot to {output_pdf}")
 
 
 if __name__ == "__main__":

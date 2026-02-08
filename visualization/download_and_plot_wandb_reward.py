@@ -12,6 +12,7 @@ matplotlib.use('Agg')
 import seaborn as sns
 import numpy as np
 import os
+from pathlib import Path
 
 # 设置样式
 sns.set_style("whitegrid")
@@ -24,38 +25,71 @@ EXPERIMENTS = {
         'run_id': '1flo0wq9',
         'color': '#2E86AB',  # 蓝色
         'linestyle': '-',
-        'label': 'GRPO (sequence)'
-    },
-    'Bypass': {
-        'run_ids': ['ws2wag5v', 'icv3w2s3'],  # 前半段和后半段
-        'color': '#F24236',  # 红色
-        'linestyle': '-',
-        'label': 'Bypass (sequence)'
-    },
-    'MIS': {
-        'run_id': 'gr1pkq9s',
-        'color': '#06A77D',  # 绿色
-        'linestyle': '-',
-        'label': 'MIS (sequence)'
-    },
-    'Perturbation': {
-        'run_id': '1i94ujuh',
-        'color': '#F18F01',  # 橙色
-        'linestyle': '-',
-        'label': 'Perturbation (sequence)'
+        'label': 'Seq-GRPO'
     },
     # token-level experiments
     'TIS_token': {
         'run_id': 'vswzizh1',
         'color': '#6C5CE7',  # 紫色
         'linestyle': '-',
-        'label': 'MIS (token)'
+        'label': 'token-MIS'
+    },
+    'MIS': {
+        'run_id': 'gr1pkq9s',
+        'color': '#06A77D',  # 绿色
+        'linestyle': '-',
+        'label': 'Seq-MIS'
+    },
+    'Bypass': {
+        'run_ids': ['ws2wag5v', 'icv3w2s3'],  # 前半段和后半段
+        'color': '#F24236',  # 红色
+        'linestyle': '-',
+        'label': 'Seq-Bypass'
+    },
+    'Perturbation': {
+        'run_id': '1i94ujuh',
+        'color': '#F18F01',  # 橙色
+        'linestyle': '-',
+        'label': 'Seq-ALP'
     },
 }
 
 # WandB项目配置
 ENTITY = 'mismatch'
 PROJECT = 'mismatch_rl_research'
+SCRIPT_ROOT = Path(__file__).resolve().parent
+
+TRAIN_INFER_KL_PRIORITY = [
+    "rollout_corr/kl",
+    "train_infer_kl",
+]
+TRAIN_INFER_KL_EXCLUDE = [
+    "kl_coef",
+    "kl_loss",
+    "ppo_kl",
+    "k3_kl",
+]
+
+
+def pick_train_infer_kl_metric(metric_names):
+    """Pick the best metric name for train-infer KL from candidates."""
+    if not metric_names:
+        return None
+
+    lowered = [(name, name.lower()) for name in metric_names]
+
+    for target in TRAIN_INFER_KL_PRIORITY:
+        for name, lower in lowered:
+            if target in lower:
+                return name
+
+    valid = [
+        name for name, lower in lowered
+        if "kl" in lower and not any(bad in lower for bad in TRAIN_INFER_KL_EXCLUDE)
+    ]
+    if valid:
+        return valid[0]
+    return None
 
 
 def get_metric_keys(run_id, metric_type='reward'):
@@ -196,21 +230,9 @@ def download_run_data(run_id, metric_type='reward', preferred_metric=None):
                     metric_key = matching_keys[0] if matching_keys else None
         # 对于train_infer_kl，优先选择包含 train 和 infer 和 kl 的列
         elif metric_type == 'train_infer_kl':
-            preferred_keys = [col for col in matching_keys if 'train' in col.lower() and 'infer' in col.lower() and 'kl' in col.lower()]
-            if preferred_keys:
-                metric_key = preferred_keys[0]
-            else:
-                # 其次选择包含'kl'和'mean'的列
-                kl_mean_keys = [col for col in matching_keys if 'kl' in col.lower() and ('mean' in col.lower() or '/mean' in col.lower())]
-                if kl_mean_keys:
-                    metric_key = kl_mean_keys[0]
-                else:
-                    # 再次选择包含'kl'的列
-                    kl_keys = [col for col in matching_keys if 'kl' in col.lower()]
-                    if kl_keys:
-                        metric_key = kl_keys[0]
-                    else:
-                        metric_key = matching_keys[0] if matching_keys else None
+            metric_key = pick_train_infer_kl_metric(matching_keys)
+            if metric_key is None:
+                metric_key = matching_keys[0] if matching_keys else None
         else:
             # 优先选择包含'mean'的列
             preferred_keys = [col for col in matching_keys if '/mean' in col.lower() or 'mean' in col.lower()]
@@ -470,22 +492,9 @@ def find_common_metric(metric_type='reward'):
             else:
                 selected = list(common_metrics)[0]
     elif metric_type == 'train_infer_kl':
-        # 对于train_infer_kl，优先选择包含 train 和 infer 和 kl 的指标
-        preferred = [m for m in common_metrics if 'train' in m.lower() and 'infer' in m.lower() and 'kl' in m.lower()]
-        if preferred:
-            selected = preferred[0]
-        else:
-            # 其次选择包含'kl'和'mean'的指标
-            kl_mean_preferred = [m for m in common_metrics if 'kl' in m.lower() and 'mean' in m.lower()]
-            if kl_mean_preferred:
-                selected = kl_mean_preferred[0]
-            else:
-                # 再次选择包含'kl'的指标
-                kl_preferred = [m for m in common_metrics if 'kl' in m.lower()]
-                if kl_preferred:
-                    selected = kl_preferred[0]
-                else:
-                    selected = list(common_metrics)[0]
+        selected = pick_train_infer_kl_metric(list(common_metrics))
+        if selected is None:
+            selected = list(common_metrics)[0]
     else:
         # 优先选择包含'mean'的指标
         preferred = [m for m in common_metrics if 'mean' in m.lower()]
@@ -549,7 +558,8 @@ def main():
         experiments_data[exp_name] = exp_data
     
     print("\n开始绘制图形...")
-    plot_three_metrics(experiments_data)
+    output_dir = os.path.join(SCRIPT_ROOT, "figures")
+    plot_three_metrics(experiments_data, output_dir=output_dir)
     
     print("\n完成！")
 
