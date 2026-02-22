@@ -1,162 +1,139 @@
+# patch_qwen2.py  (HF transformers==4.54.0 aligned)
+import math
+from typing import Optional, Tuple
+
 import torch
 from torch import nn
-import math
+from torch.utils.checkpoint import checkpoint
+
 from transformers.models.qwen2 import modeling_qwen2
 from transformers.models.qwen2.configuration_qwen2 import Qwen2Config
-from transformers.activations import ACT2FN
-from transformers.cache_utils import Cache, DynamicCache
-from transformers.modeling_flash_attention_utils import FlashAttentionKwargs
+from transformers.cache_utils import Cache
+from transformers.modeling_layers import GradientCheckpointingLayer
 from transformers.processing_utils import Unpack
-from typing import Optional, Tuple, Union
+from transformers.utils import TransformersKwargs
 
-# ---------------------------------------------------------------------------- #
-# 1. 重写 Qwen2DecoderLayer
-#    (去掉了 smooth 参数，改为从 config 读取)
-# ---------------------------------------------------------------------------- #
-class CustomQwen2DecoderLayer(nn.Module):
+
+class CustomQwen2DecoderLayer(GradientCheckpointingLayer):
+    """
+    HF 4.54.0 aligned:
+    - Inject perturbation BEFORE input_layernorm.
+    - Inherits GradientCheckpointingLayer so model.gradient_checkpointing_enable() works (hook in __call__).
+    - micro-checkpoint only around injection when coef_learnable=True to avoid storing full-size noise.
+    - Keeps Qwen2DecoderLayer semantics: returns hidden_states (Tensor).
+    - Uses past_key_value (singular) to match HF 4.54.0 Qwen2Attention/Qwen2DecoderLayer.
+    """
+
     def __init__(self, config: Qwen2Config, layer_idx: int):
         super().__init__()
         self.hidden_size = config.hidden_size
-        
-        # --- [关键修改]: 从 config 中读取自定义参数 ---
-        # 如果 config.json 里没有写，就默认关闭 (False/1)
-        self.smooth = getattr(config, "use_perturbation", False)
-        self.coef_learnable = getattr(config, "coef_learnable", False)
-        self.initial_coef = getattr(config, "perturb_std", 1e-2)
-        # 如果 perturb_std <= 0，强制关闭扰动
-        if self.initial_coef <= 0:
+        self.layer_idx = int(layer_idx)
+
+        # ---- Read perturb configs (default off) ----
+        self.smooth = bool(getattr(config, "use_perturbation", False))
+        self.coef_learnable = bool(getattr(config, "coef_learnable", False))
+        self.initial_coef = float(getattr(config, "perturb_std", 1e-2))
+        if self.initial_coef <= 0.0:
             self.smooth = False
-            self.initial_coef = 1e-2  # 设置一个安全的默认值
-        self.layer_idx = layer_idx
-        
-        # --- [新增]: 读取层范围参数，判断当前层是否需要扰动 ---
-        perturb_start_layer = getattr(config, "perturb_start_layer", 0)
-        perturb_end_layer = getattr(config, "perturb_end_layer", None)  # None 表示到最后一层
-        
-        # 如果 perturb_end_layer 为 None，则扰动到最后一层
+            self.initial_coef = 1e-2
+
+        # Layer range
+        perturb_start_layer = int(getattr(config, "perturb_start_layer", 0))
+        perturb_end_layer = getattr(config, "perturb_end_layer", None)
         if perturb_end_layer is None:
-            perturb_end_layer = getattr(config, "num_hidden_layers", float('inf'))
-        
-        # 判断当前层是否在扰动范围内
-        self.layer_needs_perturbation = (perturb_start_layer <= layer_idx < perturb_end_layer)
-        # -----------------------------------------------------------
-        
-        # 处理 coef (扰动系数)
-        # 确保类型为模型的 dtype (通常是 bfloat16 或 float32)
-        dtype = getattr(config, "torch_dtype", torch.float32)
-        # 如果 config.torch_dtype 是字符串，需要转换
-        if isinstance(dtype, str):
-             if dtype == "bfloat16":
-                 dtype = torch.bfloat16
-             elif dtype == "float16":
-                 dtype = torch.float16
-             else:
-                 dtype = torch.float32
-
-        if self.coef_learnable:
-            # 如果想让它可训练，需注册为 Parameter
-            # 使用 log 空间优化，保证 std 始终非负
-            self.log_coef = nn.Parameter(torch.tensor([math.log(self.initial_coef)], dtype=dtype))
+            perturb_end_layer = int(getattr(config, "num_hidden_layers", 10**9))
         else:
-            # 固定值则注册为 buffer
-            self.register_buffer("log_coef", torch.tensor([math.log(self.initial_coef)], dtype=dtype))
-        
-        # 强制初始化
-        with torch.no_grad():
-            self.log_coef.fill_(math.log(self.initial_coef))
-        # --------------------------------------------------------
+            perturb_end_layer = int(perturb_end_layer)
+        self.layer_needs_perturbation = (perturb_start_layer <= self.layer_idx < perturb_end_layer)
 
-        self.self_attn = modeling_qwen2.Qwen2Attention(config=config, layer_idx=layer_idx)
+        # dtype
+        dtype = getattr(config, "torch_dtype", torch.float32)
+        if isinstance(dtype, str):
+            if dtype == "bfloat16":
+                dtype = torch.bfloat16
+            elif dtype == "float16":
+                dtype = torch.float16
+            else:
+                dtype = torch.float32
+
+        log_init = math.log(self.initial_coef)
+
+        # Only make it a Parameter if perturbation is enabled for this layer and learnable
+        if self.smooth and self.layer_needs_perturbation and self.coef_learnable:
+            self.log_coef = nn.Parameter(torch.tensor([log_init], dtype=dtype))
+        else:
+            self.register_buffer("log_coef", torch.tensor([log_init], dtype=dtype))
+
+        with torch.no_grad():
+            self.log_coef.fill_(log_init)
+
+        # Seed set externally per micro-batch (by dp_actor)
+        self._noise_seed: int = 0
+
+        # ---- HF Qwen2 components (4.54.0) ----
+        self.self_attn = modeling_qwen2.Qwen2Attention(config=config, layer_idx=self.layer_idx)
         self.mlp = modeling_qwen2.Qwen2MLP(config)
         self.input_layernorm = modeling_qwen2.Qwen2RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
         self.post_attention_layernorm = modeling_qwen2.Qwen2RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
 
-        # --- [关键修复]: 从 config 中读取 layer_types，以匹配原版 Qwen2DecoderLayer 行为 ---
-        # 解决 AttributeError: 'Qwen2DecoderLayer' object has no attribute 'attention_type'
-        if hasattr(config, "layer_types"):
-            self.attention_type = config.layer_types[layer_idx]
-        else:
-            # Fallback for standard Qwen2 configs that might not have layer_types
-            # Standard Qwen2 usually uses full attention everywhere
-            self.attention_type = "full_attention" 
+        # In 4.54.0, config.layer_types exists and is used by Qwen2Attention for sliding_window selection
+        self.attention_type = config.layer_types[self.layer_idx]
+
+    def _stateless_noise(self, h: torch.Tensor, seed: int) -> torch.Tensor:
+        gen = torch.Generator(device=h.device)
+        gen.manual_seed(int(seed) + int(self.layer_idx))
+        return torch.randn_like(h, generator=gen)
 
     def forward(
         self,
         hidden_states: torch.Tensor,
         attention_mask: Optional[torch.Tensor] = None,
-        position_ids: Optional[torch.LongTensor] = None,
-        past_key_values: Optional[Cache] = None,
+        position_ids: Optional[torch.LongTensor] = None,  # kept for BC; forwarded via **kwargs if needed
+        past_key_value: Optional[Cache] = None,           # <-- 4.54.0 uses singular
         use_cache: Optional[bool] = False,
         cache_position: Optional[torch.LongTensor] = None,
         position_embeddings: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
-        **kwargs: Unpack[FlashAttentionKwargs],
+        **kwargs: Unpack[TransformersKwargs],
     ) -> torch.Tensor:
-        
-        # === 优化后的逻辑：只采样一次 (Noise Injection) ===
-        # 仅在开启 smooth 且处于训练模式且当前层需要扰动时执行
+        # BC: some callers may pass plural
+        if past_key_value is None and "past_key_values" in kwargs:
+            past_key_value = kwargs.pop("past_key_values")
+
+        # ============================================================
+        # Perturb BEFORE input_layernorm
+        # ============================================================
         if self.smooth and self.training and self.layer_needs_perturbation:
-            # 1. 准备系数 (确保在正确的 device)
-            # 从 log 空间恢复 std: std = exp(log_std)
-            current_coef = self.log_coef.to(hidden_states.device).exp()
-            
-            # 2. 生成噪声并注入 (Element-wise 操作，非常快)
-            # torch.randn_like 生成 [0, 1) 的高斯分布噪声
-            with torch.no_grad():
-                noise = torch.randn_like(hidden_states).detach()
-            hidden_states = hidden_states + current_coef * noise
-            
-            # 3. 执行一次 Forward
-            # 直接返回结果
-            # 显式传入 update_key_value=True，确保 KV Cache 逻辑正确
-            return self._process(
-                hidden_states=hidden_states, 
-                attention_mask=attention_mask, 
-                position_ids=position_ids, 
-                past_key_values=past_key_values, 
-                use_cache=use_cache, 
-                cache_position=cache_position, 
-                position_embeddings=position_embeddings,
-                update_key_value=True,
-                **kwargs
-            )
-        
-        # === 标准逻辑 (无扰动) ===
-        else:
-            return self._process(
-                hidden_states=hidden_states, 
-                attention_mask=attention_mask, 
-                position_ids=position_ids, 
-                past_key_values=past_key_values, 
-                use_cache=use_cache, 
-                cache_position=cache_position, 
-                position_embeddings=position_embeddings,
-                **kwargs
-            )
+            if self.coef_learnable and isinstance(self.log_coef, nn.Parameter):
+                seed_tensor = torch.tensor(self._noise_seed, device=hidden_states.device, dtype=torch.int64)
 
-    def _process(
-        self,
-        hidden_states: torch.Tensor,
-        attention_mask: Optional[torch.Tensor] = None,
-        position_ids: Optional[torch.LongTensor] = None,
-        past_key_values: Optional[Cache] = None,
-        use_cache: Optional[bool] = False,
-        cache_position: Optional[torch.LongTensor] = None,
-        position_embeddings: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,  # necessary, but kept here for BC
-        update_key_value: bool = True,
-        **kwargs: Unpack[FlashAttentionKwargs],
-    ) -> torch.Tensor:
+                def _inject(h: torch.Tensor, log_coef: torch.Tensor, seed_t: torch.Tensor) -> torch.Tensor:
+                    coef = log_coef.exp()
+                    noise = self._stateless_noise(h, int(seed_t.item()))
+                    return h + coef * noise
+
+                hidden_states = checkpoint(
+                    _inject,
+                    hidden_states,
+                    self.log_coef,
+                    seed_tensor,
+                    use_reentrant=False,
+                )
+            else:
+                coef = self.log_coef.exp()
+                noise = self._stateless_noise(hidden_states, self._noise_seed)
+                hidden_states = hidden_states + coef * noise
+
+        # ============================================================
+        # HF 4.54.0 original decoder-layer body (keep structure)
+        # ============================================================
         residual = hidden_states
-
         hidden_states = self.input_layernorm(hidden_states)
 
-        # Self Attention
-        # Qwen2 implementation in Transformers 4.56+ uses 'past_key_values'
-        
-        hidden_states, self_attn_weights = self.self_attn(
+        hidden_states, _ = self.self_attn(
             hidden_states=hidden_states,
             attention_mask=attention_mask,
-            position_ids=position_ids,
-            past_key_values=past_key_values,
+            position_ids=position_ids,            # passed through **kwargs/ignored if unused
+            past_key_value=past_key_value,        # <-- match 4.54.0
             use_cache=use_cache,
             cache_position=cache_position,
             position_embeddings=position_embeddings,
@@ -164,31 +141,19 @@ class CustomQwen2DecoderLayer(nn.Module):
         )
         hidden_states = residual + hidden_states
 
-        # Fully Connected
         residual = hidden_states
         hidden_states = self.post_attention_layernorm(hidden_states)
         hidden_states = self.mlp(hidden_states)
         hidden_states = residual + hidden_states
-
-        # Transformers 4.56.1 Qwen2DecoderLayer returns only hidden_states (Tensor)
         return hidden_states
 
-# ---------------------------------------------------------------------------- #
-# 2. 定义 Patch 应用函数
-# ---------------------------------------------------------------------------- #
+
 def apply_qwen2_patch():
-    print("🚨 [Verl Patch] Applying Custom Qwen2 Perturbation Logic...")
+    print("🚨 [Verl Patch] Applying Custom Qwen2 Perturbation Logic (HF 4.54.0 aligned)...")
     print("   -> Replacing transformers.models.qwen2.modeling_qwen2.Qwen2DecoderLayer")
-    
-    # Hack for FSDP wrap policy: set the class name to match the original one
-    # Qwen2Model._no_split_modules is ["Qwen2DecoderLayer"]
+
+    # For FSDP wrap policy / _no_split_modules matching
     CustomQwen2DecoderLayer.__name__ = "Qwen2DecoderLayer"
     CustomQwen2DecoderLayer.__qualname__ = "Qwen2DecoderLayer"
-    
-    # 核心：替换 transformers 库中的类定义
+
     modeling_qwen2.Qwen2DecoderLayer = CustomQwen2DecoderLayer
-    
-    # 注意：通常只需要替换 DecoderLayer 即可。
-    # 如果你也需要在 Model 级别做操作（比如 input_ids 维度的扰动），
-    # 你也需要重写 Qwen2Model 并在这里替换：
-    # modeling_qwen2.Qwen2Model = CustomQwen2Model

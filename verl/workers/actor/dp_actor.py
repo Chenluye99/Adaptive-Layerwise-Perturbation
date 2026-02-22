@@ -53,10 +53,47 @@ class DataParallelPPOActor(BasePPOActor):
         self.ulysses_sequence_parallel_size = self.config.ulysses_sequence_parallel_size
         self.use_ulysses_sp = self.ulysses_sequence_parallel_size > 1
 
+        self._use_perturbation = self.config.get('use_perturbation', False)
+        self._perturbation_step: int = 0
+
         self.compute_entropy_from_logits = (
             torch.compile(verl_F.entropy_from_logits, dynamic=True)
             if self.config.get('use_torch_compile', True)  #  use torch compile by default
             else verl_F.entropy_from_logits)
+
+    def _get_model_layers(self):
+        mod = self.actor_module
+        for _ in range(4):
+            # common HF paths
+            if hasattr(mod, "model"):
+                m = mod.model
+                if hasattr(m, "layers"):
+                    return m.layers
+                if hasattr(m, "model") and hasattr(m.model, "layers"):
+                    return m.model.layers
+
+            if hasattr(mod, "layers"):
+                return mod.layers
+
+            inner = getattr(mod, "_fsdp_wrapped_module", None) or getattr(mod, "module", None)
+            if inner is None or inner is mod:
+                break
+            mod = inner
+        return None
+
+    def _set_perturbation_noise_seeds(self):
+        """Assign a deterministic seed to every perturbation layer so that
+        noise generated inside a gradient-checkpointed forward is identical
+        on both the first pass and the recomputation during backward."""
+        self._perturbation_step += 1
+        base_seed = self._perturbation_step * 100003 + torch.distributed.get_rank()
+        layers = self._get_model_layers()
+        if layers is None:
+            logger.warning("_set_perturbation_noise_seeds: could not locate decoder layers")
+            return
+        for layer in layers:
+            if hasattr(layer, "_noise_seed"):
+                layer._noise_seed = base_seed
 
     def _forward_micro_batch(self, micro_batch, temperature) -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -64,6 +101,9 @@ class DataParallelPPOActor(BasePPOActor):
             entropy: # (bs, response_len)
             log_probs: # (bs, response_len)
         """
+        if self._use_perturbation and self.actor_module.training:
+            self._set_perturbation_noise_seeds()
+
         response_length = micro_batch['responses'].size(-1)
         multi_modal_inputs = {}
         if 'multi_modal_inputs' in micro_batch:
@@ -159,15 +199,7 @@ class DataParallelPPOActor(BasePPOActor):
         perturb_sigma = None
         
         # Get the actual model (unwrap FSDP if needed)
-        actual_module = getattr(self.actor_module, '_fsdp_wrapped_module', self.actor_module)
-        
-        # Attempt to find layers list
-        layers = None
-        # For Qwen2: model.layers (if wrapped in AutoModel)
-        if hasattr(actual_module, "model") and hasattr(actual_module.model, "layers"):
-            layers = actual_module.model.layers
-        elif hasattr(actual_module, "layers"):
-            layers = actual_module.layers
+        layers = self._get_model_layers()
             
         if layers is not None:
             coef_list = []
@@ -554,12 +586,7 @@ class DataParallelPPOActor(BasePPOActor):
                 metrics['perturb_sigma_tensor'] = stacked_sigmas[0].detach().cpu()
 
             # Add debug info for coef gradients
-            actual_module = getattr(self.actor_module, '_fsdp_wrapped_module', self.actor_module)
-            layers = None
-            if hasattr(actual_module, "model") and hasattr(actual_module.model, "layers"):
-                layers = actual_module.model.layers
-            elif hasattr(actual_module, "layers"):
-                layers = actual_module.layers
+            layers = self._get_model_layers()
 
             if layers is not None:
                 grad_norms = []
