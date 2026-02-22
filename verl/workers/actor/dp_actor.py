@@ -83,6 +83,26 @@ class DataParallelPPOActor(BasePPOActor):
         )
         self.device_name = get_device_name()
 
+        self._use_perturbation = bool(self.config.get("use_perturbation", False))
+        self._perturbation_step: int = 0
+
+    def _set_perturbation_noise_seeds(self):
+        """Assign a deterministic seed to every perturbation layer so that
+        noise generated inside a gradient-checkpointed forward is identical
+        on both the first pass and the recomputation during backward."""
+        self._perturbation_step += 1
+        base_seed = self._perturbation_step * 100003 + torch.distributed.get_rank()
+        actual_module = getattr(self.actor_module, "_fsdp_wrapped_module", self.actor_module)
+        layers = None
+        if hasattr(actual_module, "model") and hasattr(actual_module.model, "layers"):
+            layers = actual_module.model.layers
+        elif hasattr(actual_module, "layers"):
+            layers = actual_module.layers
+        if layers is not None:
+            for layer in layers:
+                if hasattr(layer, "_noise_seed"):
+                    layer._noise_seed = base_seed
+
     def _forward_micro_batch(
         self, micro_batch, temperature, calculate_entropy=False, perturb_std=0.0
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -98,6 +118,9 @@ class DataParallelPPOActor(BasePPOActor):
             log_probs: # (bs, response_len)
             perturb_sigma: # (vocab_size,) or None - sigma vector for this forward pass
         """
+        if self._use_perturbation and self.actor_module.training:
+            self._set_perturbation_noise_seeds()
+
         response_length = micro_batch["responses"].size(-1)
         multi_modal_inputs = {}
         if "multi_modal_inputs" in micro_batch.keys():
