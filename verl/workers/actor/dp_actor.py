@@ -33,6 +33,9 @@ import verl.utils.torch_functional as verl_F
 
 from flash_attn.bert_padding import pad_input, unpad_input, rearrange, index_first_axis
 
+import logging
+logger = logging.getLogger(__name__)
+
 __all__ = ['DataParallelPPOActor']
 
 
@@ -86,7 +89,8 @@ class DataParallelPPOActor(BasePPOActor):
         noise generated inside a gradient-checkpointed forward is identical
         on both the first pass and the recomputation during backward."""
         self._perturbation_step += 1
-        base_seed = self._perturbation_step * 100003 + torch.distributed.get_rank()
+        rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
+        base_seed = self._perturbation_step * 100003 + rank
         layers = self._get_model_layers()
         if layers is None:
             logger.warning("_set_perturbation_noise_seeds: could not locate decoder layers")
@@ -604,6 +608,44 @@ class DataParallelPPOActor(BasePPOActor):
                      metrics['actor/coef_grad_mean'] = sum(grad_means) / len(grad_means)
                 else:
                      metrics['actor/coef_grad_norm_mean'] = 0.0
+
+        # ---- micro-checkpoint verification ----
+        try:
+            from verl.trainer.perturb_transformer.patch_qwen2 import CustomQwen2DecoderLayer
+            ckpt_stats = CustomQwen2DecoderLayer.get_and_reset_ckpt_stats()
+            metrics['actor/ckpt_fire_count'] = ckpt_stats['ckpt_fire_count']
+            metrics['actor/ckpt_inject_calls'] = ckpt_stats['ckpt_inject_calls']
+            metrics['actor/ckpt_recompute_ratio'] = ckpt_stats['ckpt_recompute_ratio']
+            metrics['actor/nockpt_fire_count'] = ckpt_stats['nockpt_fire_count']
+            metrics['actor/skip_count'] = ckpt_stats['skip_count']
+            metrics['actor/noise_seed_match'] = ckpt_stats['noise_match']
+            metrics['actor/noise_seed_mismatch'] = ckpt_stats['noise_mismatch']
+
+            rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
+            if rank == 0:
+                ratio = ckpt_stats['ckpt_recompute_ratio']
+                # OK if recompute is happening (ratio >= 1). Ideal is 2.0; 1.x can happen due to stats timing vs backward.
+                ok = "OK" if ratio >= 1.0 else "FAIL"
+                print(
+                    f"[MicroCKPT] ratio={ratio:.2f} ({ok}) "
+                    f"fire={ckpt_stats['ckpt_fire_count']} "
+                    f"inject_calls={ckpt_stats['ckpt_inject_calls']} "
+                    f"nockpt={ckpt_stats['nockpt_fire_count']} "
+                    f"skip={ckpt_stats['skip_count']} "
+                    f"noise_match={ckpt_stats['noise_match']} "
+                    f"noise_mismatch={ckpt_stats['noise_mismatch']} "
+                    f"fp_pending={ckpt_stats['fingerprints_pending']}",
+                    flush=True,
+                )
+                if ckpt_stats['noise_mismatch'] > 0:
+                    print("[MicroCKPT] WARNING: noise mismatch detected — seed replay is broken!")
+                if ok == "FAIL":
+                    print(
+                        f"[MicroCKPT] WARNING: recompute_ratio={ratio:.2f} < 1.0 — "
+                        "checkpoint may not be saving memory!"
+                    )
+        except Exception:
+            pass
 
         if len(all_log_probs) > 0:
             metrics['updated_log_probs'] = torch.cat(all_log_probs, dim=0)  # (batch_size, response_length)

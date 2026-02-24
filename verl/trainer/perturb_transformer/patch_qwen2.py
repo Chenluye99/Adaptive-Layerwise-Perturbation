@@ -1,6 +1,7 @@
 # patch_qwen2.py  (HF transformers==4.54.0 aligned)
 import math
-from typing import Optional, Tuple
+import os
+from typing import Dict, List, Optional, Tuple
 
 import torch
 from torch import nn
@@ -23,6 +24,44 @@ class CustomQwen2DecoderLayer(GradientCheckpointingLayer):
     - Keeps Qwen2DecoderLayer semantics: returns hidden_states (Tensor).
     - Uses past_key_value (singular) to match HF 4.54.0 Qwen2Attention/Qwen2DecoderLayer.
     """
+
+    # ---- micro-checkpoint verification counters (class-level, shared across layers) ----
+    _ckpt_fire_count: int = 0
+    _ckpt_inject_calls: int = 0
+    _nockpt_fire_count: int = 0   # non-checkpoint else branch
+    _skip_count: int = 0          # perturbation skipped entirely (eval / out of range)
+
+    _noise_fingerprints: Dict[Tuple[int, int], List[float]] = {}
+    _noise_match_count: int = 0
+    _noise_mismatch_count: int = 0
+
+    _diag_printed: bool = False
+
+    @classmethod
+    def get_and_reset_ckpt_stats(cls) -> dict:
+        """Return micro-checkpoint diagnostics and reset all counters."""
+        fire = cls._ckpt_fire_count
+        calls = cls._ckpt_inject_calls
+        nockpt = cls._nockpt_fire_count
+        skip = cls._skip_count
+        stats = {
+            "ckpt_fire_count": fire,
+            "ckpt_inject_calls": calls,
+            "ckpt_recompute_ratio": calls / fire if fire > 0 else 0.0,
+            "nockpt_fire_count": nockpt,
+            "skip_count": skip,
+            "noise_match": cls._noise_match_count,
+            "noise_mismatch": cls._noise_mismatch_count,
+            "fingerprints_pending": len(cls._noise_fingerprints),
+        }
+        cls._ckpt_fire_count = 0
+        cls._ckpt_inject_calls = 0
+        cls._nockpt_fire_count = 0
+        cls._skip_count = 0
+        cls._noise_fingerprints.clear()
+        cls._noise_match_count = 0
+        cls._noise_mismatch_count = 0
+        return stats
 
     def __init__(self, config: Qwen2Config, layer_idx: int):
         super().__init__()
@@ -82,7 +121,7 @@ class CustomQwen2DecoderLayer(GradientCheckpointingLayer):
     def _stateless_noise(self, h: torch.Tensor, seed: int) -> torch.Tensor:
         gen = torch.Generator(device=h.device)
         gen.manual_seed(int(seed) + int(self.layer_idx))
-        return torch.randn_like(h, generator=gen)
+        return torch.randn(h.shape, dtype=h.dtype, device=h.device, generator=gen)
 
     def forward(
         self,
@@ -103,14 +142,51 @@ class CustomQwen2DecoderLayer(GradientCheckpointingLayer):
         # Perturb BEFORE input_layernorm
         # ============================================================
         if self.smooth and self.training and self.layer_needs_perturbation:
-            if self.coef_learnable and isinstance(self.log_coef, nn.Parameter):
+            if not CustomQwen2DecoderLayer._diag_printed and self.layer_idx == 0:
+                CustomQwen2DecoderLayer._diag_printed = True
+                _lc = getattr(self, "log_coef", None)
+                print(
+                    f"[MicroCKPT-DIAG] layer={self.layer_idx} "
+                    f"smooth={self.smooth} training={self.training} "
+                    f"layer_needs_perturb={self.layer_needs_perturbation} "
+                    f"coef_learnable={self.coef_learnable} "
+                    f"log_coef_type={type(_lc).__name__} "
+                    f"is_param={isinstance(_lc, nn.Parameter)} "
+                    f"log_coef_val={_lc.item() if _lc is not None and _lc.numel()==1 else _lc} "
+                    f"has_grad={_lc.requires_grad if _lc is not None else None}",
+                    flush=True,
+                )
+
+            if self.coef_learnable and isinstance(self.log_coef, torch.Tensor) and self.log_coef.requires_grad:
                 seed_tensor = torch.tensor(self._noise_seed, device=hidden_states.device, dtype=torch.int64)
+                layer_idx_for_closure = self.layer_idx
 
                 def _inject(h: torch.Tensor, log_coef: torch.Tensor, seed_t: torch.Tensor) -> torch.Tensor:
+                    CustomQwen2DecoderLayer._ckpt_inject_calls += 1
+
                     coef = log_coef.exp()
                     noise = self._stateless_noise(h, int(seed_t.item()))
+
+                    fp_key = (layer_idx_for_closure, int(seed_t.item()))
+                    fp = noise.flatten()[:4].detach().float().cpu().tolist()
+                    prev = CustomQwen2DecoderLayer._noise_fingerprints.pop(fp_key, None)
+                    if prev is None:
+                        CustomQwen2DecoderLayer._noise_fingerprints[fp_key] = fp
+                    else:
+                        if prev == fp:
+                            CustomQwen2DecoderLayer._noise_match_count += 1
+                        else:
+                            CustomQwen2DecoderLayer._noise_mismatch_count += 1
+                            if os.environ.get("VERL_PERTURB_DEBUG", "0") == "1":
+                                print(
+                                    f"[MicroCKPT] NOISE MISMATCH layer={layer_idx_for_closure} "
+                                    f"seed={int(seed_t.item())} "
+                                    f"fwd_fp={prev} recompute_fp={fp}"
+                                )
+
                     return h + coef * noise
 
+                CustomQwen2DecoderLayer._ckpt_fire_count += 1
                 hidden_states = checkpoint(
                     _inject,
                     hidden_states,
@@ -119,9 +195,24 @@ class CustomQwen2DecoderLayer(GradientCheckpointingLayer):
                     use_reentrant=False,
                 )
             else:
+                CustomQwen2DecoderLayer._nockpt_fire_count += 1
                 coef = self.log_coef.exp()
                 noise = self._stateless_noise(hidden_states, self._noise_seed)
                 hidden_states = hidden_states + coef * noise
+        else:
+            CustomQwen2DecoderLayer._skip_count += 1
+            if not CustomQwen2DecoderLayer._diag_printed and self.layer_idx == 0:
+                CustomQwen2DecoderLayer._diag_printed = True
+                _lc = getattr(self, "log_coef", None)
+                print(
+                    f"[MicroCKPT-DIAG] SKIPPED! layer={self.layer_idx} "
+                    f"smooth={self.smooth} training={self.training} "
+                    f"layer_needs_perturb={self.layer_needs_perturbation} "
+                    f"coef_learnable={self.coef_learnable} "
+                    f"log_coef_type={type(_lc).__name__} "
+                    f"is_param={isinstance(_lc, nn.Parameter) if _lc is not None else None}",
+                    flush=True,
+                )
 
         # ============================================================
         # HF 4.54.0 original decoder-layer body (keep structure)

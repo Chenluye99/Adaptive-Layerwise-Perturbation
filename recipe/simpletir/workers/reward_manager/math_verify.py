@@ -110,7 +110,6 @@ class MathRewardManager:
             batch_end = min(batch_start + self.max_concurrent_tasks, total_samples)
             batch_size = batch_end - batch_start
             
-            print(f"[Scoring] Processing batch {batch_idx + 1}/{(total_samples + self.max_concurrent_tasks - 1) // self.max_concurrent_tasks}, samples {batch_start}-{batch_end-1} ({batch_size} tasks)")
             batch_start_time = time.time()
             
             # Submit batch of tasks
@@ -238,14 +237,6 @@ class MathRewardManager:
                     completed_samples += 1
             
             batch_elapsed = time.time() - batch_start_time
-            total_elapsed = time.time() - start_time
-            avg_time_per_sample = total_elapsed / max(completed_samples, 1)
-            remaining_samples = total_samples - completed_samples
-            eta_seconds = avg_time_per_sample * remaining_samples
-            
-            print(f"[Scoring] Batch {batch_idx + 1} completed in {batch_elapsed:.1f}s, "
-                  f"Progress: {completed_samples}/{total_samples} ({100*completed_samples/total_samples:.1f}%), "
-                  f"ETA: {eta_seconds/60:.1f} min")
 
         total_time = time.time() - start_time
         print(f"[Scoring] All scoring completed in {total_time:.1f}s ({total_time/60:.1f} min), "

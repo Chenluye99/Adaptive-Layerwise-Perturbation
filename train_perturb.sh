@@ -24,14 +24,14 @@ PROJECT_NAME='TIR'
 RUN_NAME="simpletir"
 CONFIG_NAME="simpletir_trainer"
 
-MODEL_PATH="/home/chenluy/mismatch_all_perturb_agent/models" # the parent dir of the checkpoint
+MODEL_PATH="/opt/dlami/nvme/TIR/models" # the parent dir of the checkpoint
 DATA_PATH=$(pwd)/datasets # the dir containing data like deepscaler/train (see datasets/)
 export DATA_PATH
 CHECKPOINT_PATH="/opt/dlami/nvme/${PROJECT_NAME}" # the dir to save the checkpoint
 LOG_PATH="./logs/${PROJECT_NAME}" # the dir to save the log
 NNODES=1
 GPUS_PER_NODE=8 
-RESUME=True 
+RESUME=False 
 LOSS_MODE='sequence' # vanilla, cum-token, sequence
 ADAPT_RATIO=False
 USE_PERTURBATION=True
@@ -53,8 +53,8 @@ MAX_PROMPT_LENGTH=16000
 MAX_RESPONSE_LENGTH=8000
 MAX_OBS_LENGTH=256
 PPO_MINI_BATCH_SIZE=32
-PPO_MICRO_TOKEN=6000
-SP_SIZE=4
+PPO_MICRO_TOKEN=20100
+SP_SIZE=1
 TOTAL_EPOCHS=100
 TRAIN_DATASET=("simplelr_math_35/train" "deepscaler/train")
 VALID_DATASET=("simplelr_math_35/test" "deepscaler/aime" "deepscaler/aime25")

@@ -189,10 +189,14 @@ class ActorRolloutRefWorker(Worker):
             'eos_token_id': self.tokenizer.eos_token_id,
             'pad_token_id': self.tokenizer.pad_token_id,
         }
+        perturb_enabled = (role == 'actor') and self.config.actor.get("use_perturbation", False)
+        if role != 'actor':
+            # Force disable perturbation on ref path even if model config.json has use_perturbation=true.
+            override_config_kwargs["use_perturbation"] = False
 
         # --- [Add this block] Inject perturbation parameters from Hydra config to Model config ---
         # This allows script arguments (e.g., PERTURB_STD) to override config.json values
-        if self.config.actor.get("use_perturbation", False):
+        if perturb_enabled:
             override_config_kwargs["use_perturbation"] = True
 
             # Inject perturb_std
@@ -247,7 +251,7 @@ class ActorRolloutRefWorker(Worker):
             # --- [CRITICAL FIX] Force reset 'log_coef' parameter after loading ---
             # This handles cases where 'low_cpu_mem_usage=True' or meta device initialization
             # might leave new parameters uninitialized (garbage values)
-            if self.config.actor.get("use_perturbation", False):
+            if perturb_enabled:
                 import math
                 perturb_std = float(self.config.actor.get("perturb_std", 1e-2))
                 # Protect against log(0) or log(negative)
@@ -297,7 +301,7 @@ class ActorRolloutRefWorker(Worker):
         self.use_orig_params = fsdp_config.get("use_orig_params", False)
         
         # Force use_orig_params=True if perturbation is enabled to handle dynamic parameters
-        if self.config.actor.get("use_perturbation", False):
+        if perturb_enabled:
             self.use_orig_params = True
             # Cannot modify frozen dataclass directly
             # The self.use_orig_params=True above is sufficient for the FSDP constructor call below
