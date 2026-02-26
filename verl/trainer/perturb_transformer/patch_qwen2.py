@@ -118,6 +118,10 @@ class CustomQwen2DecoderLayer(GradientCheckpointingLayer):
         # In 4.54.0, config.layer_types exists and is used by Qwen2Attention for sliding_window selection
         self.attention_type = config.layer_types[self.layer_idx]
 
+        # in __init__, after defining smooth/coef_learnable/layer_needs_perturbation
+        self._do_perturb = bool(self.smooth and self.layer_needs_perturbation)
+        self._need_coef_grad = bool(self._do_perturb and self.coef_learnable)
+
     def _stateless_noise(self, h: torch.Tensor, seed: int) -> torch.Tensor:
         gen = torch.Generator(device=h.device)
         gen.manual_seed(int(seed) + int(self.layer_idx))
@@ -141,7 +145,7 @@ class CustomQwen2DecoderLayer(GradientCheckpointingLayer):
         # ============================================================
         # Perturb BEFORE input_layernorm
         # ============================================================
-        if self.smooth and self.training and self.layer_needs_perturbation:
+        if self._do_perturb:
             if not CustomQwen2DecoderLayer._diag_printed and self.layer_idx == 0:
                 CustomQwen2DecoderLayer._diag_printed = True
                 _lc = getattr(self, "log_coef", None)
@@ -157,7 +161,7 @@ class CustomQwen2DecoderLayer(GradientCheckpointingLayer):
                     flush=True,
                 )
 
-            if self.coef_learnable and isinstance(self.log_coef, torch.Tensor) and self.log_coef.requires_grad:
+            if self._need_coef_grad:
                 seed_tensor = torch.tensor(self._noise_seed, device=hidden_states.device, dtype=torch.int64)
                 layer_idx_for_closure = self.layer_idx
 
