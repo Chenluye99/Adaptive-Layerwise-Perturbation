@@ -168,7 +168,7 @@ class CustomQwen2DecoderLayer(GradientCheckpointingLayer):
                 def _inject(h: torch.Tensor, log_coef: torch.Tensor, seed_t: torch.Tensor) -> torch.Tensor:
                     CustomQwen2DecoderLayer._ckpt_inject_calls += 1
 
-                    coef = log_coef.exp()
+                    coef = log_coef.exp().to(h.dtype)
                     noise = self._stateless_noise(h, int(seed_t.item()))
 
                     fp_key = (layer_idx_for_closure, int(seed_t.item()))
@@ -200,7 +200,7 @@ class CustomQwen2DecoderLayer(GradientCheckpointingLayer):
                 )
             else:
                 CustomQwen2DecoderLayer._nockpt_fire_count += 1
-                coef = self.log_coef.exp()
+                coef = self.log_coef.exp().to(hidden_states.dtype)
                 noise = self._stateless_noise(hidden_states, self._noise_seed)
                 hidden_states = hidden_states + coef * noise
         else:
