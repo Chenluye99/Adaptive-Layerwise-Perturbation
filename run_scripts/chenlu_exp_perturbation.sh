@@ -1,17 +1,5 @@
 #!/bin/bash
-#1. 创建一个存放模型的文件夹，例如 ./models/qwen2-1_5b-custom
-# mkdir -p ./models/qwen2-1_5b-custom
-
-#2. 开始下载
-# huggingface-cli download Qwen/Qwen2.5-Math-1.5B \
-#     --local-dir ./models/qwen2-1_5b-custom \
-#     --local-dir-use-symlinks False \
-#     --resume-download
-
-# 3. 修改config.json，添加
-#   "use_perturbation": true,
-#   "coef_learnable": true,
-#   "perturb_std": 1e-2
+# 直接从 HuggingFace 加载模型（无需先下载到本地）。加载时会自动注入 use_perturbation / coef_learnable / perturb_std 等配置，无需修改 config.json。
 
 set -e
 
@@ -30,6 +18,10 @@ ALPHA="${8:-0.001}"            # KL coef for perturbation KL penalty
 BETA="${9:-0.001}"            # KL coef for perturbation KL penalty
 PERTURB_LAYER="[0,1]"   #change!!! add the perturbed layer index
 PERTURB_LR="${10:-1e-2}"            # Perturbation learning rate
+PERTURB_PATCH="${11:-qwen2}"        # Which patch to use: qwen2 -> patch_qwen2.py, llama -> patch_llama.py
+# HuggingFace model id（直接加载，自动下载到 cache；加载时自动注入 perturbation 相关 config）
+MODEL_PATH="${MODEL_PATH:-Qwen/Qwen2.5-Math-1.5B}"
+MODEL_NAME=$(echo "$MODEL_PATH" | tr '/' '_')
 
 # Get GPUs: use CUDA_VISIBLE_DEVICES if set in script, otherwise auto-detect
 if [ -n "$CUDA_VISIBLE_DEVICES" ]; then
@@ -61,20 +53,17 @@ echo "Clip Ratio Low: ${CLIP_RATIO_LOW}"
 echo "Clip Ratio High: ${CLIP_RATIO_HIGH}"
 echo "Clip Ratio C: ${CLIP_RATIO_C}"
 echo "Perturbation Learning Rate: ${PERTURB_LR}"
+echo "Perturb Patch: ${PERTURB_PATCH}"
+echo "Model: ${MODEL_PATH}"
 echo "Using ${FREE_GPU_COUNT} GPUs: ${FREE_GPUS}"
 echo "Start time: $(date)"
 echo "=========================================="
 
 export CUDA_VISIBLE_DEVICES=${FREE_GPUS}
+export PERTURB_PATCH=${PERTURB_PATCH}
 export WANDB_API_KEY="a17294c76f5787d04c92fd978d0f1a29133756e2"
 export WANDB_ENTITY="mismatch"
 export RAY_TMPDIR=/opt/dlami/nvme/ray_tmp
-
-
-#source "${SCRIPT_DIR}/setup_env.sh"
-MODEL_BASE_PATH="/home/chenluy/mismatch-all_perturbation-on-math/models"
-MODEL_NAME="qwen2-1_5b-custom"
-MODEL_PATH="${MODEL_BASE_PATH}/${MODEL_NAME}"
 
 max_prompt_length=$((2048 * 1))
 max_response_length=$((2048))
@@ -132,6 +121,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.clip_ratio_low=${CLIP_RATIO_LOW} \
     actor_rollout_ref.actor.clip_ratio_high=${CLIP_RATIO_HIGH} \
     actor_rollout_ref.actor.clip_ratio_c=${CLIP_RATIO_C} \
+    actor_rollout_ref.actor.perturb_patch=${PERTURB_PATCH} \
     actor_rollout_ref.actor.loss_agg_mode=${loss_agg_mode} \
     actor_rollout_ref.model.enable_gradient_checkpointing=True \
     actor_rollout_ref.actor.fsdp_config.param_offload=False \

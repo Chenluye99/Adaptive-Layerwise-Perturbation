@@ -46,12 +46,19 @@ import verl.utils.torch_functional as verl_F
 from verl import DataProto
 from verl.models.transformers.monkey_patch import apply_monkey_patch
 
-# Apply Qwen2 patch in worker process
+# Apply transformer patch in worker process (qwen2 or llama, from env PERTURB_PATCH)
+_patch_name = os.environ.get("PERTURB_PATCH", "qwen2").lower()
 try:
-    from verl.trainer.perturb_transformer.patch_qwen2 import apply_qwen2_patch
-    apply_qwen2_patch()
-except ImportError:
-    print("WARNING: Failed to apply Qwen2 patch in fsdp_workers.py")
+    if _patch_name == "qwen2":
+        from verl.trainer.perturb_transformer.patch_qwen2 import apply_qwen2_patch
+        apply_qwen2_patch()
+    elif _patch_name == "llama":
+        from verl.trainer.perturb_transformer.patch_llama import apply_llama_patch
+        apply_llama_patch()
+    else:
+        raise ValueError(f"Unknown PERTURB_PATCH={_patch_name}, use 'qwen2' or 'llama'")
+except (ImportError, ValueError) as e:
+    print(f"WARNING: Failed to apply patch in fsdp_workers.py: {e}")
 
 from verl.single_controller.base import Worker
 from verl.single_controller.base.decorator import Dispatch, make_nd_compute_dataproto_dispatch_fn, register
@@ -345,29 +352,28 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
             "pad_token_id": self.tokenizer.pad_token_id,
         }
 
-        # --- [Add this block] Inject perturbation parameters from Hydra config to Model config ---
-        # This allows script arguments (e.g., PERTURB_STD) to override config.json values
-        if self.config.actor.get("use_perturbation", False):
+        # --- Perturbation config: only when use_perturbation=True add perturb keys; Ref only use_perturbation=False ---
+        if role == "ref":
+            override_config_kwargs["use_perturbation"] = False
+            if self.rank == 0:
+                print("[FSDP Worker] Ref model: use_perturbation=False (no perturb keys).")
+        elif role == "actor" and self.config.actor.get("use_perturbation", False):
             override_config_kwargs["use_perturbation"] = True
-            
-            # Inject perturb_std
-            if self.config.actor.get("perturb_std", None) is not None:
-                override_config_kwargs["perturb_std"] = float(self.config.actor.get("perturb_std"))
-            
-            # Inject coef_learnable (optional, if you want to control it via script)
-            if self.config.actor.get("coef_learnable", None) is not None:
-                override_config_kwargs["coef_learnable"] = self.config.actor.get("coef_learnable")
-
-            # Change!! Inject perturb layers
+            override_config_kwargs["perturb_std"] = float(
+                self.config.actor.get("perturb_std") if self.config.actor.get("perturb_std") is not None else 1e-2
+            )
+            override_config_kwargs["coef_learnable"] = self.config.actor.get("coef_learnable", True)
             if self.config.actor.get("perturb_layers", None) is not None:
                 override_config_kwargs["perturb_layers"] = list(self.config.actor.get("perturb_layers"))
-                
             if self.rank == 0:
-                print(f"[FSDP Worker] Injected perturbation config: "
-                      f"use_perturbation={override_config_kwargs.get('use_perturbation')}, "
-                      f"perturb_std={override_config_kwargs.get('perturb_std')}, "
-                      f"coef_learnable={override_config_kwargs.get('coef_learnable', 'default')},"
-                      f"perturb_layers={override_config_kwargs.get('perturb_layers', 'ALL')}")
+                print(
+                    f"[FSDP Worker] Injected perturbation config: "
+                    f"use_perturbation={override_config_kwargs.get('use_perturbation')}, "
+                    f"perturb_std={override_config_kwargs.get('perturb_std')}, "
+                    f"coef_learnable={override_config_kwargs.get('coef_learnable')}, "
+                    f"perturb_layers={override_config_kwargs.get('perturb_layers', 'ALL')}"
+                )
+        # When role=="actor" and use_perturbation=False: do not add any perturb keys to config.
         # -------------------------------------------------------------------------------------
 
         override_config_kwargs.update(override_model_config)
@@ -416,10 +422,8 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 attn_implementation=attn_implementation,
             )
 
-            # --- [CRITICAL FIX] Force reset 'log_coef' parameter after loading ---
-            # This handles cases where 'low_cpu_mem_usage=True' or meta device initialization
-            # might leave new parameters uninitialized (garbage values)
-            if self.config.actor.get("use_perturbation", False):
+            # --- [CRITICAL FIX] Force reset 'log_coef' parameter after loading (actor + use_perturbation only) ---
+            if role == "actor" and self.config.actor.get("use_perturbation", False):
                 import math
                 perturb_std = float(self.config.actor.get("perturb_std", 1e-2))
                 log_perturb_std = math.log(perturb_std)
@@ -510,12 +514,10 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 actor_module = get_peft_model(actor_module, LoraConfig(**lora_config))
 
         self.use_orig_params = fsdp_config.get("use_orig_params", False)
-        
-        # Force use_orig_params=True if perturbation is enabled to handle dynamic parameters
-        if self.config.actor.get("use_perturbation", False):
+
+        # Force use_orig_params=True only for actor when perturbation is enabled
+        if role == "actor" and self.config.actor.get("use_perturbation", False):
             self.use_orig_params = True
-            # Cannot modify frozen dataclass directly
-            # The self.use_orig_params=True above is sufficient for the FSDP constructor call below
             if self.rank == 0:
                 print("[FSDP] Forcing use_orig_params=True for perturbation support")
 

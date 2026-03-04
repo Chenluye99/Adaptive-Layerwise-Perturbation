@@ -75,6 +75,7 @@ class ActorConfig(BaseConfig):
         loss_agg_mode (str): Loss aggregation mode. Options: 'token-mean', 'sample-mean'.
         use_perturbation (bool): Whether to enable logits perturbation for robustness training.
         perturb_std (float): Logits perturbation standard deviation for robustness training (0.0 = disabled).
+        perturb_patch (str): Which transformer patch to use for perturbation: "qwen2" (patch_qwen2) or "llama" (patch_llama).
         alpha (float): KL coefficient for perturbation KL penalty (alpha term in KL divergence penalty).
         beta (float): KL coefficient for perturbation KL penalty (beta term in KL divergence penalty).
         entropy_coeff (float): Entropy coefficient for regularization.
@@ -113,6 +114,7 @@ class ActorConfig(BaseConfig):
     loss_agg_mode: str = "token-mean"
     use_perturbation: bool = False
     perturb_std: float = 0.0
+    perturb_patch: str = "qwen2"  # qwen2 -> patch_qwen2.py, llama -> patch_llama.py
     perturb_lr: float = 1e-2
     alpha: float = 0.001  # KL coefficient for perturbation KL penalty (alpha term)
     beta: float = 0.001  # KL coefficient for perturbation KL penalty (beta term)

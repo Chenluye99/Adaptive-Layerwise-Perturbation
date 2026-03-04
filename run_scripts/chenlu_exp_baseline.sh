@@ -7,7 +7,7 @@ source "${SCRIPT_DIR}/utils_gpu.sh"
 
 # Set GPU devices here (comma-separated, e.g., "0,1,2,3")
 # If not set, will auto-detect free GPUs
-CUDA_VISIBLE_DEVICES="4,5,6,7"
+CUDA_VISIBLE_DEVICES="0,1,2,3,4,5,6,7"
 
 # Get GPUs: use CUDA_VISIBLE_DEVICES if set in script, otherwise auto-detect
 if [ -n "$CUDA_VISIBLE_DEVICES" ]; then
@@ -41,12 +41,12 @@ export RAY_TMPDIR=/opt/dlami/nvme/ray_tmp
 
 
 #source "${SCRIPT_DIR}/setup_env.sh"
-MODEL_PATH="Qwen/Qwen2.5-Math-1.5B"
+MODEL_PATH="meta-llama/Llama-3.2-3B-Instruct"
 
 clip_ratio_low=0.2
-clip_ratio_high=0.28
-max_prompt_length=$((2048 * 1))
-max_response_length=$((2048))
+clip_ratio_high=0.2
+max_prompt_length=$((1024 * 1))
+max_response_length=$((4096))
 train_prompt_bsz=512
 n_resp_per_prompt=8
 train_prompt_mini_bsz=32

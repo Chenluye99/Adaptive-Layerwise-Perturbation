@@ -18,21 +18,27 @@ Note that we don't combine the main with ray_trainer as ray_trainer is used by o
 import sys
 import os
 
-# TODO: hardcode the path to the patch_qwen2.py file, in the future, we should use the path from the config file.
+# Apply transformer patch for perturbation: choice comes from env PERTURB_PATCH (qwen2 or llama)
 current_file_dir = os.path.dirname(os.path.abspath(__file__))
-# 将这个目录加入 Python 搜索路径
 if current_file_dir not in sys.path:
     sys.path.append(current_file_dir)
 
+_patch_name = os.environ.get("PERTURB_PATCH", "qwen2").lower()
 try:
-    # 现在 Python 会在 main_ppo.py 旁边寻找 patch_qwen_verl.py
-    from perturb_transformer.patch_qwen2 import apply_qwen2_patch
-    apply_qwen2_patch()
-    print(f"✅ [Main PPO] Qwen2 Patch Applied Successfully from: {current_file_dir}")
-except ImportError as e:
+    if _patch_name == "qwen2":
+        from perturb_transformer.patch_qwen2 import apply_qwen2_patch
+        apply_qwen2_patch()
+        print(f"✅ [Main PPO] Qwen2 Patch Applied Successfully from: {current_file_dir}")
+    elif _patch_name == "llama":
+        from perturb_transformer.patch_llama import apply_llama_patch
+        apply_llama_patch()
+        print(f"✅ [Main PPO] Llama Patch Applied Successfully from: {current_file_dir}")
+    else:
+        raise ValueError(f"Unknown PERTURB_PATCH={_patch_name}, use 'qwen2' or 'llama'")
+except (ImportError, ValueError) as e:
     print(f"❌ [Main PPO] Error loading patch: {e}")
     print(f"   (Looking in {current_file_dir})")
-    # 如果 patch 很重要，建议在这里直接 sys.exit(1) 终止程序，以免跑错
+    raise
 
 import socket
 
@@ -85,6 +91,11 @@ def run_ppo(config, task_runner_class=None) -> None:
             runtime_env_vars = runtime_env_kwargs.get("env_vars", {})
             runtime_env_vars["TRANSFER_QUEUE_ENABLE"] = "1"
             runtime_env_kwargs["env_vars"] = runtime_env_vars
+
+        # Pass PERTURB_PATCH to Ray workers so they apply the same transformer patch
+        runtime_env_kwargs.setdefault("env_vars", {})["PERTURB_PATCH"] = os.environ.get(
+            "PERTURB_PATCH", "qwen2"
+        )
 
         runtime_env = OmegaConf.merge(default_runtime_env, runtime_env_kwargs)
         ray_init_kwargs = OmegaConf.create({**ray_init_kwargs, "runtime_env": runtime_env})
