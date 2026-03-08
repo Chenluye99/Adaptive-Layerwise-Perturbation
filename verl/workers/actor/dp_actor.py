@@ -302,35 +302,24 @@ class DataParallelPPOActor(BasePPOActor):
                             entropy = torch.utils.checkpoint.checkpoint(verl_F.entropy_from_logits, logits)
             
         
-        # Try to collect coef parameters from all layers (CustomQwen2DecoderLayer)
+        # Only collect perturb_sigma when perturbation is enabled; baseline models have no log_coef.
         perturb_sigma = None
-        
-        # Get the actual model (unwrap FSDP if needed)
-        actual_module = getattr(self.actor_module, '_fsdp_wrapped_module', self.actor_module)
-        
-        # Attempt to find layers list
-        layers = None
-        # For Qwen2: model.layers (if wrapped in AutoModel)
-        if hasattr(actual_module, "model") and hasattr(actual_module.model, "layers"):
-            layers = actual_module.model.layers
-        elif hasattr(actual_module, "layers"):
-            layers = actual_module.layers
-            
-        if layers is not None:
-            coef_list = []
-            for layer in layers:
-                # Check for 'log_coef' attribute
-                if hasattr(layer, "log_coef"):
-                    # Convert back to std for logging and loss calculation
-                    coef_list.append(layer.log_coef.exp())
-            
-            if len(coef_list) > 0:
-                # Concatenate all coefs into a single tensor: (num_layers,)
-                perturb_sigma = torch.cat(coef_list) 
-        
-        # Fallback to legacy/other implementations if not found
-        if perturb_sigma is None:
-            print("WARNING: perturb_sigma is not found")
+        if self._use_perturbation:
+            actual_module = getattr(self.actor_module, '_fsdp_wrapped_module', self.actor_module)
+            layers = None
+            if hasattr(actual_module, "model") and hasattr(actual_module.model, "layers"):
+                layers = actual_module.model.layers
+            elif hasattr(actual_module, "layers"):
+                layers = actual_module.layers
+            if layers is not None:
+                coef_list = []
+                for layer in layers:
+                    if hasattr(layer, "log_coef"):
+                        coef_list.append(layer.log_coef.exp())
+                if len(coef_list) > 0:
+                    perturb_sigma = torch.cat(coef_list)
+            if perturb_sigma is None:
+                print("WARNING: perturb_sigma is not found (use_perturbation=True but model has no log_coef)")
         
         return entropy, log_probs, perturb_sigma
 

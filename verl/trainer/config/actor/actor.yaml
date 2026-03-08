@@ -80,13 +80,13 @@ loss_agg_mode: token-mean
 # backend mismatch (vLLM vs FSDP) and precision differences
 use_perturbation: false
 
-alpha: 0.001
-beta: 0.001
-
 perturb_std: 0.0
 
 # Which transformer patch to use for perturbation: qwen2 (patch_qwen2) or llama (patch_llama)
 perturb_patch: qwen2
+# Perturbation layer range: start (inclusive), end (inclusive). perturb_end null = last layer.
+perturb_start: 0
+perturb_end: null
 
 # Entropy regularization coefficient in PPO loss
 entropy_coeff: 0

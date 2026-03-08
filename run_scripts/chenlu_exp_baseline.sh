@@ -41,7 +41,8 @@ export RAY_TMPDIR=/opt/dlami/nvme/ray_tmp
 
 
 #source "${SCRIPT_DIR}/setup_env.sh"
-MODEL_PATH="meta-llama/Llama-3.2-3B-Instruct"
+MODEL_BASE="meta-llama"
+MODEL_NAME="Llama-3.2-3B-Instruct
 
 clip_ratio_low=0.2
 clip_ratio_high=0.2
@@ -55,7 +56,7 @@ loss_agg_mode="token-mean"
 # Data files (use absolute paths)
 project_name="mismatch_rl_research"
 dataset_name="merged_openr1_guru" # openr1 or merged_openr1_guru
-exp_name="grpo_baseline_qwen2.5-math-1.5b_${dataset_name}_n${n_resp_per_prompt}_prompt_bsz_${train_prompt_bsz}_mini_bsz_${train_prompt_mini_bsz}"
+exp_name="grpo_baseline_${MODEL_NAME}_${dataset_name}_n${n_resp_per_prompt}_prompt_bsz_${train_prompt_bsz}_mini_bsz_${train_prompt_mini_bsz}"
 
 CKPTS_DIR="/opt/dlami/nvme/chenluy_ckpoints/${project_name}/${exp_name}"
 
@@ -74,7 +75,7 @@ python3 -m verl.trainer.main_ppo \
     data.max_response_length=${max_response_length} \
     data.filter_overlong_prompts=True \
     data.truncation='error' \
-    actor_rollout_ref.model.path=${MODEL_PATH} \
+    actor_rollout_ref.model.path=${MODEL_BASE}/${MODEL_NAME} \
     actor_rollout_ref.model.trust_remote_code=True \
     actor_rollout_ref.actor.optim.lr=1e-6 \
     actor_rollout_ref.model.use_remove_padding=False \

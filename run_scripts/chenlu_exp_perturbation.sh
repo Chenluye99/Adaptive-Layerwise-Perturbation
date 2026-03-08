@@ -3,55 +3,68 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/utils_gpu.sh"
+LOSS_MODE="token"
+PERTURB_STD="1e-5"
+GEOMETRIC="false"
+CLIP_RATIO_LOW="0.2"
+CLIP_RATIO_HIGH="0.26"
+CLIP_RATIO_C="10.0"
+PERTURB_START="0"
+PERTURB_END=""   # empty = last layer (inclusive)
+PERTURB_LR="5e-4"
+PERTURB_PATCH="llama" #"qwen2"
+MODEL_BASE="meta-llama"
+MODEL_NAME="Llama-3.2-3B-Instruct"
 
-# Parse arguments
-CUDA_VISIBLE_DEVICES="${1:-}"    # GPU devices (comma-separated, e.g., "0,1,2,3")
-LOSS_MODE="${2:-sequence}"       # token/sequence/cum-token/cum-turn
-PERTURB_STD="${3:-0.02}"        # Perturbation initial std
-GEOMETRIC="${4:-false}"         # Geometric aggregation
-CLIP_RATIO_LOW="${5:-0.2}"       # Clip ratio low
-CLIP_RATIO_HIGH="${6:-0.28}"     # Clip ratio high
-CLIP_RATIO_C="${7:-10.0}"         # Clip ratio c
-ALPHA="${8:-0.001}"            # KL coef for perturbation KL penalty
-BETA="${9:-0.001}"            # KL coef for perturbation KL penalty
-PERTURB_LAYER="[0,1]"   #change!!! add the perturbed layer index
-PERTURB_LR="${10:-1e-2}"            # Perturbation learning rate
-PERTURB_PATCH="${11:-qwen2}"        # Which patch to use: qwen2 -> patch_qwen2.py, llama -> patch_llama.py
-# HuggingFace model id（直接加载，自动下载到 cache；加载时自动注入 perturbation 相关 config）
-MODEL_PATH="${MODEL_PATH:-Qwen/Qwen2.5-Math-1.5B}"
-MODEL_NAME=$(echo "$MODEL_PATH" | tr '/' '_')
+# Parse --name value arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --loss_mode)         LOSS_MODE="$2"; shift 2 ;;
+    --perturb_std)       PERTURB_STD="$2"; shift 2 ;;
+    --geometric)         GEOMETRIC="$2"; shift 2 ;;
+    --clip_ratio_low)    CLIP_RATIO_LOW="$2"; shift 2 ;;
+    --clip_ratio_high)   CLIP_RATIO_HIGH="$2"; shift 2 ;;
+    --clip_ratio_c)      CLIP_RATIO_C="$2"; shift 2 ;;
+    --perturb_start)     PERTURB_START="$2"; shift 2 ;;
+    --perturb_end)       PERTURB_END="$2"; shift 2 ;;
+    --perturb_lr)        PERTURB_LR="$2"; shift 2 ;;
+    --perturb_patch)     PERTURB_PATCH="$2"; shift 2 ;;
+    --model_base)        MODEL_BASE="$2"; shift 2 ;;
+    --model_name)        MODEL_NAME="$2"; shift 2 ;;
+    -h|--help)
+      echo "Usage: $0 [OPTIONS]"
+      echo "  (GPUs: always auto-detect all available, no --cuda)"
+      echo "  --loss_mode MODE       token|sequence|cum-token|cum-turn (default: sequence)"
+      echo "  --perturb_std STD      Perturbation initial std (default: 0.02)"
+      echo "  --geometric true|false (default: false)"
+      echo "  --clip_ratio_low LOW  (default: 0.2)"
+      echo "  --clip_ratio_high HIGH (default: 0.28)"
+      echo "  --clip_ratio_c C      (default: 10.0)"
+      echo "  --perturb_start N     First layer to perturb, inclusive (default: 0)"
+      echo "  --perturb_end N       Last layer to perturb, inclusive; omit or empty = last layer"
+      echo "  --perturb_lr LR       Perturbation learning rate (default: 1e-2)"
+      echo "  --perturb_patch PATCH qwen2|llama (default: qwen2)"
+      echo "  --model_base BASE     HuggingFace org (default: Qwen)"
+      echo "  --model_name NAME     Model name (default: Qwen2.5-Math-1.5B)"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"; echo "Use --help for usage."; exit 1
+      ;;
+  esac
+done
 
-# Get GPUs: use CUDA_VISIBLE_DEVICES if set in script, otherwise auto-detect
-if [ -n "$CUDA_VISIBLE_DEVICES" ]; then
-    # Use manually specified GPUs from script
-    FREE_GPUS="$CUDA_VISIBLE_DEVICES"
-    # Count GPUs: split by comma and count
-    FREE_GPU_COUNT=$(echo "$FREE_GPUS" | tr ',' '\n' | wc -l)
-    echo "Using manually specified GPUs: ${FREE_GPUS}"
-else
-    # Auto-detect free GPUs
-    FREE_GPUS=$(get_free_gpus)
-    FREE_GPU_COUNT=$(get_free_gpu_count)
-    
-    if [ -z "$FREE_GPUS" ]; then
-        echo "Error: No free GPUs available"
-        exit 1
-    fi
-    echo "Auto-detected free GPUs: ${FREE_GPUS}"
-fi
+MODEL_PATH="${MODEL_BASE}/${MODEL_NAME}"
 
 echo "=========================================="
 echo "Experiment 1: GRPO Baseline"
 echo "Loss Mode: ${LOSS_MODE}"
 echo "Perturb Std: ${PERTURB_STD}"
-echo "Alpha: ${ALPHA}"
-echo "Beta: ${BETA}"
 echo "Geometric: ${GEOMETRIC}"
 echo "Clip Ratio Low: ${CLIP_RATIO_LOW}"
 echo "Clip Ratio High: ${CLIP_RATIO_HIGH}"
 echo "Clip Ratio C: ${CLIP_RATIO_C}"
+echo "Perturb layers: [${PERTURB_START}, ${PERTURB_END:-last}] (start inclusive, end inclusive)"
 echo "Perturbation Learning Rate: ${PERTURB_LR}"
 echo "Perturb Patch: ${PERTURB_PATCH}"
 echo "Model: ${MODEL_PATH}"
@@ -59,14 +72,13 @@ echo "Using ${FREE_GPU_COUNT} GPUs: ${FREE_GPUS}"
 echo "Start time: $(date)"
 echo "=========================================="
 
-export CUDA_VISIBLE_DEVICES=${FREE_GPUS}
 export PERTURB_PATCH=${PERTURB_PATCH}
 export WANDB_API_KEY="a17294c76f5787d04c92fd978d0f1a29133756e2"
 export WANDB_ENTITY="mismatch"
 export RAY_TMPDIR=/opt/dlami/nvme/ray_tmp
 
-max_prompt_length=$((2048 * 1))
-max_response_length=$((2048))
+max_prompt_length=$((1024 * 1))
+max_response_length=$((4096))
 train_prompt_bsz=512
 n_resp_per_prompt=8
 train_prompt_mini_bsz=32
@@ -76,7 +88,7 @@ loss_agg_mode="token-mean"
 USE_PERTURBATION=True
 project_name="mismatch_rl_research"
 dataset_name="merged_openr1_guru" # openr1 or merged_openr1_guru
-exp_name="all-perturb_${LOSS_MODE}_inistd${PERTURB_STD}_clip_${CLIP_RATIO_LOW}_${CLIP_RATIO_HIGH}_c${CLIP_RATIO_C}_alpha${ALPHA}_beta${BETA}_lr${PERTURB_LR}_${MODEL_NAME}_${dataset_name}_n${n_resp_per_prompt}"
+exp_name="all-perturb_${LOSS_MODE}_inistd${PERTURB_STD}_clip_${CLIP_RATIO_LOW}_${CLIP_RATIO_HIGH}_c${CLIP_RATIO_C}_lr${PERTURB_LR}_${MODEL_NAME}_${dataset_name}_n${n_resp_per_prompt}"
 if [ "$GEOMETRIC" = "true" ]; then
     exp_name="${exp_name}_geo"
 fi
@@ -110,11 +122,10 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.entropy_coeff=0 \
     actor_rollout_ref.actor.use_torch_compile=False \
     actor_rollout_ref.actor.fsdp_config.use_orig_params=True \
-    actor_rollout_ref.actor.alpha=${ALPHA} \
-    actor_rollout_ref.actor.beta=${BETA} \
     actor_rollout_ref.actor.use_perturbation=${USE_PERTURBATION} \
     actor_rollout_ref.actor.perturb_std=${PERTURB_STD} \
-    actor_rollout_ref.actor.perturb_layers=${PERTURB_LAYER} \   
+    actor_rollout_ref.actor.perturb_start=${PERTURB_START} \
+    actor_rollout_ref.actor.perturb_end=${PERTURB_END:-null} \
     +actor_rollout_ref.actor.perturb_lr=${PERTURB_LR} \
     actor_rollout_ref.actor.policy_loss.loss_mode=${LOSS_MODE} \
     actor_rollout_ref.actor.policy_loss.is_geometric=${GEOMETRIC} \
