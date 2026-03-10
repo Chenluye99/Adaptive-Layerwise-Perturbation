@@ -7,14 +7,14 @@ LOSS_MODE="token"
 PERTURB_STD="1e-5"
 GEOMETRIC="false"
 CLIP_RATIO_LOW="0.2"
-CLIP_RATIO_HIGH="0.26"
+CLIP_RATIO_HIGH="0.2"
 CLIP_RATIO_C="10.0"
 PERTURB_START="0"
 PERTURB_END=""   # empty = last layer (inclusive)
-PERTURB_LR="5e-4"
-PERTURB_PATCH="llama" #"qwen2"
-MODEL_BASE="meta-llama"
-MODEL_NAME="Llama-3.2-3B-Instruct"
+PERTURB_LR="1e-6"
+PERTURB_PATCH="qwen3" #qwen2/llama/qwen3
+MODEL_BASE="Qwen"
+MODEL_NAME="Qwen3-4B"
 
 # Parse --name value arguments
 while [[ $# -gt 0 ]]; do
@@ -77,9 +77,9 @@ export WANDB_API_KEY="a17294c76f5787d04c92fd978d0f1a29133756e2"
 export WANDB_ENTITY="mismatch"
 export RAY_TMPDIR=/opt/dlami/nvme/ray_tmp
 
-max_prompt_length=$((1024 * 1))
-max_response_length=$((4096))
-train_prompt_bsz=512
+max_prompt_length=$((2048 * 1))
+max_response_length=$((16384))
+train_prompt_bsz=128
 n_resp_per_prompt=8
 train_prompt_mini_bsz=32
 loss_agg_mode="token-mean"
@@ -115,9 +115,10 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.optim.lr=1e-6 \
     actor_rollout_ref.model.use_remove_padding=False \
     actor_rollout_ref.actor.ppo_mini_batch_size=${train_prompt_mini_bsz} \
-    actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=4 \
+    actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=1 \
+    +data.apply_chat_template_kwargs.enable_thinking=False \
     actor_rollout_ref.actor.use_kl_loss=True \
-    actor_rollout_ref.actor.kl_loss_coef=0.001 \
+    actor_rollout_ref.actor.kl_loss_coef=0 \
     actor_rollout_ref.actor.kl_loss_type=low_var_kl \
     actor_rollout_ref.actor.entropy_coeff=0 \
     actor_rollout_ref.actor.use_torch_compile=False \
@@ -137,13 +138,13 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.model.enable_gradient_checkpointing=True \
     actor_rollout_ref.actor.fsdp_config.param_offload=False \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
-    actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=8 \
-    actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
+    actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=2 \
+    actor_rollout_ref.rollout.tensor_model_parallel_size=4 \
     actor_rollout_ref.rollout.name=vllm \
-    actor_rollout_ref.rollout.gpu_memory_utilization=0.8 \
+    actor_rollout_ref.rollout.gpu_memory_utilization=0.6 \
     actor_rollout_ref.rollout.n=${n_resp_per_prompt} \
     actor_rollout_ref.rollout.calculate_log_probs=True \
-    actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=8 \
+    actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=2 \
     actor_rollout_ref.ref.fsdp_config.param_offload=True \
     algorithm.use_kl_in_reward=False \
     reward_model.reward_manager=batch \

@@ -46,17 +46,20 @@ import verl.utils.torch_functional as verl_F
 from verl import DataProto
 from verl.models.transformers.monkey_patch import apply_monkey_patch
 
-# Apply transformer patch in worker process (qwen2 or llama, from env PERTURB_PATCH)
+# Apply transformer patch in worker process (qwen2/qwen3/llama, from env PERTURB_PATCH)
 _patch_name = os.environ.get("PERTURB_PATCH", "qwen2").lower()
 try:
     if _patch_name == "qwen2":
         from verl.trainer.perturb_transformer.patch_qwen2 import apply_qwen2_patch
         apply_qwen2_patch()
+    elif _patch_name == "qwen3":
+        from verl.trainer.perturb_transformer.patch_qwen3 import apply_qwen3_patch
+        apply_qwen3_patch()
     elif _patch_name == "llama":
         from verl.trainer.perturb_transformer.patch_llama import apply_llama_patch
         apply_llama_patch()
     else:
-        raise ValueError(f"Unknown PERTURB_PATCH={_patch_name}, use 'qwen2' or 'llama'")
+        raise ValueError(f"Unknown PERTURB_PATCH={_patch_name}, use 'qwen2', 'qwen3' or 'llama'")
 except (ImportError, ValueError) as e:
     print(f"WARNING: Failed to apply patch in fsdp_workers.py: {e}")
 

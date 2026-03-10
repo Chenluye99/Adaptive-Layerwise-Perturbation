@@ -18,7 +18,7 @@ Note that we don't combine the main with ray_trainer as ray_trainer is used by o
 import sys
 import os
 
-# Apply transformer patch for perturbation: choice comes from env PERTURB_PATCH (qwen2 or llama)
+# Apply transformer patch for perturbation: choice comes from env PERTURB_PATCH (qwen2/qwen3/llama)
 current_file_dir = os.path.dirname(os.path.abspath(__file__))
 if current_file_dir not in sys.path:
     sys.path.append(current_file_dir)
@@ -29,12 +29,16 @@ try:
         from perturb_transformer.patch_qwen2 import apply_qwen2_patch
         apply_qwen2_patch()
         print(f"✅ [Main PPO] Qwen2 Patch Applied Successfully from: {current_file_dir}")
+    elif _patch_name == "qwen3":
+        from perturb_transformer.patch_qwen3 import apply_qwen3_patch
+        apply_qwen3_patch()
+        print(f"✅ [Main PPO] Qwen3 Patch Applied Successfully from: {current_file_dir}")
     elif _patch_name == "llama":
         from perturb_transformer.patch_llama import apply_llama_patch
         apply_llama_patch()
         print(f"✅ [Main PPO] Llama Patch Applied Successfully from: {current_file_dir}")
     else:
-        raise ValueError(f"Unknown PERTURB_PATCH={_patch_name}, use 'qwen2' or 'llama'")
+        raise ValueError(f"Unknown PERTURB_PATCH={_patch_name}, use 'qwen2', 'qwen3' or 'llama'")
 except (ImportError, ValueError) as e:
     print(f"❌ [Main PPO] Error loading patch: {e}")
     print(f"   (Looking in {current_file_dir})")
