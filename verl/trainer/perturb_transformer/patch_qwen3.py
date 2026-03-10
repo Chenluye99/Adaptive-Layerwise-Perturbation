@@ -56,20 +56,28 @@ class CustomQwen3DecoderLayer(nn.Module):
         self.input_layernorm = modeling_qwen3.Qwen3RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
         self.post_attention_layernorm = modeling_qwen3.Qwen3RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
 
+        # Keep parity with HF Qwen3DecoderLayer: Qwen3Model.forward indexes
+        # causal_mask_mapping by decoder_layer.attention_type.
+        if hasattr(config, "layer_types"):
+            self.attention_type = config.layer_types[layer_idx]
+        else:
+            # Fallback for configs without per-layer attention typing.
+            self.attention_type = "full_attention"
+
     def forward(
         self,
         hidden_states: torch.Tensor,
         attention_mask: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.LongTensor] = None,
-        past_key_value: Optional[Cache] = None,
-        output_attentions: Optional[bool] = False,
+        past_key_values: Optional[Cache] = None,
         use_cache: Optional[bool] = False,
         cache_position: Optional[torch.LongTensor] = None,
         position_embeddings: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
         **kwargs: Unpack[FlashAttentionKwargs],
-    ) -> Tuple[torch.Tensor, ...]:
-        if past_key_value is None and "past_key_values" in kwargs:
-            past_key_value = kwargs.pop("past_key_values")
+    ) -> torch.Tensor:
+        # Backward-compatible alias: accept old singular name from callers.
+        if past_key_values is None and "past_key_value" in kwargs:
+            past_key_values = kwargs.pop("past_key_value")
 
         if self.enable_perturb and self.training:
             current_coef = self.log_coef.to(hidden_states.device).exp()
@@ -91,8 +99,7 @@ class CustomQwen3DecoderLayer(nn.Module):
             hidden_states=hidden_states,
             attention_mask=attention_mask,
             position_ids=position_ids,
-            past_key_value=past_key_value,
-            output_attentions=output_attentions,
+            past_key_values=past_key_values,
             use_cache=use_cache,
             cache_position=cache_position,
             position_embeddings=position_embeddings,
@@ -104,22 +111,20 @@ class CustomQwen3DecoderLayer(nn.Module):
         hidden_states: torch.Tensor,
         attention_mask: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.LongTensor] = None,
-        past_key_value: Optional[Cache] = None,
-        output_attentions: Optional[bool] = False,
+        past_key_values: Optional[Cache] = None,
         use_cache: Optional[bool] = False,
         cache_position: Optional[torch.LongTensor] = None,
         position_embeddings: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
         **kwargs: Unpack[FlashAttentionKwargs],
-    ) -> Tuple[torch.Tensor, ...]:
+    ) -> torch.Tensor:
         residual = hidden_states
         hidden_states = self.input_layernorm(hidden_states)
 
-        hidden_states, self_attn_weights = self.self_attn(
+        hidden_states, _ = self.self_attn(
             hidden_states=hidden_states,
             attention_mask=attention_mask,
             position_ids=position_ids,
-            past_key_value=past_key_value,
-            output_attentions=output_attentions,
+            past_key_values=past_key_values,
             use_cache=use_cache,
             cache_position=cache_position,
             position_embeddings=position_embeddings,
@@ -132,10 +137,7 @@ class CustomQwen3DecoderLayer(nn.Module):
         hidden_states = self.mlp(hidden_states)
         hidden_states = residual + hidden_states
 
-        outputs = (hidden_states,)
-        if output_attentions:
-            outputs += (self_attn_weights,)
-        return outputs
+        return hidden_states
 
 
 # ---------------------------------------------------------------------------- #
