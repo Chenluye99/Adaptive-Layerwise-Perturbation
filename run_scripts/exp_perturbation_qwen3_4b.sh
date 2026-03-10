@@ -7,11 +7,11 @@ LOSS_MODE="token"
 PERTURB_STD="1e-5"
 GEOMETRIC="false"
 CLIP_RATIO_LOW="0.2"
-CLIP_RATIO_HIGH="0.2"
+CLIP_RATIO_HIGH="0.26"
 CLIP_RATIO_C="10.0"
 PERTURB_START="0"
 PERTURB_END=""   # empty = last layer (inclusive)
-PERTURB_LR="1e-6"
+PERTURB_LR="1e-4"
 PERTURB_PATCH="qwen3" #qwen2/llama/qwen3
 MODEL_BASE="Qwen"
 MODEL_NAME="Qwen3-4B"
@@ -90,7 +90,7 @@ export WANDB_ENTITY="mismatch"
 export RAY_TMPDIR=/opt/dlami/nvme/ray_tmp
 
 max_prompt_length=$((1024 * 1))
-max_response_length=$((8192))
+max_response_length=$((16384))
 train_prompt_bsz=128
 n_resp_per_prompt=8
 train_prompt_mini_bsz=32
@@ -156,7 +156,8 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.rollout.log_prob_max_token_len_per_gpu=9216 \
     actor_rollout_ref.rollout.tensor_model_parallel_size=4 \
     actor_rollout_ref.rollout.name=vllm \
-    actor_rollout_ref.actor.ppo_max_token_len_per_gpu=9216 \
+    actor_rollout_ref.actor.ulysses_sequence_parallel_size=4 \
+    actor_rollout_ref.actor.ppo_max_token_len_per_gpu=4608 \
     actor_rollout_ref.rollout.max_num_batched_tokens=9216 \
     actor_rollout_ref.rollout.gpu_memory_utilization=0.6 \
     actor_rollout_ref.rollout.n=${n_resp_per_prompt} \
