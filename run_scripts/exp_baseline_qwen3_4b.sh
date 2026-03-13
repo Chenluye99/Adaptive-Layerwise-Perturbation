@@ -55,7 +55,7 @@ loss_agg_mode="token-mean"
 
 # Data files (use absolute paths)
 project_name="mismatch_rl_research"
-dataset_name="merged_openr1_guru" # openr1 or merged_openr1_guru
+dataset_name="dapo-math-17k" # openr1 or merged_openr1_guru or dapo-math-17k
 exp_name="grpo_baseline_${MODEL_NAME}_${dataset_name}_n${n_resp_per_prompt}_prompt_bsz_${train_prompt_bsz}_mini_bsz_${train_prompt_mini_bsz}"
 
 CKPTS_DIR="/opt/dlami/nvme/chenluy_ckpoints/${project_name}/${exp_name}"
@@ -82,7 +82,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.ppo_mini_batch_size=${train_prompt_mini_bsz} \
     actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=1 \
     actor_rollout_ref.actor.ppo_max_token_len_per_gpu=4608 \
-    actor_rollout_ref.rollout.tensor_model_parallel_size=4 \
+    actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
     actor_rollout_ref.actor.use_kl_loss=True \
     actor_rollout_ref.actor.kl_loss_coef=0 \
     actor_rollout_ref.actor.kl_loss_type=low_var_kl \
@@ -94,19 +94,24 @@ python3 -m verl.trainer.main_ppo \
     +data.apply_chat_template_kwargs.enable_thinking=False \
     actor_rollout_ref.actor.loss_agg_mode=${loss_agg_mode} \
     actor_rollout_ref.model.enable_gradient_checkpointing=True \
-    actor_rollout_ref.actor.fsdp_config.param_offload=False \
-    actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
+    actor_rollout_ref.actor.fsdp_config.param_offload=True \
+    actor_rollout_ref.actor.fsdp_config.optimizer_offload=True \
     actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=2 \
     actor_rollout_ref.rollout.name=vllm \
     actor_rollout_ref.rollout.gpu_memory_utilization=0.6 \
     actor_rollout_ref.rollout.n=${n_resp_per_prompt} \
     actor_rollout_ref.rollout.max_num_batched_tokens=17408 \
+    actor_rollout_ref.rollout.val_kwargs.temperature=1.0 \
+    actor_rollout_ref.rollout.val_kwargs.n=32 \
+    actor_rollout_ref.rollout.val_kwargs.do_sample=True \
     actor_rollout_ref.rollout.calculate_log_probs=True \
     actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=2 \
     actor_rollout_ref.actor.ulysses_sequence_parallel_size=4 \
-    actor_rollout_ref.ref.fsdp_config.param_offload=True \
+    actor_rollout_ref.ref.fsdp_config.param_offload=False \
     algorithm.use_kl_in_reward=False \
     reward_model.reward_manager=batch \
+    +reward_model.reward_kwargs.max_resp_len=${max_response_length} \
+    +reward_model.reward_kwargs.zero_reward_if_reach_max_resp_len=True \
     +algorithm.rollout_correction.rollout_is=null \
     trainer.critic_warmup=0 \
     'trainer.logger=["console","wandb"]' \

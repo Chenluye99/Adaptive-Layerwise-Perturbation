@@ -53,6 +53,7 @@ class BatchRewardManager:
         reward_fn_key="data_source",
         max_resp_len=None,
         overlong_buffer_cfg=None,
+        zero_reward_if_reach_max_resp_len: bool = False,
         num_processes: int = 32,
         timeout: int = 20,
         name: str = "paral_eval",
@@ -62,6 +63,7 @@ class BatchRewardManager:
         self.reward_fn_key = reward_fn_key
         self.overlong_buffer_cfg = overlong_buffer_cfg
         self.max_resp_len = max_resp_len
+        self.zero_reward_if_reach_max_resp_len = zero_reward_if_reach_max_resp_len
         self.num_processes = num_processes
         self.timeout = timeout
         self.name = name
@@ -158,6 +160,13 @@ class BatchRewardManager:
             valid_response_length = meta_item["valid_response_length"]
             data_source = meta_item["data_source"]
             reward = float(score)
+
+            if (
+                self.zero_reward_if_reach_max_resp_len
+                and self.max_resp_len is not None
+                and valid_response_length >= self.max_resp_len
+            ):
+                reward = 0.0
 
             if self.overlong_buffer_cfg and self.overlong_buffer_cfg.enable:
                 overlong_buffer_len = self.overlong_buffer_cfg.len
