@@ -6,6 +6,7 @@ import json
 import random
 from dataclasses import dataclass, field
 from typing import Optional
+from collections import defaultdict
 from datasets import load_dataset
 from transformers import HfArgumentParser
 
@@ -57,6 +58,7 @@ script_args = parser.parse_args_into_dataclasses()[0]
 ds = load_dataset("json", data_files=script_args.dataset_path, split="train")
 
 all_scores = []
+all_scores_by_dataset = defaultdict(list)
 for i in range(len(ds)):
     tmp_scores = []
     all_responses = ds[i]["responses"]
@@ -65,7 +67,13 @@ for i in range(len(ds)):
         score = compute_score(response, ground_truth)
         tmp_scores.append(score)
     all_scores.append(tmp_scores)
+    dataset_name = ds[i]["dataset_name"] if "dataset_name" in ds.column_names else "all"
+    all_scores_by_dataset[dataset_name].append(tmp_scores)
 
 with open(script_args.record_path, "w") as f:
-    rounded_scores = np.round(np.mean(all_scores), 4)
-    f.write(script_args.dataset_path + " " + str(rounded_scores) + "\n")
+    overall_score = np.round(np.mean(all_scores), 4)
+    f.write(script_args.dataset_path + " " + str(overall_score) + "\n")
+    if len(all_scores_by_dataset) > 1 or ("all" not in all_scores_by_dataset):
+        for dataset_name in sorted(all_scores_by_dataset):
+            dataset_score = np.round(np.mean(all_scores_by_dataset[dataset_name]), 4)
+            f.write(dataset_name + " " + str(dataset_score) + "\n")

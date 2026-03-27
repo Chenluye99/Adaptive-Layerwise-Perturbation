@@ -24,7 +24,7 @@ class ScriptArguments:
     )
     dataset_name_or_path: Optional[str] = field(
         default="RLHFlow/test_generation_2k",
-        metadata={"help": "the location of the dataset name or path"},
+        metadata={"help": "single dataset or comma-separated dataset list"},
     )
     local_index: Optional[int] = field(
         default=999,
@@ -97,7 +97,10 @@ def main() -> None:
         stop_token_ids=[tokenizer.eos_token_id] + script_args.eos_ids,
     )
 
-    ds = load_dataset(script_args.dataset_name_or_path, split="train")
+    dataset_names = [name.strip() for name in script_args.dataset_name_or_path.split(",") if name.strip()]
+    if len(dataset_names) == 0:
+        raise ValueError("dataset_name_or_path is empty after parsing")
+
     instruction_following = "Let's think step by step and output the final answer within \\boxed{}."
     system_prompt = "Please reason step by step, and put your final answer within \\boxed{}."
 
@@ -114,34 +117,34 @@ def main() -> None:
             )
         }
 
-    ds = ds.map(make_prompt)
-
-    data_size = len(ds["prompt"])
-    one_num_share = int(data_size / script_args.my_world_size)
-    ds = ds.select(
-        np.arange(
-            script_args.local_index * one_num_share,
-            (script_args.local_index + 1) * one_num_share,
-        )
-    )
-
-    print([script_args.local_index * one_num_share, (script_args.local_index + 1) * one_num_share])
-    print(ds, script_args.dataset_name_or_path)
-    print(ds[0])
-
-    prompts = ds["prompt"]
-    outputs = llm.generate(prompts, sampling_params=sampling_params, use_tqdm=True)
-
-    completions = []
-    used_prompts = []
     gathered_data = []
-    for i, output in enumerate(outputs):
-        tmp_data = {
-            "prompt": ds[i]["prompt"],
-            "gt": ds[i]["gt"],
-            "responses": [out.text for out in output.outputs],
-        }
-        gathered_data.append(tmp_data)
+    for dataset_name in dataset_names:
+        ds = load_dataset(dataset_name, split="train")
+        ds = ds.map(make_prompt)
+
+        data_size = len(ds["prompt"])
+        one_num_share = int(data_size / script_args.my_world_size)
+        start = script_args.local_index * one_num_share
+        end = (script_args.local_index + 1) * one_num_share
+        ds = ds.select(np.arange(start, end))
+
+        print([start, end], dataset_name)
+        print(ds, dataset_name)
+        if len(ds) == 0:
+            continue
+        print(ds[0])
+
+        prompts = ds["prompt"]
+        outputs = llm.generate(prompts, sampling_params=sampling_params, use_tqdm=True)
+
+        for i, output in enumerate(outputs):
+            tmp_data = {
+                "dataset_name": dataset_name,
+                "prompt": ds[i]["prompt"],
+                "gt": ds[i]["gt"],
+                "responses": [out.text for out in output.outputs],
+            }
+            gathered_data.append(tmp_data)
 
     print("I collect ", len(gathered_data), "samples")
 

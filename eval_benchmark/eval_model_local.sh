@@ -60,94 +60,119 @@ PY
 models=()
 base_model_path="/opt/dlami/nvme/chenluy_ckpoints/mismatch_rl_research/$model_name"
 
-# # merge the model
-# for step in $(seq 400 20 480); do
-#     python /home/chenluy/mismatch-all_perturbation-on-math_new/scripts/legacy_model_merger.py merge \
-#         --backend fsdp \
-#         --local_dir $base_model_path/global_step_$step/actor \
-#         --hf_model_path $base_model_path/global_step_$step/actor/huggingface \
-#         --target_dir $base_model_path/global_step_$step/merged
-#     filter_log_coef_from_merged "$base_model_path/global_step_$step/merged"
-# done
+# merge the model
+for step in $(seq 380 20 380); do
+    python /home/chenluy/mismatch-all_perturbation-on-math_new/scripts/legacy_model_merger.py merge \
+        --backend fsdp \
+        --local_dir $base_model_path/global_step_$step/actor \
+        --hf_model_path $base_model_path/global_step_$step/actor/huggingface \
+        --target_dir $base_model_path/global_step_$step/merged
+    filter_log_coef_from_merged "$base_model_path/global_step_$step/merged"
+done
 
 # Generate model paths for global_step_20 to global_step_220 (increment by 20)
-for step in $(seq 400 20 480); do
+for step in $(seq 380 20 380); do
     models+=("$base_model_path/global_step_$step/merged")
 done
 
 datasets=("weqweasdas/olympiadbench" "weqweasdas/math500" "weqweasdas/minerva_math" "weqweasdas/aime24" "Chenlu123/aime25")
+datasets_csv=$(IFS=,; echo "${datasets[*]}")
 
 # Create base output directory
 mkdir -p $base_output_dir
 
-# Loop through models and datasets
+# Loop through models
 for model_name in "${models[@]}"; do
     echo "Testing model: $model_name"
-    
-    for dataset in "${datasets[@]}"; do
-        echo "Testing dataset: $dataset"
-        
-        # Create model/dataset specific output directory
-        # Extract global_step_X/merged from the full path
-        model_step_dir=$(echo "$model_name" | sed 's|.*/\(global_step_[0-9]*/merged\)|\1|')
-        output_dir="$base_output_dir/$model_step_dir/$dataset"
-        mkdir -p "$output_dir"
-        
-        echo "Output directory: $output_dir"
-        
-        # Generate data in parallel
-        echo "Starting parallel data generation..."
-        # we use gpu 4,5,6,7
-        for i in 0 1 2 3 4 5 6 7; do
-            CUDA_VISIBLE_DEVICES=$i python3 gen_data.py \
-                --local_index $((i)) \
-                --my_world_size $world_size \
-                --model_name_or_path "$model_name" \
-                --output_dir "$output_dir/" \
-                --K $K \
-                --max_input_length $MAX_INPUT_LENGTH \
-                --max_new_tokens $MAX_NEW_TOKENS \
-                --dataset_name_or_path "$dataset" &
-        done
-        
-        # Wait for all parallel processes to complete
-        wait
-        echo "Data generation completed."
-        
-        # Merge the generated data
-        echo "Merging data..."
-        python3 merge_data.py \
-            --base_path "$output_dir/" \
-            --output_dir "$output_dir/merged_data.jsonl" \
-            --num_datasets $world_size
-        
-        if [ $? -ne 0 ]; then
-            echo "Error: Failed to merge data for $model_name on $dataset"
-            continue
-        fi
-        
-        # Compute scores
-        echo "Computing scores..."
-        python3 compute_score.py \
-            --dataset_path "$output_dir/merged_data.jsonl" \
-            --record_path "$output_dir/record.txt"
-        
-        if [ $? -ne 0 ]; then
-            echo "Error: Failed to compute scores for $model_name on $dataset"
-            continue
-        fi
-        
-        echo "Completed evaluation for $model_name on $dataset"
-        echo "Results saved to: $output_dir/record.txt"
-        echo "----------------------------------------"
 
-        echo "Compute minerval score... for minerva_math"
-        if [ "$dataset" == "weqweasdas/minerva_math" ]; then
-            python3 compute_score_minerval.py \
-                --dataset_path "$output_dir/merged_data.jsonl" \
-                --record_path "$output_dir/record_new.txt"
-        fi
+    # Extract global_step_X/merged from the full path
+    model_step_dir=$(echo "$model_name" | sed 's|.*/\(global_step_[0-9]*/merged\)|\1|')
+    output_dir="$base_output_dir/$model_step_dir/all_testsets"
+    mkdir -p "$output_dir"
+
+    echo "Output directory: $output_dir"
+    echo "Datasets: ${datasets[*]}"
+
+    # Generate all testsets in parallel by GPU workers.
+    echo "Starting parallel data generation..."
+    for i in 0 1 2 3 4 5 6 7; do
+        CUDA_VISIBLE_DEVICES=$i python3 gen_data.py \
+            --local_index $((i)) \
+            --my_world_size $world_size \
+            --model_name_or_path "$model_name" \
+            --output_dir "$output_dir/" \
+            --K $K \
+            --max_input_length $MAX_INPUT_LENGTH \
+            --max_new_tokens $MAX_NEW_TOKENS \
+            --dataset_name_or_path "$datasets_csv" &
     done
+
+    # Wait for all parallel processes to complete
+    wait
+    echo "Data generation completed."
+
+    # Merge all shards from all testsets.
+    echo "Merging data..."
+    python3 merge_data.py \
+        --base_path "$output_dir/" \
+        --output_dir "$output_dir/merged_data.jsonl" \
+        --num_datasets $world_size
+
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to merge data for $model_name"
+        continue
+    fi
+
+    # Compute overall score and per-testset mean score.
+    echo "Computing scores..."
+    python3 compute_score.py \
+        --dataset_path "$output_dir/merged_data.jsonl" \
+        --record_path "$output_dir/record.txt"
+
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to compute scores for $model_name"
+        continue
+    fi
+
+    # Compute minerva score with the dedicated evaluator.
+    echo "Computing minerva score with compute_score_minerval.py..."
+    python3 - "$output_dir/merged_data.jsonl" "$output_dir/minerva_math_only.jsonl" <<'PY'
+import json
+import sys
+
+src_path, dst_path = sys.argv[1], sys.argv[2]
+target = "weqweasdas/minerva_math"
+kept = 0
+with open(src_path, "r", encoding="utf8") as src, open(dst_path, "w", encoding="utf8") as dst:
+    for line in src:
+        if not line.strip():
+            continue
+        row = json.loads(line)
+        if row.get("dataset_name") == target:
+            dst.write(json.dumps(row, ensure_ascii=False) + "\n")
+            kept += 1
+print(f"kept_minerva_samples={kept}")
+PY
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to prepare minerva subset for $model_name"
+        continue
+    fi
+    python3 compute_score_minerval.py \
+        --dataset_path "$output_dir/minerva_math_only.jsonl" \
+        --record_path "$output_dir/record_minerva.txt"
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to compute minerva score for $model_name"
+        continue
+    fi
+    {
+        echo "## minerva_score"
+        cat "$output_dir/record_minerva.txt"
+    } >> "$output_dir/record.txt"
+
+    echo "Completed evaluation for $model_name (all testsets)"
+    echo "Results saved to: $output_dir/record.txt"
+    echo "Minerva result saved to: $output_dir/record_minerva.txt"
+    echo "----------------------------------------"
 done
 
 echo "All evaluations completed!"
