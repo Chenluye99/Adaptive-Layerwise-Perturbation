@@ -3,8 +3,10 @@ from typing import Optional, Tuple
 
 import torch
 from torch import nn
+from torch.utils.checkpoint import checkpoint
 from transformers.cache_utils import Cache
 from transformers.modeling_flash_attention_utils import FlashAttentionKwargs
+from transformers.modeling_layers import GradientCheckpointingLayer
 from transformers.models.qwen3 import modeling_qwen3
 from transformers.models.qwen3.configuration_qwen3 import Qwen3Config
 from transformers.processing_utils import Unpack
@@ -14,7 +16,7 @@ from transformers.processing_utils import Unpack
 # 1. 重写 Qwen3DecoderLayer
 #    (去掉了 smooth 参数，改为从 config 读取)
 # ---------------------------------------------------------------------------- #
-class CustomQwen3DecoderLayer(nn.Module):
+class CustomQwen3DecoderLayer(GradientCheckpointingLayer):
     def __init__(self, config: Qwen3Config, layer_idx: int):
         super().__init__()
         self.hidden_size = config.hidden_size
@@ -80,20 +82,34 @@ class CustomQwen3DecoderLayer(nn.Module):
             past_key_values = kwargs.pop("past_key_value")
 
         if self.enable_perturb and self.training:
-            current_coef = self.log_coef.to(hidden_states.device).exp()
-            # Stateless RNG: local Generator seeded with (_noise_seed + layer_idx)
-            # produces identical noise on both original forward and checkpoint
-            # recomputation, independent of preserve_rng_state.
-            with torch.no_grad():
-                gen = torch.Generator(device=hidden_states.device)
-                gen.manual_seed(self._noise_seed + self.layer_idx)
-                noise = torch.randn(
-                    hidden_states.shape,
-                    dtype=hidden_states.dtype,
-                    device=hidden_states.device,
-                    generator=gen,
+            if self.coef_learnable:
+                seed_tensor = torch.tensor(
+                    self._noise_seed, device=hidden_states.device, dtype=torch.int64
                 )
-            hidden_states = hidden_states + current_coef * noise
+
+                def _inject(h, log_coef, seed_t):
+                    coef = log_coef.exp().to(h.dtype)
+                    gen = torch.Generator(device=h.device)
+                    gen.manual_seed(int(seed_t.item()) + self.layer_idx)
+                    noise = torch.randn(h.shape, dtype=h.dtype, device=h.device, generator=gen)
+                    return h + coef * noise
+
+                hidden_states = checkpoint(
+                    _inject, hidden_states, self.log_coef, seed_tensor,
+                    use_reentrant=False,
+                )
+            else:
+                current_coef = self.log_coef.to(hidden_states.device).exp()
+                with torch.no_grad():
+                    gen = torch.Generator(device=hidden_states.device)
+                    gen.manual_seed(self._noise_seed + self.layer_idx)
+                    noise = torch.randn(
+                        hidden_states.shape,
+                        dtype=hidden_states.dtype,
+                        device=hidden_states.device,
+                        generator=gen,
+                    )
+                hidden_states = hidden_states + current_coef * noise
 
         return self._process(
             hidden_states=hidden_states,
@@ -141,7 +157,7 @@ class CustomQwen3DecoderLayer(nn.Module):
 
 
 # ---------------------------------------------------------------------------- #
-# 2. 定义 Patch 应用函数
+# 2. 定义 Patch 应用函数 for Transformers 4.56.1
 # ---------------------------------------------------------------------------- #
 def apply_qwen3_patch():
     print("🚨 [Verl Patch] Applying Custom Qwen3 Perturbation Logic...")

@@ -11,7 +11,7 @@ from transformers.processing_utils import Unpack
 from typing import Optional, Tuple, Union
 
 # ---------------------------------------------------------------------------- #
-# 1. 重写 Qwen2DecoderLayer
+# 1. 重写 Qwen2DecoderLayer for Transformers 4.56.1
 #    (去掉了 smooth 参数，改为从 config 读取)
 # ---------------------------------------------------------------------------- #
 class CustomQwen2DecoderLayer(GradientCheckpointingLayer):
