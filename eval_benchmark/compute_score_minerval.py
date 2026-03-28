@@ -3,9 +3,9 @@ from math_verify.metric import math_metric
 from math_verify.parser import ExprExtractionConfig, LatexExtractionConfig
 
 from tqdm import tqdm
+import json
 from dataclasses import dataclass, field
 from typing import Optional
-from datasets import load_dataset
 from transformers import HfArgumentParser
 import numpy as np
 
@@ -58,13 +58,19 @@ def compute_score(model_output: str, ground_truth: str, timeout_score: float = 0
 parser = HfArgumentParser(ScriptArguments)
 script_args = parser.parse_args_into_dataclasses()[0]
 
-ds = load_dataset("json", data_files=script_args.dataset_path, split="train")
+rows = []
+with open(script_args.dataset_path, "r", encoding="utf8") as f:
+    for line in f:
+        line = line.strip()
+        if not line:
+            continue
+        rows.append(json.loads(line))
 
 
 params = [
     (
-        idx, extract_answer(response, "minerva_math"), sample['gt']
-    ) for idx, sample in enumerate(ds) for response in sample['responses']
+        idx, extract_answer(response, "minerva_math"), str(sample['gt'])
+    ) for idx, sample in enumerate(rows) for response in sample['responses']
 ]
 
 all_scores = []
@@ -73,7 +79,7 @@ timeout_cnt = 0
 with ProcessPool(max_workers=1) as pool:
     future = pool.map(math_equal_process, params, timeout=3)
     iterator = future.result()
-    with tqdm(total=len(ds), desc="Evaluate") as progress_bar:
+    with tqdm(total=len(params), desc="Evaluate") as progress_bar:
         while True:
             try:
                 result = next(iterator)

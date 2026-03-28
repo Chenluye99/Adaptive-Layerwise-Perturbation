@@ -3,11 +3,9 @@ from math_verify.metric import math_metric
 from math_verify.parser import ExprExtractionConfig, LatexExtractionConfig
 
 import json
-import random
 from dataclasses import dataclass, field
 from typing import Optional
 from collections import defaultdict
-from datasets import load_dataset
 from transformers import HfArgumentParser
 
 """
@@ -55,19 +53,25 @@ import numpy as np
 parser = HfArgumentParser(ScriptArguments)
 script_args = parser.parse_args_into_dataclasses()[0]
 
-ds = load_dataset("json", data_files=script_args.dataset_path, split="train")
+rows = []
+with open(script_args.dataset_path, "r", encoding="utf8") as f:
+    for line in f:
+        line = line.strip()
+        if not line:
+            continue
+        rows.append(json.loads(line))
 
 all_scores = []
 all_scores_by_dataset = defaultdict(list)
-for i in range(len(ds)):
+for sample in rows:
     tmp_scores = []
-    all_responses = ds[i]["responses"]
-    ground_truth = ds[i]["gt"]
+    all_responses = sample["responses"]
+    ground_truth = sample["gt"]
     for response in all_responses:
         score = compute_score(response, ground_truth)
         tmp_scores.append(score)
     all_scores.append(tmp_scores)
-    dataset_name = ds[i]["dataset_name"] if "dataset_name" in ds.column_names else "all"
+    dataset_name = sample.get("dataset_name", "all")
     all_scores_by_dataset[dataset_name].append(tmp_scores)
 
 with open(script_args.record_path, "w") as f:

@@ -6,7 +6,7 @@ export LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LIBRARY_PATH}
 export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 
 # Configuration
-model_name="baseline_vanilla_geofalse_token_clip_0.2_0.2_c10.0_Qwen_Qwen3-4B_dapo-math-17k_n8_fp8"
+model_name="mis_baseline_sequence_mask_5.0_loss_sequence_0.5_3.0_Qwen3-4B_dapo-math-17k_n8_prompt_bsz_128_mini_bsz_32"
 base_output_dir="/home/chenluy/mismatch-all_perturbation-on-math_new/data/gen_data/$model_name"
 mkdir -p $base_output_dir
 
@@ -73,7 +73,7 @@ has_all_response_shards() {
 }
 
 # merge the model
-for step in $(seq 20 20 20); do
+for step in $(seq 100 20 100); do
     merged_dir="$base_model_path/global_step_$step/merged"
     if [ -f "$merged_dir/model.safetensors.index.json" ] || ls "$merged_dir"/*.safetensors >/dev/null 2>&1; then
         echo "[skip merge] Found existing merged model at: $merged_dir"
@@ -92,7 +92,7 @@ for step in $(seq 20 20 20); do
 done
 
 # Generate model paths for global_step_20 to global_step_220 (increment by 20)
-for step in $(seq 20 20 20); do
+for step in $(seq 100 20 100); do
     models+=("$base_model_path/global_step_$step/merged")
 done
 
