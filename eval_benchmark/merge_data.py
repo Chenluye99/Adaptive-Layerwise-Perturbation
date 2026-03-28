@@ -3,7 +3,6 @@ import os
 import random
 from dataclasses import dataclass, field
 from typing import Optional
-from datasets import load_dataset
 from transformers import HfArgumentParser
 
 """
@@ -44,10 +43,21 @@ for my_dir in all_dirs:
             f"Expected data file not found: {my_dir}. "
             "gen_data.py may have failed (e.g. vLLM model load error). Check logs for the failing step."
         )
-    ds = load_dataset("json", data_files=my_dir, split="train")
-    print(len(ds))
-    for sample in ds:
-        gathered_data.append(sample)
+
+    local_count = 0
+    with open(my_dir, "r", encoding="utf8") as f:
+        for line_idx, line in enumerate(f, start=1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                sample = json.loads(line)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Invalid JSON in {my_dir} at line {line_idx}: {e}") from e
+            gathered_data.append(sample)
+            local_count += 1
+
+    print(local_count)
 
 random.shuffle(gathered_data)
 

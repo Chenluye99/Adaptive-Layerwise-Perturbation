@@ -6,7 +6,7 @@ export LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LIBRARY_PATH}
 export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 
 # Configuration
-model_name="all-perturb_sequence_inistd1e-5_clip_0.5_3.0_c10.0_lr1e-4_Qwen3-4B_dapo-math-17k_n8"
+model_name="grpo_baseline_Qwen3-4B_dapo-math-17k_n8_prompt_bsz_128_mini_bsz_32"
 base_output_dir="/home/chenluy/mismatch-all_perturbation-on-math_new/data/gen_data/$model_name"
 mkdir -p $base_output_dir
 
@@ -60,14 +60,35 @@ PY
 models=()
 base_model_path="/opt/dlami/nvme/chenluy_ckpoints/mismatch_rl_research/$model_name"
 
+has_all_response_shards() {
+    local dir="$1"
+    local n="$2"
+    local i
+    for ((i=0; i<n; i++)); do
+        if [ ! -s "$dir/$i.json" ]; then
+            return 1
+        fi
+    done
+    return 0
+}
+
 # merge the model
 for step in $(seq 380 20 380); do
-    python /home/chenluy/mismatch-all_perturbation-on-math_new/scripts/legacy_model_merger.py merge \
-        --backend fsdp \
-        --local_dir $base_model_path/global_step_$step/actor \
-        --hf_model_path $base_model_path/global_step_$step/actor/huggingface \
-        --target_dir $base_model_path/global_step_$step/merged
-    filter_log_coef_from_merged "$base_model_path/global_step_$step/merged"
+    merged_dir="$base_model_path/global_step_$step/merged"
+    if [ -f "$merged_dir/model.safetensors.index.json" ] || ls "$merged_dir"/*.safetensors >/dev/null 2>&1; then
+        echo "[skip merge] Found existing merged model at: $merged_dir"
+    else
+        python /home/chenluy/mismatch-all_perturbation-on-math_new/scripts/legacy_model_merger.py merge \
+            --backend fsdp \
+            --local_dir "$base_model_path/global_step_$step/actor" \
+            --hf_model_path "$base_model_path/global_step_$step/actor/huggingface" \
+            --target_dir "$merged_dir"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to merge model for step $step"
+            continue
+        fi
+    fi
+    filter_log_coef_from_merged "$merged_dir"
 done
 
 # Generate model paths for global_step_20 to global_step_220 (increment by 20)
@@ -93,30 +114,42 @@ for model_name in "${models[@]}"; do
     echo "Output directory: $output_dir"
     echo "Datasets: ${datasets[*]}"
 
-    # Generate all testsets in parallel by GPU workers.
-    echo "Starting parallel data generation..."
-    for i in 0 1 2 3 4 5 6 7; do
-        CUDA_VISIBLE_DEVICES=$i python3 gen_data.py \
-            --local_index $((i)) \
-            --my_world_size $world_size \
-            --model_name_or_path "$model_name" \
-            --output_dir "$output_dir/" \
-            --K $K \
-            --max_input_length $MAX_INPUT_LENGTH \
-            --max_new_tokens $MAX_NEW_TOKENS \
-            --dataset_name_or_path "$datasets_csv" &
-    done
+    # Generate all testsets in parallel by GPU workers (resume-friendly).
+    if has_all_response_shards "$output_dir" "$world_size"; then
+        echo "[skip generation] Found complete response shards (0..$((world_size-1)))."
+    else
+        echo "Starting parallel data generation..."
+        for i in 0 1 2 3 4 5 6 7; do
+            if [ -s "$output_dir/$i.json" ]; then
+                echo "  [skip shard] $output_dir/$i.json exists"
+                continue
+            fi
+            CUDA_VISIBLE_DEVICES=$i python3 gen_data.py \
+                --local_index $((i)) \
+                --my_world_size $world_size \
+                --model_name_or_path "$model_name" \
+                --output_dir "$output_dir/" \
+                --K $K \
+                --max_input_length $MAX_INPUT_LENGTH \
+                --max_new_tokens $MAX_NEW_TOKENS \
+                --dataset_name_or_path "$datasets_csv" &
+        done
 
-    # Wait for all parallel processes to complete
-    wait
-    echo "Data generation completed."
+        # Wait for all parallel processes to complete
+        wait
+        echo "Data generation completed."
+    fi
 
     # Merge all shards from all testsets.
-    echo "Merging data..."
-    python3 merge_data.py \
-        --base_path "$output_dir/" \
-        --output_dir "$output_dir/merged_data.jsonl" \
-        --num_datasets $world_size
+    if [ -s "$output_dir/merged_data.jsonl" ]; then
+        echo "[skip merge_data] $output_dir/merged_data.jsonl already exists"
+    else
+        echo "Merging data..."
+        python3 merge_data.py \
+            --base_path "$output_dir/" \
+            --output_dir "$output_dir/merged_data.jsonl" \
+            --num_datasets $world_size
+    fi
 
     if [ $? -ne 0 ]; then
         echo "Error: Failed to merge data for $model_name"
