@@ -27,8 +27,8 @@
 simpletir
 ```bash
 MODEL_PATH=Qwen \
-DATA_PATH=/home/chenluy/SimpleTIR/datasets \
-CHECKPOINT_PATH=/opt/dlami/nvme/TIR \
+DATA_PATH=./datasets \
+CHECKPOINT_PATH=${CHECKPOINT_PATH:-./checkpoints} \
 LOG_PATH=./logs/TIR \
 NNODES=1 \
 GPUS_PER_NODE=8 \
@@ -49,8 +49,8 @@ bash train.sh \
 step_gspo + mask void_turn
 ```bash
 MODEL_PATH=Qwen \
-DATA_PATH=/home/chenluy/SimpleTIR/datasets \
-CHECKPOINT_PATH=/opt/dlami/nvme/TIR \
+DATA_PATH=./datasets \
+CHECKPOINT_PATH=${CHECKPOINT_PATH:-./checkpoints} \
 LOG_PATH=./logs/TIR \
 NNODES=1 \
 GPUS_PER_NODE=8 \

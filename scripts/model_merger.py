@@ -22,7 +22,7 @@ from concurrent.futures import ThreadPoolExecutor
 from torch.distributed._tensor import DTensor, Shard, Placement
 from safetensors.torch import load_file
 
-# 延迟导入megatron相关工具，只在使用megatron backend时导入
+# Lazy import megatron tools, only when using megatron backend
 # from verl.utils.megatron_utils import get_model_checkpoint_path, get_hf_model_checkpoint_path
 
 parser = argparse.ArgumentParser()
@@ -161,7 +161,7 @@ def convert_fsdp_checkpoints_to_hfmodels():
         hf_path = os.path.join(local_dir, 'huggingface')
     else:
         hf_path = args.target_dir
-    # 检查是否是本地路径，如果是则直接加载 config.json
+    # Check if local path, if so load config.json directly
     if os.path.exists(args.hf_model_path) and os.path.exists(os.path.join(args.hf_model_path, 'config.json')):
         import json
         with open(os.path.join(args.hf_model_path, 'config.json'), 'r') as f:
@@ -214,7 +214,7 @@ def check_megatron_checkpoint_path(model_path):
     return sharded_dirs, tp_size, pp_size
 
 def convert_megatron_checkpoints_to_hfmodes():
-    # 在megatron backend下才导入相关工具
+    # Only import megatron tools when using megatron backend
     from verl.utils.megatron_utils import get_model_checkpoint_path, get_hf_model_checkpoint_path
     
     local_path = args.local_dir
@@ -245,7 +245,7 @@ def convert_megatron_checkpoints_to_hfmodes():
         process_one_shard(sharded_dir)
     
     state_dict = {}
-    # 检查是否是本地路径，如果是则直接加载 config.json
+    # Check if local path, if so load config.json directly
     if os.path.exists(args.hf_model_path) and os.path.exists(os.path.join(args.hf_model_path, 'config.json')):
         import json
         with open(os.path.join(args.hf_model_path, 'config.json'), 'r') as f:

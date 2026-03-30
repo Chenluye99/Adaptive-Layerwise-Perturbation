@@ -39,60 +39,60 @@ def extract_last_boxed(text):
 
 # def extract_last_boxed(text: str) -> (str | None, int):
 #     """
-#     分离提取逻辑和格式化掩码逻辑。
+#     Separate extraction logic and format mask logic.
 
-#     返回:
+#     Returns:
 #     1. extraction_result (str | None): 按照 *原始* 逻辑提取的最后一个 \boxed{...} (group 0)。
 #     2. format_mask (int): 按照 *新* 规则计算的格式掩码 (1=通过, 0=失败)。
 #     """
     
-#     # 您的原始正则表达式
+#     # Your original regex
 #     pattern = r"\\boxed\{((?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*)\}"
 
-#     # --- 1. 提取逻辑 (原始、简单逻辑) ---
-#     # 这部分只关心整个 'text'
+#     # --- 1. Extraction logic (original, simple logic) ---
+#     # This part only cares about the entire 'text'
 #     extraction_result = None
 #     try:
-#         # 搜索 *整个* text
+#         # Search the *entire* text
 #         all_matches_in_text = list(re.finditer(pattern, text))
 #         if all_matches_in_text:
-#             # 找到最后一个匹配项的 group(0)
+#             # Get group(0) of the last match
 #             extraction_result = all_matches_in_text[-1].group(0)
 #     except (re.error, TypeError):
-#         extraction_result = None # 捕获
+#         extraction_result = None # Catch
         
-#     # --- 2. 掩码逻辑 (新的、复杂的规则) ---
-#     format_mask = 1  # 默认通过 (1)
+#     # --- 2. Mask logic (new, complex rules) ---
+#     format_mask = 1  # Default pass (1)
 
-#     # 2a. 找到最后一个 "```" 后面的内容
+#     # 2a. Find the content after the last "```"
 #     parts = text.split("```")
 #     if len(parts) > 1:
 #         content_to_check = parts[-1]
 #     else:
 #         content_to_check = text
 
-#     # 2b. 检查此 *整个* 子字符串中 \boxed{...} 的总数
+#     # 2b. Check total number of \boxed{...} in this substring
 #     try:
 #         all_matches_in_content = list(re.finditer(pattern, content_to_check))
 #         if len(all_matches_in_content) > 3:
-#             format_mask = 0  # 失败 (0)
+#             format_mask = 0  # Fail (0)
 #     except (re.error, TypeError):
-#         format_mask = 0  # 失败 (0)
+#         format_mask = 0  # Fail (0)
 
-#     # 2c. 检查最后300个字符
-#     # 即使上面的检查失败了 (format_mask=0)，我们仍然要检查这一项
-#     # 因为您希望这两个条件都设置 format_mask=0
+#     # 2c. Check last 300 characters
+#     # Even if above check failed (format_mask=0), still check this
+#     # Because both conditions should set format_mask=0
 #     try:
 #         extraction_area = content_to_check[-300:]
 #         matches_in_window = list(re.finditer(pattern, extraction_area))
         
 #         if not matches_in_window:
-#             format_mask = 0  # 失败 (0)
+#             format_mask = 0  # Fail (0)
             
 #     except (re.error, TypeError):
-#         format_mask = 0  # 失败 (0)
+#         format_mask = 0  # Fail (0)
 
-#     # --- 3. 返回两个结果 ---
+#     # --- 3. Return both results ---
 #     return extraction_result, format_mask
 
 def extract_solution(solution_str):

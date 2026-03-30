@@ -113,7 +113,7 @@ def main():
     )
     parser.add_argument(
         "--output_dir",
-        default="/home/chenluy/SimpleTIR/datasets",
+        default="./datasets",
         help="Output directory for parquet files"
     )
     parser.add_argument(

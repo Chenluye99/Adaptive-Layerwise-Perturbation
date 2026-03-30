@@ -1,12 +1,12 @@
 from datasets import load_dataset
 import re
 
-# 加载数据集
+# Load dataset
 ds = load_dataset('ElonTusk2001/rstar_sft', split='train')
 
 def change_format(example):
     """
-    处理 response 格式转换：
+    Process response format conversion:
     1. <code>...<end_of_code> 中的 <end_of_step> 去掉，并换成 ```python ... ```
     2. <output>...<end_of_output> 换成 Code execution result: ...
     3. <answer>...<end_of_answer> 外面的标签去掉，只保留内容
@@ -44,10 +44,10 @@ def change_format(example):
     return example
 
 
-# 转换数据格式：从 query/response 转换为 messages 格式
+# Convert data format: from query/response to messages format
 def convert_to_messages(example):
     """
-    将 query/response 格式转换为 axolotl 需要的 messages 格式
+    Convert query/response format to messages format required by axolotl
     格式: {"messages": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]}
     """
     messages = []

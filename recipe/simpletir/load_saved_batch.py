@@ -19,7 +19,7 @@ Usage:
     python load_saved_batch.py /path/to/saved_batch.pt
     
     Or if you want to specify the experiment directory:
-    python load_saved_batch.py --exp_dir /opt/dlami/nvme/TIR/your_experiment_name
+    python load_saved_batch.py --exp_dir ${CHECKPOINT_PATH:-./checkpoints}/your_experiment_name
 """
 
 import argparse

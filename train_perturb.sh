@@ -1,33 +1,33 @@
 #!/bin/bash
-#1. 创建一个存放模型的文件夹，例如 ./models/qwen2-7b-custom
+#1. Create a directory for the model, e.g. ./models/qwen2-7b-custom
 # mkdir -p ./models/qwen2-7b-custom
 
-#2. 开始下载
+#2. Start downloading
 # huggingface-cli download Qwen/Qwen2.5-7B \
 #     --local-dir ./models/qwen2-7b-custom \
 #     --local-dir-use-symlinks False \
 #     --resume-download
 
-# 3. 修改config.json，添加
+# 3. Modify config.json, add
 #   "use_perturbation": true,
 #   "coef_learnable": true,
 #   "perturb_std": 1e-2
 
 # Sandbox configuration
 export SANDBOX_ENDPOINT=http://127.0.0.1:12345/faas/sandbox/
-export WANDB_API_KEY="a17294c76f5787d04c92fd978d0f1a29133756e2"
-export WANDB_ENTITY="mismatch"
+export WANDB_API_KEY="${WANDB_API_KEY}"
+export WANDB_ENTITY="${WANDB_ENTITY}"
 
-export RAY_TMPDIR=/opt/dlami/nvme/ray_tmp
+export RAY_TMPDIR=${RAY_TMPDIR:-/tmp/ray_tmp}
 
 PROJECT_NAME='TIR'
 RUN_NAME="simpletir"
 CONFIG_NAME="simpletir_trainer"
 
-MODEL_PATH="/opt/dlami/nvme/TIR/models" # the parent dir of the checkpoint
+MODEL_PATH="${MODEL_DIR:-./models}" # the parent dir of the checkpoint
 DATA_PATH=$(pwd)/datasets # the dir containing data like deepscaler/train (see datasets/)
 export DATA_PATH
-CHECKPOINT_PATH="/opt/dlami/nvme/${PROJECT_NAME}" # the dir to save the checkpoint
+CHECKPOINT_PATH="${CHECKPOINT_PATH:-./checkpoints/${PROJECT_NAME}}" # the dir to save the checkpoint
 LOG_PATH="./logs/${PROJECT_NAME}" # the dir to save the log
 NNODES=1
 GPUS_PER_NODE=8 
@@ -37,8 +37,8 @@ ADAPT_RATIO=False
 USE_PERTURBATION=True
 PERTURB_STD=1e-8
 PERTURB_LR=1e-2
-PERTURB_START_LAYER=0  # 开始扰动的层索引（包含），默认从第0层开始
-PERTURB_END_LAYER=null  # 结束扰动的层索引（不包含），null 表示到最后一层
+PERTURB_START_LAYER=0  # Start layer index for perturbation (inclusive), default starts from layer 0
+PERTURB_END_LAYER=null  # End layer index for perturbation (exclusive), null means through the last layer
 
 # Default values
 CLIP_RATIO_HIGH=3.0

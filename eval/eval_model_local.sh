@@ -2,7 +2,7 @@
 #!/bin/bash
 
 # Configuration
-base_output_dir="/home/chenluy/mismatch_all_perturb_agent/eval/gen_data/simpletir_cliph3.0_clipl0.5_clipc5.0_maxturn5_maskvoidTrue_oversample1_losssequence_adaptratioFalse_ppogeoFalse_risTrue_isth2.0_isthlower0.0_isveto0_islvlsequence_batch256_ppomini32_deepscaler_merge_train_Qwen2.5-7B"
+base_output_dir="${PROJECT_DIR:-.}/eval/gen_data/simpletir_cliph3.0_clipl0.5_clipc5.0_maxturn5_maskvoidTrue_oversample1_losssequence_adaptratioFalse_ppogeoFalse_risTrue_isth2.0_isthlower0.0_isveto0_islvlsequence_batch256_ppomini32_deepscaler_merge_train_Qwen2.5-7B"
 mkdir -p $base_output_dir
 
 K=32
@@ -13,7 +13,7 @@ BASE_MODEL_PATH="Qwen/Qwen2.5-7B"
 
 # Model and dataset arrays
 models=()
-base_model_path="/opt/dlami/nvme/chenluy_ckpoints/test/simpletir_cliph3.0_clipl0.5_clipc5.0_maxturn5_maskvoidTrue_oversample1_losssequence_adaptratioFalse_ppogeoFalse_risTrue_isth2.0_isthlower0.0_isveto0_islvlsequence_batch256_ppomini32_deepscaler_merge_train_Qwen2.5-7B"
+base_model_path="${CHECKPOINT_DIR}/simpletir_cliph3.0_clipl0.5_clipc5.0_maxturn5_maskvoidTrue_oversample1_losssequence_adaptratioFalse_ppogeoFalse_risTrue_isth2.0_isthlower0.0_isveto0_islvlsequence_batch256_ppomini32_deepscaler_merge_train_Qwen2.5-7B"
 
 # merge the model
 echo "=== Starting model merging ==="
@@ -27,7 +27,7 @@ for step in $(seq 200 20 300); do
     fi
     
     echo "Merging model for step $step..."
-    python3 /home/chenluy/mismatch_all_perturb_agent/scripts/model_merger.py \
+    python3 ${PROJECT_DIR:-.}/scripts/model_merger.py \
         --backend fsdp \
         --local_dir "$actor_dir" \
         --hf_model_path "$BASE_MODEL_PATH" \
@@ -84,13 +84,13 @@ for model_name in "${models[@]}"; do
     
     # Run validation using train.sh with all datasets
     echo "Starting validation using train.sh..."
-    cd /home/chenluy/mismatch_all_perturb_agent
+    cd ${PROJECT_DIR:-.}
     
     # Disable wandb for validation
     export WANDB_MODE=disabled
     
     MODEL_PATH="$model_parent_dir" \
-    DATA_PATH=/home/chenluy/mismatch_all_perturb_agent/datasets \
+    DATA_PATH=./datasets \
     CHECKPOINT_PATH="$output_dir" \
     NNODES=1 \
     GPUS_PER_NODE=8 \

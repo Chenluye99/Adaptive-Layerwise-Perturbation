@@ -40,7 +40,7 @@ async def parallel_sandbox(tasks, stdin_list=None, num_processes=200):
     
     for r in results:
         if isinstance(r, Exception):
-            # 处理异常情况：单个sandbox失败不影响其他
+            # Handle exception: single sandbox failure should not affect others
             ok_flags.append(False)
             stdouts.append("")
             stderrs.append(f"Sandbox error: {str(r)}")

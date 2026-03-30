@@ -1,17 +1,17 @@
 # Sandbox configuration
 export SANDBOX_ENDPOINT=http://127.0.0.1:12345/faas/sandbox/
-export WANDB_API_KEY="a17294c76f5787d04c92fd978d0f1a29133756e2"
-export WANDB_ENTITY="machine-learning0"
+export WANDB_API_KEY="${WANDB_API_KEY}"
+export WANDB_ENTITY="${WANDB_ENTITY}"
 
-export RAY_TMPDIR=/opt/dlami/nvme/ray_tmp
+export RAY_TMPDIR=${RAY_TMPDIR:-/tmp/ray_tmp}
 
 PROJECT_NAME='TIR'
 RUN_NAME="simpletir"
 CONFIG_NAME="simpletir_trainer"
 
 MODEL_PATH="${MODEL_PATH:-Qwen}" # the parent dir of the checkpoint
-DATA_PATH="${DATA_PATH:-/home/chenluy/mismatch_all_perturb_agent/datasets}" # the dir containing data like deepscaler/train (see datasets/)
-CHECKPOINT_PATH="${CHECKPOINT_PATH:-/opt/dlami/nvme/${PROJECT_NAME}}" # the dir to save the checkpoint
+DATA_PATH="${DATA_PATH:-./datasets}" # the dir containing data like deepscaler/train (see datasets/)
+CHECKPOINT_PATH="${CHECKPOINT_PATH:-${CHECKPOINT_PATH:-./checkpoints/${PROJECT_NAME}}}" # the dir to save the checkpoint
 LOG_PATH="./logs/${PROJECT_NAME}" # the dir to save the log
 NNODES=1
 GPUS_PER_NODE=8 

@@ -292,15 +292,15 @@ class AgentHelper:
 
     def _info_masked_concatenate_with_padding(
         self,
-        # --- 原始张量 (来自 right_side) ---
+        # --- Original tensors (from right_side) ---
         prompt_resp: torch.Tensor,
         prompt_mask: torch.Tensor,
         prompt_logp: torch.Tensor,
-        # --- 新张量 (当前回合) ---
+        # --- New tensors (current turn) ---
         cur_resp: torch.Tensor,
         cur_logp: torch.Tensor = None,
         cur_info: torch.Tensor = None,
-        # --- 控制选项 ---
+        # --- Control options ---
         pad_to_left: bool = True,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Concatenate tensors and handle padding. Additionally, create a mask (info_mask) to cover the information block if it exists."""
@@ -309,18 +309,18 @@ class AgentHelper:
         if cur_info is not None:
             tensors_resp.append(cur_info)
 
-        tensors_mask = [prompt_mask, cur_resp] # mask 也包含 cur_resp
+        tensors_mask = [prompt_mask, cur_resp] # mask also includes cur_resp
         if cur_info is not None:
             info_mask = torch.full(
                 cur_info.size(), pad_id, dtype=cur_info.dtype, device=cur_info.device
             )
-            tensors_mask.append(info_mask) # 但在 info 部分使用 pad
+            tensors_mask.append(info_mask) # but use pad for the info section
 
         tensors_logp = [prompt_logp]
         if cur_logp is not None:
             tensors_logp.append(cur_logp)
         else:
-            # 如果没有 logp，必须用 -1.0 填充 cur_resp 的空间
+            # If no logp, must fill cur_resp space with -1.0
             tensors_logp.append(torch.full_like(cur_resp, -1.0, dtype=torch.float32, device=prompt_logp.device))
 
         if cur_info is not None:
@@ -334,15 +334,15 @@ class AgentHelper:
             "Concatenated tensor shapes do not match!"
 
         if pad_to_left:
-            # 转换为左填充
+            # Convert to left padding
             mask = concatenated_resp != pad_id
         else:
-            # 转换为右填充
+            # Convert to right padding
             mask = concatenated_resp == pad_id
 
         sorted_indices = mask.to(torch.int64).argsort(dim=1, stable=True)
 
-        # --- 6. 将 *相同* 的索引应用到 *所有* 张量 ---
+        # --- 6. Apply the *same* indices to *all* tensors ---
         padded_tensor_resp = concatenated_resp.gather(1, sorted_indices)
         padded_tensor_mask = concatenated_mask.gather(1, sorted_indices)
         padded_tensor_logp = concatenated_logp.gather(1, sorted_indices)
@@ -367,7 +367,7 @@ class AgentHelper:
                 cur_resp=cur_responses,
                 cur_logp=cur_log_probs,
                 cur_info=next_obs_ids,
-                pad_to_left=False,  # 转换为右填充
+                pad_to_left=False,  # Convert to right padding
             )
         )
 

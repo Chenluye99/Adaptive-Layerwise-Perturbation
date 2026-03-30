@@ -17,16 +17,16 @@ datasets:
       assistant: ["gpt", "assistant", "ai"]
       system: ["system"]
 
-dataset_prepared_path: /opt/dlami/nvme/tmp/axolotl_prepared_cache
+dataset_prepared_path: ${CACHE_DIR:-/tmp}/axolotl_prepared_cache
 val_set_size: 0.0
-# 限制数据加载的进程数，避免内存问题和磁盘空间问题
+# Limit data loading processes to avoid memory and disk space issues
 num_proc: 1
 
-# 禁用 DataLoader 的多进程和 pin_memory，避免共享内存问题
+# Disable DataLoader multiprocessing and pin_memory to avoid shared memory issues
 dataloader_num_workers: 0
 dataloader_pin_memory: false
 
-output_dir: /opt/dlami/nvme/TIR/mask_filtered_sft
+output_dir: ${CHECKPOINT_PATH:-./checkpoints}/mask_filtered_sft
 
 sequence_len: 4096
 sample_packing: true

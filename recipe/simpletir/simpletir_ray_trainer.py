@@ -341,7 +341,7 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
 
         # register wandb generation logger
         self.validation_generations_logger = {}
-        val_file_prefix = os.environ.get("DATA_PATH", "/home/chenluy/mismatch_all_perturb_agent/datasets/")
+        val_file_prefix = os.environ.get("DATA_PATH", "./datasets/")
         for val_file in config.data.val_files:
             # Remove the data path prefix and .parquet extension to get the key
             if val_file.startswith(val_file_prefix):
@@ -655,7 +655,7 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                 source_outputs = [outputs[i] for i in source_index]
                 source_scores = [scores[i] for i in source_index]
                 # Generate table_name by removing data path prefix and .parquet extension
-                val_file_prefix = os.environ.get("DATA_PATH", "/home/chenluy/SimpleTIR/datasets/")
+                val_file_prefix = os.environ.get("DATA_PATH", "./datasets/")
                 if source.startswith(val_file_prefix):
                     table_name = source[len(val_file_prefix):]
                 else:
@@ -1354,24 +1354,24 @@ class RaySimpleTIRTrainer(RayPPOTrainer):
                         reward_tensor = batch.batch["token_level_scores"]
 
                         # # format mask to mask over repeat
-                        # format_mask_tensor = None  # 初始化
+                        # format_mask_tensor = None  # Initialize
                         
-                        # # 检查 extra_rewards_info 是否存在且包含 "format_mask"
+                        # # Check if extra_rewards_info exists and contains "format_mask"
                         # if extra_rewards_info and "format_mask" in extra_rewards_info:
                             
-                        #     # 1. 从字典中提取 "format_mask" 的 Python 列表
+                        #     # 1. Extract the "format_mask" Python list from the dict
                         #     format_mask_list = extra_rewards_info["format_mask"]
                             
-                        #     # 2. 将列表转换为 torch.Tensor
-                        #     #    我们使用 reward_tensor 的 .device 和 .dtype 来确保一致性
-                        #     #    (假设 format_mask 应该像奖励一样使用浮点数)
+                        #     # 2. Convert the list to a torch.Tensor
+                        #     #    Using reward_tensor .device and .dtype for consistency
+                        #     #    (assuming format_mask should use floats like rewards)
                         #     format_mask_tensor = torch.tensor(
                         #         format_mask_list, 
-                        #         dtype=torch.float32,  # 或 torch.int32，取决于您的用途
+                        #         dtype=torch.float32,  # or torch.int32, depending on use case
                         #         device=reward_tensor.device
                         #     )
                             
-                        #     # 3. (推荐) 将其添加回 batch 字典中，以便后续步骤使用
+                        #     # 3. (Recommended) Add it back to the batch dict for later use
                         #     batch.batch["format_mask"] = format_mask_tensor
 
                         # Rejection sampling based on rewards
