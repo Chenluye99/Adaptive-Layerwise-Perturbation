@@ -263,7 +263,7 @@ class ActorRolloutRefWorker(Worker):
             # might leave new parameters uninitialized (garbage values)
             if perturb_enabled:
                 import math
-                perturb_std = float(self.config.actor.get("perturb_std", 1e-2))
+                perturb_std = float(self.config.actor.get("perturb_std", 1e-6))
                 # Protect against log(0) or log(negative)
                 if perturb_std <= 0:
                     if self.rank == 0:
@@ -382,7 +382,7 @@ class ActorRolloutRefWorker(Worker):
                     params_without_perturb.append(param)
 
             # Define parameter groups
-            perturb_lr = self.config.actor.get("perturb_lr", 1e-2)
+            perturb_lr = self.config.actor.get("perturb_lr", 5e-4)
             param_groups = [
                 {'params': params_without_perturb},
                 {'params': perturb_params, 'lr': perturb_lr} 

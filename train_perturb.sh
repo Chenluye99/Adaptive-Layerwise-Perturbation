@@ -35,8 +35,8 @@ RESUME=False
 LOSS_MODE='sequence' # vanilla, cum-token, sequence
 ADAPT_RATIO=False
 USE_PERTURBATION=True
-PERTURB_STD=1e-8
-PERTURB_LR=1e-2
+PERTURB_STD=1e-6
+PERTURB_LR=5e-4
 PERTURB_START_LAYER=0  # Start layer index for perturbation (inclusive), default starts from layer 0
 PERTURB_END_LAYER=null  # End layer index for perturbation (exclusive), null means through the last layer
 

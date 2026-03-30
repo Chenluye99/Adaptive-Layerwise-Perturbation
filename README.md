@@ -170,49 +170,41 @@ Expected: JSON with `"status":"success"` and `"stdout":"2\n"`. See `sandbox/READ
 
 ## Running Experiments
 
-Each experiment type has a dedicated training script at the repository root:
+Each experiment type has a dedicated training script at the repository root. Set environment variables first:
 
 ```bash
-# Set required environment variables
 export WANDB_API_KEY="your-key"
 export WANDB_ENTITY="your-entity"
 export DATA_PATH="./datasets"
 export CHECKPOINT_PATH="./checkpoints"
 export MODEL_DIR="./models"       # parent dir of HF model checkpoints
-
-# GSPO baseline
-bash train_gspo.sh
-
-# Seq-Bypass
-bash train_bypass.sh
-
-# TIS/MIS
-bash train_mis.sh
-
-# ALP (perturbation)
-bash train_perturb.sh
 ```
 
-Or use `train.sh` directly with arguments:
+The first three methods can be launched with a single command:
 
 ```bash
-MODEL_PATH=Qwen \
-DATA_PATH=./datasets \
-CHECKPOINT_PATH=./checkpoints \
-LOG_PATH=./logs/TIR \
-NNODES=1 \
-GPUS_PER_NODE=8 \
-RESUME=False \
-CONFIG_NAME=simpletir_trainer \
-bash train.sh \
-  --max_response_length 8000 \
-  --max_prompt_length 16000 \
+bash train_gspo.sh                        # GSPO baseline
+bash train_bypass.sh                      # Seq-Bypass
+bash train_mis.sh                         # TIS/MIS
+```
+
+For ALP (perturbation), a full example with commonly tuned arguments:
+
+```bash
+export PERTURB_PATCH=qwen2   # or qwen3, llama — must match model architecture
+bash train_perturb.sh \
+  --loss_mode sequence \
+  --perturb_std 1e-6 \
+  --perturb_lr 5e-4 \
+  --perturb_start_layer 0 \
+  --perturb_end_layer null \
   --model_name Qwen2.5-7B \
   --max_turns 5 \
   --train_batch_size 128 \
-  --val_sample_size 50 \
-  --n_val 32 \
-  --train_dataset "simplelr_math_35/train deepscaler/train"
+  --clip_ratio_high 3.0 \
+  --clip_ratio_low 0.5 \
+  --train_dataset "simplelr_math_35/train deepscaler/train" \
+  --valid_dataset "simplelr_math_35/test deepscaler/aime deepscaler/aime25"
 ```
 
 ### Environment Variables
@@ -233,35 +225,6 @@ bash train.sh \
 
 ---
 
-## Bypass Configuration
-
-Seq-Bypass uses rollout (vLLM) log-probabilities directly as `old_log_probs` in the PPO loss denominator, bypassing the FSDP-recomputed reference policy. This is the simplest mismatch correction: rather than computing an auxiliary IS ratio (MIS/TIS) or injecting noise (ALP), it directly substitutes the behavior policy's log-probs for the stale reference.
-
-### Key Parameters
-
-| Parameter | Config Key | Description | Default |
-|-----------|-----------|-------------|---------|
-| `BYPASS_OLD_LOGPROB` | `actor_rollout_ref.actor.bypass_old_logprob` | Enable Seq-Bypass mode | `False` |
-| `LOSS_MODE` | `actor_rollout_ref.actor.policy_loss.loss_mode` | Loss aggregation mode | `sequence` |
-
-### Running Bypass Experiments
-
-```bash
-# Default: sequence-level bypass
-bash train_bypass.sh
-
-# With custom loss mode
-bash train_bypass.sh --loss_mode token
-
-# Or enable bypass on any training script via Hydra override
-bash train.sh --loss_mode sequence \
-  actor_rollout_ref.actor.bypass_old_logprob=True
-```
-
-**Note:** Bypass mode requires `actor_rollout_ref.rollout.calculate_log_probs=True` (enabled by default). The actor's true `old_log_probs` are still computed and stored as `actor_old_log_probs` for diagnostic metrics.
-
----
-
 ## ALP Configuration
 
 ### Key Parameters
@@ -271,11 +234,12 @@ The `train_perturb.sh` script configures ALP with the following parameters (also
 | Parameter | Config Key | Description | Default |
 |-----------|-----------|-------------|---------|
 | `USE_PERTURBATION` | `actor_rollout_ref.actor.use_perturbation` | Enable/disable ALP perturbation | `True` |
-| `PERTURB_STD` | `actor_rollout_ref.actor.perturb_std` | Initial standard deviation $\sigma_0$ for Gaussian noise. The actual noise scale is $\exp(\log(\sigma_0))$, optimized in log-space to stay non-negative. | `1e-8` |
+| `PERTURB_STD` | `actor_rollout_ref.actor.perturb_std` | Initial standard deviation $\sigma_0$ for Gaussian noise. The actual noise scale is $\exp(\log(\sigma_0))$, optimized in log-space to stay non-negative. | `1e-6` |
 | `coef_learnable` | `coef_learnable` (in model `config.json`) | If `True`, the per-layer noise coefficient $\sigma_l$ is a learnable `nn.Parameter` updated via gradient descent. If `False`, $\sigma_l$ is fixed at `perturb_std`. | `True` |
-| `PERTURB_LR` | `actor_rollout_ref.actor.perturb_lr` | Learning rate for the learnable perturbation coefficients (only used when `coef_learnable=True`) | `1e-2` |
+| `PERTURB_LR` | `actor_rollout_ref.actor.perturb_lr` | Learning rate for the learnable perturbation coefficients (only used when `coef_learnable=True`) | `5e-4` |
 | `PERTURB_START_LAYER` | `actor_rollout_ref.actor.perturb_start_layer` | Start layer index for perturbation (inclusive) | `0` |
 | `PERTURB_END_LAYER` | `actor_rollout_ref.actor.perturb_end_layer` | End layer index for perturbation (exclusive). `null` means through the last layer. | `null` |
+| `PERTURB_PATCH` | env `PERTURB_PATCH` | Transformer monkey-patch for noise injection. Set as environment variable before launching (`export PERTURB_PATCH=qwen2`). Options: `qwen2` (Qwen2/2.5), `qwen3`, `llama` (LLaMA 3.x) | `qwen2` |
 | `LOSS_MODE` | `actor_rollout_ref.actor.policy_loss.loss_mode` | Loss aggregation: `token` (token-level ALP), `sequence` (sequence-level ALP), `vanilla`, `cum-token` | `sequence` |
 
 #### Enabling Learnable Coefficients
@@ -289,26 +253,6 @@ To use learnable perturbation coefficients, add these fields to the model's `con
   "perturb_std": 1e-2
 }
 ```
-
-### Model Patch Selection (`PERTURB_PATCH`)
-
-ALP works by monkey-patching the transformer's decoder layer to inject noise before the attention block. Different model architectures require different patches. Set the `PERTURB_PATCH` environment variable **before** launching training:
-
-```bash
-export PERTURB_PATCH=qwen2   # For Qwen2 / Qwen2.5 models (default)
-export PERTURB_PATCH=qwen3   # For Qwen3 models
-export PERTURB_PATCH=llama   # For LLaMA models
-```
-
-| Patch | Supported Models | Patch File |
-|-------|-----------------|------------|
-| `qwen2` | Qwen2, Qwen2.5, Qwen2.5-7B | `verl/trainer/perturb_transformer/patch_qwen2.py` |
-| `qwen3` | Qwen3 | `verl/trainer/perturb_transformer/patch_qwen3.py` |
-| `llama` | LLaMA 3, LLaMA 3.1, LLaMA 3.2 | `verl/trainer/perturb_transformer/patch_llama.py` |
-
-The patch is applied in two places:
-1. **Main trainer process** (`verl/trainer/main_ppo.py`): applies the patch at import time
-2. **FSDP worker processes** (`verl/workers/fsdp_workers.py`): each Ray worker applies the same patch, selected via the `PERTURB_PATCH` environment variable propagated through Ray's runtime environment
 
 ### Noise Seed Mechanism
 
