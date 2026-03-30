@@ -191,8 +191,8 @@ bash train_mis.sh                         # TIS/MIS
 For ALP (perturbation), a full example with commonly tuned arguments:
 
 ```bash
-export PERTURB_PATCH=qwen2   # or qwen3, llama — must match model architecture
 bash train_perturb.sh \
+  --perturb_patch qwen2 \
   --loss_mode sequence \
   --perturb_std 1e-6 \
   --perturb_lr 5e-4 \
@@ -239,7 +239,7 @@ The `train_perturb.sh` script configures ALP with the following parameters (also
 | `PERTURB_LR` | `actor_rollout_ref.actor.perturb_lr` | Learning rate for the learnable perturbation coefficients (only used when `coef_learnable=True`) | `5e-4` |
 | `PERTURB_START_LAYER` | `actor_rollout_ref.actor.perturb_start_layer` | Start layer index for perturbation (inclusive) | `0` |
 | `PERTURB_END_LAYER` | `actor_rollout_ref.actor.perturb_end_layer` | End layer index for perturbation (exclusive). `null` means through the last layer. | `null` |
-| `PERTURB_PATCH` | env `PERTURB_PATCH` | Transformer monkey-patch for noise injection. Set as environment variable before launching (`export PERTURB_PATCH=qwen2`). Options: `qwen2` (Qwen2/2.5), `qwen3`, `llama` (LLaMA 3.x) | `qwen2` |
+| `PERTURB_PATCH` | env `PERTURB_PATCH` | Transformer monkey-patch for noise injection. Set via `--perturb_patch` in `train_perturb.sh`, or `export PERTURB_PATCH=...`. Options: `qwen2` (Qwen2/2.5), `qwen3`, `llama` (LLaMA 3.x) | `qwen2` |
 | `LOSS_MODE` | `actor_rollout_ref.actor.policy_loss.loss_mode` | Loss aggregation: `token` (token-level ALP), `sequence` (sequence-level ALP), `vanilla`, `cum-token` | `sequence` |
 
 #### Enabling Learnable Coefficients

@@ -37,6 +37,7 @@ ADAPT_RATIO=False
 USE_PERTURBATION=True
 PERTURB_STD=1e-6
 PERTURB_LR=5e-4
+PERTURB_PATCH="${PERTURB_PATCH:-qwen2}"  # qwen2/qwen3/llama — must match model architecture
 PERTURB_START_LAYER=0  # Start layer index for perturbation (inclusive), default starts from layer 0
 PERTURB_END_LAYER=null  # End layer index for perturbation (exclusive), null means through the last layer
 
@@ -188,6 +189,7 @@ while [[ "$#" -gt 0 ]]; do
     --perturb_lr) PERTURB_LR="$2"; shift 2 ;;
     --perturb_start_layer) PERTURB_START_LAYER="$2"; shift 2 ;;
     --perturb_end_layer) PERTURB_END_LAYER="$2"; shift 2 ;;
+    --perturb_patch) PERTURB_PATCH="$2"; shift 2 ;;
     --rejection_sample) REJECTION_SAMPLE="$2"; shift 2 ;;
     --sp_size) SP_SIZE="$2"; shift 2 ;;
     --train_dataset) TRAIN_DATASET=($2); shift 2 ;;
@@ -326,7 +328,9 @@ echo "VALID_FILES: $VALID_FILES"
 
 echo "CONFIG_NAME: $CONFIG_NAME"
 
-# Example of using the variables
+# Export PERTURB_PATCH so it's available at Python import time
+export PERTURB_PATCH=${PERTURB_PATCH}
+
 sleep 3
 PYTHONUNBUFFERED=1 python -m recipe.simpletir.main_simpletir \
     --config-name $CONFIG_NAME \
