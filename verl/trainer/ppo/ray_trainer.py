@@ -854,9 +854,19 @@ class RayPPOTrainer(object):
                     batch.meta_info['global_token_num'] = torch.sum(batch.batch['attention_mask'], dim=-1).tolist()
 
                     # recompute old_log_probs
+                    bypass_old_logprob = self.config.actor_rollout_ref.actor.get('bypass_old_logprob', False)
                     with _timer('old_log_prob', timing_raw):
                         old_log_prob = self.actor_rollout_wg.compute_log_prob(batch)
-                        batch = batch.union(old_log_prob)
+                        if bypass_old_logprob:
+                            # Seq-Bypass mode: use rollout log-probs as old_log_probs for training
+                            assert 'rollout_log_probs' in batch.batch, (
+                                "bypass_old_logprob=True requires rollout_log_probs in batch. "
+                                "Ensure actor_rollout_ref.rollout.calculate_log_probs=True."
+                            )
+                            batch.batch['actor_old_log_probs'] = old_log_prob.batch['old_log_probs']
+                            batch.batch['old_log_probs'] = batch.batch['rollout_log_probs']
+                        else:
+                            batch = batch.union(old_log_prob)
 
                     if self.use_reference_policy:
                         # compute reference log_prob
