@@ -258,6 +258,26 @@ To use learnable perturbation coefficients, add these fields to the model's `con
 }
 ```
 
+### Model Patch Selection (`PERTURB_PATCH`)
+
+ALP works by monkey-patching the transformer's decoder layer to inject noise before the attention block. Different model architectures require different patches. Set the `PERTURB_PATCH` environment variable **before** launching training:
+
+```bash
+export PERTURB_PATCH=qwen2   # For Qwen2 / Qwen2.5 models (default)
+export PERTURB_PATCH=qwen3   # For Qwen3 models
+export PERTURB_PATCH=llama   # For LLaMA models
+```
+
+| Patch | Supported Models | Patch File |
+|-------|-----------------|------------|
+| `qwen2` | Qwen2, Qwen2.5, Qwen2.5-7B | `verl/trainer/perturb_transformer/patch_qwen2.py` |
+| `qwen3` | Qwen3 | `verl/trainer/perturb_transformer/patch_qwen3.py` |
+| `llama` | LLaMA 3, LLaMA 3.1, LLaMA 3.2 | `verl/trainer/perturb_transformer/patch_llama.py` |
+
+The patch is applied in two places:
+1. **Main trainer process** (`verl/trainer/main_ppo.py`): applies the patch at import time
+2. **FSDP worker processes** (`verl/workers/fsdp_workers.py`): each Ray worker applies the same patch, selected via the `PERTURB_PATCH` environment variable propagated through Ray's runtime environment
+
 ### Noise Seed Mechanism
 
 The perturbation patch uses a **stateless seeded Generator** to ensure gradient-checkpointing correctness. Before every forward pass, a deterministic seed is set on each decoder layer (`layer._noise_seed`). During the forward pass, a local `torch.Generator` is created with `seed = _noise_seed + layer_idx`, producing identical noise on both the original forward and gradient-checkpoint recomputation. This guarantees correct gradients when `enable_gradient_checkpointing=True`.
