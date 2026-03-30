@@ -131,7 +131,7 @@ class vLLMRollout(BaseRollout):
 
         kwargs = dict(
             n=1,
-            logprobs=1 if config.calculate_log_probs else 0,  # 根据配置设置logprobs
+            logprobs=1 if config.calculate_log_probs else 0,  # Set logprobs based on config
             max_tokens=config.response_length,
         )
 
@@ -316,13 +316,13 @@ class vLLMRollout(BaseRollout):
         """Update the weights of the rollout model with perturbation filtering."""
         from verl.utils.vllm.patch import patch_vllm_moe_model_weight_loader
 
-        # 获取 vLLM 底层的 model 实例
-        # 注意：这个路径通常适用于 vLLM 的 standard executor
+        # Get vLLM underlying model instance
+        # Note: This path is typically used for vLLM standard executor
         model = self.inference_engine.llm_engine.model_executor.driver_worker.worker.model_runner.model
         
         patch_vllm_moe_model_weight_loader(model)
 
-        # 过滤掉扰动参数 (coef, log_sigma) 以防止 vLLM 报错
+        # Filter out perturbation parameters (coef, log_sigma) to prevent vLLM errors
         filtered_weights = (
             (name, param) for name, param in weights 
             if "coef" not in name and "log_sigma" not in name

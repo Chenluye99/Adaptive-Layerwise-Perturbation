@@ -21,5 +21,5 @@ echo "Files saved to: ./datasets"
 echo ""
 echo "Directory structure:"
 ls -lh ./datasets/weqweasdas/ 2>/dev/null || echo "weqweasdas directory not found"
-ls -lh ./datasets/${HF_USER}/ 2>/dev/null || echo "Chenlu123 directory not found"
+ls -lh ./datasets/${HF_USER}/ 2>/dev/null || echo "${HF_USER} directory not found"
 

@@ -26,20 +26,20 @@ import verl.utils.torch_functional as verl_F
 from verl.trainer.ppo.rollout_is import compute_rollout_importance_weights, compute_is_metrics, compute_mismatch_metrics
 
 def compute_ppo_is_metrics_adapt_ratio(
-    log_importance_ratio: torch.Tensor,  # 1. 为清晰起见，重命名 (你传入的已经是 log_ratio)
+    log_importance_ratio: torch.Tensor,  # 1. Renamed for clarity (input is already log_ratio)
     response_mask: torch.Tensor,
     advantages: torch.Tensor,
-    clip_ratio_low: torch.Tensor,  # 这些已经是 根号L 缩放过的
-    clip_ratio_high: torch.Tensor  # 这些已经是 根号L 缩放过的
+    clip_ratio_low: torch.Tensor,  # These are already scaled by sqrt(L)
+    clip_ratio_high: torch.Tensor  # These are already scaled by sqrt(L)
 ):
     """Compute PPO importance sampling metrics consistent with log-space clipping."""
     ppo_is_metrics = {}
     
-    # --- 统计 Ratio (用于均值、方差等) ---
-    importance_ratios = torch.exp(log_importance_ratio) # 转换为 ratio
+    # --- Statistics for Ratio (mean, variance, etc.) ---
+    importance_ratios = torch.exp(log_importance_ratio)  # Convert to ratio
     valid_importance_ratios = importance_ratios[response_mask > 0]
     
-    # 只有当存在有效 token 时才计算统计数据
+    # Only compute statistics when valid tokens exist
     if valid_importance_ratios.numel() > 0:
         ppo_is_metrics["is_ratio/mean"] = valid_importance_ratios.mean().item()
         ppo_is_metrics["is_ratio/std"] = valid_importance_ratios.std().item()
@@ -47,7 +47,7 @@ def compute_ppo_is_metrics_adapt_ratio(
 
         ppo_is_metrics["is_ratio/min"] = valid_importance_ratios.min().item()
         ppo_is_metrics["is_ratio/max"] = valid_importance_ratios.max().item()
-        # ... (所有分位数 qXX 计算保持不变) ...
+        # ... (all quantile qXX computations remain unchanged) ...
         ppo_is_metrics["is_ratio/q01"] = torch.quantile(valid_importance_ratios, 0.01).item()        
         ppo_is_metrics["is_ratio/q05"] = torch.quantile(valid_importance_ratios, 0.05).item()
         ppo_is_metrics["is_ratio/q25"] = torch.quantile(valid_importance_ratios, 0.25).item()
@@ -56,19 +56,19 @@ def compute_ppo_is_metrics_adapt_ratio(
         ppo_is_metrics["is_ratio/q95"] = torch.quantile(valid_importance_ratios, 0.95).item()
         ppo_is_metrics["is_ratio/q99"] = torch.quantile(valid_importance_ratios, 0.99).item()
 
-        # --- 统计 Clipping (必须在 Log-Space 中进行) ---
+        # --- Clipping statistics (must be done in log-space) ---
         
-        # 2. 获取有效的 log-ratio 和 advantages
+        # 2. Get valid log-ratios and advantages
         valid_log_ratios = log_importance_ratio[response_mask > 0]
         valid_advantages = advantages[response_mask > 0]
         
-        # 3. 【关键修改】在 log 空间定义边界
-        # 边界 (clip_ratio_low/high) 可能是 (batch_size,), (batch_size, 1), 或 (batch_size, seq_len)
-        # 我们需要将它们统一扩展到 (batch_size, seq_len) 以便正确索引
+        # 3. [Key change] Define bounds in log-space
+        # Bounds (clip_ratio_low/high) may be (batch_size,), (batch_size, 1), or (batch_size, seq_len)
+        # We need to expand them uniformly to (batch_size, seq_len) for correct indexing
         
         batch_size, seq_len = response_mask.shape
         
-        # 统一处理不同维度的输入
+        # Uniformly process inputs of different dimensions
         if clip_ratio_low.dim() == 1:
             # (batch_size,) -> (batch_size, 1) -> (batch_size, seq_len)
             clip_lower_bound_expanded = clip_ratio_low.unsqueeze(-1).expand(-1, seq_len)
@@ -78,18 +78,18 @@ def compute_ppo_is_metrics_adapt_ratio(
             clip_lower_bound_expanded = clip_ratio_low.expand(-1, seq_len)
             clip_upper_bound_expanded = clip_ratio_high.expand(-1, seq_len)
         else:
-            # 已经是 (batch_size, seq_len) 的情况
+            # Already (batch_size, seq_len) case
             clip_lower_bound_expanded = clip_ratio_low
             clip_upper_bound_expanded = clip_ratio_high
 
-        # 提取与 valid_log_ratios 对应的边界值
-        valid_clip_lower = -clip_lower_bound_expanded[response_mask > 0] # 别忘了负号
+        # Extract bound values corresponding to valid_log_ratios
+        valid_clip_lower = -clip_lower_bound_expanded[response_mask > 0]  # Note the negative sign
         valid_clip_upper = clip_upper_bound_expanded[response_mask > 0]
         
-        # 4. 【关键修改】在 log 空间比较
-        # 裁剪发生在:
-        # 1. log_ratio < -clip_ratio_low (即 valid_clip_lower) AND advantage < 0
-        # 2. log_ratio > clip_ratio_high (即 valid_clip_upper) AND advantage > 0
+        # 4. [Key change] Compare in log-space
+        # Clipping occurs when:
+        # 1. log_ratio < -clip_ratio_low (i.e. valid_clip_lower) AND advantage < 0
+        # 2. log_ratio > clip_ratio_high (i.e. valid_clip_upper) AND advantage > 0
         
         clipped_lower = (valid_log_ratios < valid_clip_lower) & (valid_advantages < 0)
         clipped_upper = (valid_log_ratios > valid_clip_upper) & (valid_advantages > 0)

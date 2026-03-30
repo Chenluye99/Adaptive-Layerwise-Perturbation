@@ -42,8 +42,8 @@ def extract_last_boxed(text):
 #     Separate extraction logic and format mask logic.
 
 #     Returns:
-#     1. extraction_result (str | None): 按照 *原始* 逻辑提取的最后一个 \boxed{...} (group 0)。
-#     2. format_mask (int): 按照 *新* 规则计算的格式掩码 (1=通过, 0=失败)。
+#     1. extraction_result (str | None): Last \boxed{...} via *original* logic (group 0).
+#     2. format_mask (int): Format mask via *new* rules (1=pass, 0=fail).
 #     """
     
 #     # Your original regex

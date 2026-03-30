@@ -11,7 +11,7 @@ from axolotl.prompt_tokenizers import PromptTokenizingStrategy
 tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-7B", trust_remote_code=False)
 
 # Load a sample from the dataset
-with open('/home/chenluy/SimpleTIR/sft/filtered_sft_data.jsonl', 'r') as f:
+with open('./sft/filtered_sft_data.jsonl', 'r') as f:
     for i, line in enumerate(f):
         if i == 0:  # Get first sample
             sample = json.loads(line)

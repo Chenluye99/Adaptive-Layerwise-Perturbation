@@ -119,18 +119,18 @@ def compute_rollout_importance_weights(
         rollout_is_weights = torch.exp(log_ratio_safe)
 
     elif rollout_is_level == "cum-token":
-        # Cumulative Token IS: 为每个位置 t 计算从开始到 t 的累积重要性权重
-        # 对于位置 t，使用 exp(Σ_{i=1}^{t} log_ratio_i) 或 exp(mean(log_ratio_1...t))
+        # Cumulative Token IS: For each position t, compute cumulative importance weight from start to t
+        # For position t, use exp(sum_{i=1}^{t} log_ratio_i) or exp(mean(log_ratio_1...t))
         
-        # 计算 log_ratio 的累积和
+        # Compute cumulative sum of log_ratio
         cumulative_sum = torch.cumsum(log_ratio * eos_mask, dim=-1)
         
-        # 计算有效 token 的累积计数
+        # Compute cumulative count of valid tokens
         cumulative_count = torch.cumsum(eos_mask, dim=-1)
         
         if geometric:
-            # Geometric mode: 使用几何平均 exp(mean(log_ratio_1...t))
-            # 对于每个位置 t: (∏_{i=1}^{t} π_train_i/π_rollout_i)^(1/t)
+            # Geometric mode: use geometric mean exp(mean(log_ratio_1...t))
+            # For each position t: (prod_{i=1}^{t} pi_train_i/pi_rollout_i)^(1/t)
             eps = 1e-8
             log_ratio_cumulative_mean = torch.where(
                 eos_mask > 0,
@@ -145,8 +145,8 @@ def compute_rollout_importance_weights(
             )
             rollout_is_weights = torch.exp(log_ratio_cumulative_mean_safe)
         else:
-            # Non-geometric mode: 使用累积乘积 exp(Σ log_ratio_1...t)
-            # 对于每个位置 t: ∏_{i=1}^{t} π_train_i/π_rollout_i
+            # Non-geometric mode: use cumulative product exp(sum log_ratio_1...t)
+            # For each position t: prod_{i=1}^{t} pi_train_i/pi_rollout_i
             log_ratio_for_metrics = cumulative_sum
             
             # Apply safety bound
@@ -158,54 +158,54 @@ def compute_rollout_importance_weights(
             )
 
     elif rollout_is_level == "cum-turn":
-        # 目标：计算从序列开始到当前 Turn 结束的几何平均值，并将其作为当前 Turn 内所有 token 的权重。
-        # 这需要将每个 Turn 结束位置的累加值（sum_log_ratio 和 valid_token_nums）"向后填充"到整个 Turn。
+        # Goal: Compute geometric mean from sequence start to current turn end, use as weight for all tokens in the current turn.
+        # This requires "backward-filling" the cumulative values (sum_log_ratio and valid_token_nums) at each turn end position to the entire turn.
         valid_token_nums = torch.cumsum(eos_mask, dim=-1)
         B, L = old_log_prob.shape
         device = old_log_prob.device
 
-        # 计算 log_ratio 的累积和
+        # Compute cumulative sum of log_ratio
         sum_log_ratio = torch.cumsum(log_ratio * eos_mask, dim=-1)
 
-        # --- 步骤 1: 找到每个 token 对应的 Turn 结束点索引 ---
+        # --- Step 1: Find the turn end-point index for each token ---
         
-        # 确保最后一个 token 始终是结束点
+        # Ensure the last token is always an end point
         turn_end_mask = turn_end_indicator.bool()
         turn_end_mask[:, -1] = True
         
-        # 创建一个索引张量 [0, 1, 2, ..., L-1]
+        # Create index tensor [0, 1, 2, ..., L-1]
         indices = torch.arange(L, device=device).expand(B, -1)
         
-        # 在非结束点的位置，用一个超大值（L）替换索引
+        # At non-endpoint positions, replace index with a large value (L)
         masked_indices = torch.where(turn_end_mask, indices, L)
         
-        # 通过"翻转 -> 累积最小值 -> 翻转"的技巧，高效地实现向后填充
-        # 这会找到每个位置右侧（包括自身）的第一个有效结束点索引
+        # Efficiently implement backward-fill via "flip -> cummin -> flip" trick
+        # This finds the first valid endpoint index to the right of each position (inclusive)
         rev_masked_indices = torch.flip(masked_indices, dims=[-1])
         rev_end_indices, _ = torch.cummin(rev_masked_indices, dim=-1)
         end_indices = torch.flip(rev_end_indices, dims=[-1])
 
-        # --- 步骤 2: 使用 gather 操作，根据结束点索引提取对应的累加值 ---
+        # --- Step 2: Use gather to extract cumulative values based on endpoint indices ---
         
-        # `end_indices` 现在包含了每个 token 应该使用的"最终"索引
-        # 用 gather 从 sum_log_ratio 中提取出每个 token 对应的 Turn 结束时的累加和
+        # `end_indices` now contains the "final" index each token should use
+        # Use gather to extract from sum_log_ratio the cumulative sum at each token's turn end
         turn_cumulative_sums = torch.gather(sum_log_ratio, -1, end_indices)
         
-        # 同样地，提取出对应的 Turn 结束时的累加 token 数量
+        # Similarly, extract the cumulative token count at each turn end
         turn_cumulative_counts = torch.gather(valid_token_nums, -1, end_indices)
 
-        # --- 步骤 3: 计算平均对数比率 ---
+        # --- Step 3: Compute mean log ratio ---
         
-        # 加一个极小值防止除以零
+        # Add a small epsilon to prevent division by zero
         if geometric:
             log_ratio_mean = turn_cumulative_sums / (turn_cumulative_counts + 1e-8)
             log_ratio_for_metrics = log_ratio_mean
             log_ratio_mean_safe = torch.clamp(log_ratio_mean, min=-SAFETY_BOUND, max=SAFETY_BOUND)
         else:
-            log_ratio_for_metrics = turn_cumulative_sums  # 存储用于监控
+            log_ratio_for_metrics = turn_cumulative_sums  # Store for monitoring
             log_ratio_mean_safe = torch.clamp(turn_cumulative_sums, min=-SAFETY_BOUND, max=SAFETY_BOUND)
         
-        # 用 exp() 将对数比率转换回真正的权重
+        # Use exp() to convert log ratio back to actual weight
         rollout_is_weights = torch.exp(log_ratio_mean_safe)
     elif rollout_is_level == "sequence":
         if geometric:
@@ -292,11 +292,11 @@ def compute_rollout_importance_weights(
         
         # Void turn and IS clipping correlation metrics
         if void_turn_mask is not None:
-            # void_turn_mask=0 代表含有 void turn, seq_clipped=1 代表 IS 异常
+            # void_turn_mask=0 means contains void turn, seq_clipped=1 means IS abnormal
             has_void_turn = (void_turn_mask == 0).float()  # 1 if has void turn, 0 if no void turn
             has_is_anomaly = seq_clipped.float()  # 1 if IS anomaly, 0 if normal
             
-            # 1. 被 IS 异常的样本中含有 void turn 的比例
+            # 1. Proportion of IS-abnormal samples that contain void turns
             # P(void_turn | IS_anomaly) = P(void_turn & IS_anomaly) / P(IS_anomaly)
             is_anomaly_count = has_is_anomaly.sum()
             if is_anomaly_count > 0:
@@ -305,7 +305,7 @@ def compute_rollout_importance_weights(
             else:
                 metrics["void_turn_in_rollout_is_masked_ratio"] = torch.tensor(0.0, device=rollout_is_weights.device)
             
-            # 2. 含有 void turn 的样本中包含 IS 异常的比例  
+            # 2. Proportion of void-turn samples that are IS-abnormal  
             # P(IS_anomaly | void_turn) = P(void_turn & IS_anomaly) / P(void_turn)
             void_turn_count = has_void_turn.sum()
             if void_turn_count > 0:

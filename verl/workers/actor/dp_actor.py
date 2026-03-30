@@ -354,7 +354,7 @@ class DataParallelPPOActor(BasePPOActor):
 
             for batch_idx, data in enumerate(dataloader):
                 minibatch_log_probs = []
-                revert_indices = None # 用于 dynamic_bsz 还原顺序
+                revert_indices = None  # For dynamic_bsz to restore original order
 
                 # split batch into micro_batches
                 mini_batch = data

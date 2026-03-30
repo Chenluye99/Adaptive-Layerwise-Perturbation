@@ -19,19 +19,19 @@ import sys
 
 # TODO: hardcode the path to the patch_qwen2.py file, in the future, we should use the path from the config file.
 current_file_dir = os.path.dirname(os.path.abspath(__file__))
-# 将这个目录加入 Python 搜索路径
+# Add this directory to Python search path
 if current_file_dir not in sys.path:
     sys.path.append(current_file_dir)
 
 try:
-    # 现在 Python 会在 main_ppo.py 旁边寻找 patch_qwen_verl.py
+    # Now Python will look for patch_qwen_verl.py next to main_ppo.py
     from perturb_transformer.patch_qwen2 import apply_qwen2_patch
     apply_qwen2_patch()
     print(f"✅ [Main PPO] Qwen2 Patch Applied Successfully from: {current_file_dir}")
 except ImportError as e:
     print(f"❌ [Main PPO] Error loading patch: {e}")
     print(f"   (Looking in {current_file_dir})")
-    # 如果 patch 很重要，建议在这里直接 sys.exit(1) 终止程序，以免跑错
+    # If patch is important, consider calling sys.exit(1) here to avoid running incorrectly
     
 import socket
 import os
