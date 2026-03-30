@@ -183,6 +183,9 @@ export MODEL_DIR="./models"       # parent dir of HF model checkpoints
 # GSPO baseline
 bash train_gspo.sh
 
+# Seq-Bypass
+bash train_bypass.sh
+
 # TIS/MIS
 bash train_mis.sh
 
@@ -227,6 +230,35 @@ bash train.sh \
 | `WANDB_API_KEY` | WandB API key (enables wandb logging) | Optional |
 | `WANDB_ENTITY` | WandB entity | Optional |
 | `RAY_TMPDIR` | Ray temp directory | Optional |
+
+---
+
+## Bypass Configuration
+
+Seq-Bypass uses rollout (vLLM) log-probabilities directly as `old_log_probs` in the PPO loss denominator, bypassing the FSDP-recomputed reference policy. This is the simplest mismatch correction: rather than computing an auxiliary IS ratio (MIS/TIS) or injecting noise (ALP), it directly substitutes the behavior policy's log-probs for the stale reference.
+
+### Key Parameters
+
+| Parameter | Config Key | Description | Default |
+|-----------|-----------|-------------|---------|
+| `BYPASS_OLD_LOGPROB` | `actor_rollout_ref.actor.bypass_old_logprob` | Enable Seq-Bypass mode | `False` |
+| `LOSS_MODE` | `actor_rollout_ref.actor.policy_loss.loss_mode` | Loss aggregation mode | `sequence` |
+
+### Running Bypass Experiments
+
+```bash
+# Default: sequence-level bypass
+bash train_bypass.sh
+
+# With custom loss mode
+bash train_bypass.sh --loss_mode token
+
+# Or enable bypass on any training script via Hydra override
+bash train.sh --loss_mode sequence \
+  actor_rollout_ref.actor.bypass_old_logprob=True
+```
+
+**Note:** Bypass mode requires `actor_rollout_ref.rollout.calculate_log_probs=True` (enabled by default). The actor's true `old_log_probs` are still computed and stored as `actor_old_log_probs` for diagnostic metrics.
 
 ---
 
