@@ -286,19 +286,74 @@ For learnable coefficients, the noise injection is additionally wrapped in `torc
 
 ---
 
-## Dataset
+## Dataset Preparation
 
-Multi-turn training uses [SimpleRL Math 3.5](https://huggingface.co/datasets/simplelr_math_35) and [Deepscaler](https://huggingface.co/datasets/agentica-org/DeepScaleR) datasets. Place the parquet files under `$DATA_PATH` following this structure:
+Multi-turn training uses [SimpleRL Math 3.5](https://huggingface.co/datasets/simplelr_math_35) and [Deepscaler](https://huggingface.co/datasets/agentica-org/DeepScaleR) datasets.
+
+### Step 1: Download Training Datasets
+
+Download the parquet files from HuggingFace and place them under `$DATA_PATH` (defaults to `./datasets`):
+
+```bash
+# Download SimpleRL Math 3.5
+huggingface-cli download simplelr_math_35 --repo-type dataset --local-dir datasets/simplelr_math_35
+
+# Download Deepscaler
+huggingface-cli download agentica-org/DeepScaleR --repo-type dataset --local-dir datasets/deepscaler
+```
+
+### Step 2: Download Evaluation Datasets
+
+```bash
+cd eval
+python download_datasets.py \
+  --datasets weqweasdas/math500 weqweasdas/minerva_math weqweasdas/olympiadbench \
+  --output_dir ../datasets/deepscaler \
+  --split train
+```
+
+This script automatically converts HuggingFace datasets to the expected parquet format: renames `problem` to `prompt`, wraps in chat format, and adds `data_source`, `ability`, `reward_model` columns.
+
+### Expected Directory Structure
 
 ```
 $DATA_PATH/
   simplelr_math_35/
-    train/    # training split parquet files
-    test/     # evaluation split
+    train.parquet          # training split
+    test.parquet           # evaluation split
   deepscaler/
-    train/    # training split
-    aime/     # AIME evaluation
-    aime25/   # AIME 2025 evaluation
+    train.parquet          # training split
+    aime.parquet           # AIME evaluation
+    aime25.parquet         # AIME 2025 evaluation
+    math500.parquet        # (optional) Math500 benchmark
+    minerva_math.parquet   # (optional) Minerva Math benchmark
+    olympiadbench.parquet  # (optional) OlympiadBench benchmark
+```
+
+### Expected Data Format
+
+Each parquet file must contain these columns:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `prompt` | `List[Dict]` | Chat-format messages, e.g. `[{"role": "user", "content": "Solve..."}]` |
+| `data_source` | `str` | Dataset identifier for reward function routing |
+| `reward_model` | `Dict` | Ground truth for evaluation, e.g. `{"style": "rule", "ground_truth": "42"}` |
+| `ability` | `str` | Task type, e.g. `"math"` |
+| `extra_info` | `Dict` | Optional metadata (index, split, question, answer) |
+
+### Configuring Dataset Paths
+
+Training scripts reference datasets by logical name relative to `$DATA_PATH`. The `train.sh` script's `format_dataset_paths()` function converts logical names to parquet file paths:
+
+```bash
+# These logical names:
+--train_dataset "simplelr_math_35/train deepscaler/train"
+--valid_dataset "simplelr_math_35/test deepscaler/aime deepscaler/aime25"
+
+# Become file paths:
+data.train_files='["./datasets/simplelr_math_35/train.parquet","./datasets/deepscaler/train.parquet"]'
+data.val_files='["./datasets/simplelr_math_35/test.parquet","./datasets/deepscaler/aime.parquet","./datasets/deepscaler/aime25.parquet"]'
 ```
 
 ---
