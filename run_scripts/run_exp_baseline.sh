@@ -1,31 +1,48 @@
 #!/bin/bash
 # Experiment: GRPO Baseline (no rollout correction)
-# Usage: bash run_exp_baseline.sh [dataset]
+# Usage: bash run_exp_baseline.sh [dataset] [model]
 #
 # Prerequisites: conda activate verl_new
 #
 # Examples:
-#   bash run_exp_baseline.sh          # Default: guru dataset
-#   bash run_exp_baseline.sh guru     # Use guru_rl92k dataset
-#   bash run_exp_baseline.sh openr1   # Use openr1 dataset
+#   bash run_exp_baseline.sh                          # Default: guru + Qwen2.5-Math-1.5B
+#   bash run_exp_baseline.sh guru qwen2.5-1.5b-math  # Use Qwen2.5-Math-1.5B
+#   bash run_exp_baseline.sh openr1 qwen3-4b         # Use Qwen3-4B
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/utils_gpu.sh"
+source "${SCRIPT_DIR}/env_defaults.sh"
 
 # Parse arguments
-DATASET="${1:-guru}"  # guru or openr1
+DATASET="${1:-guru}"                  # guru or openr1
+MODEL_CHOICE="${2:-qwen2.5-1.5b-math}"  # qwen2.5-1.5b-math or qwen3-4b
+
+case "${MODEL_CHOICE}" in
+    qwen2.5-1.5b-math|qwen2.5-math-1.5b|qwen2.5)
+        MODEL_PATH="Qwen/Qwen2.5-Math-1.5B"
+        ;;
+    qwen3-4b|qwen3)
+        MODEL_PATH="Qwen/Qwen3-4B"
+        ;;
+    *)
+        echo "Error: Invalid model '${MODEL_CHOICE}'. Use 'qwen2.5-1.5b-math' or 'qwen3-4b'."
+        exit 1
+        ;;
+esac
+
+PYTHON_BIN="${PYTHON_BIN:-python3}"
 
 FREE_GPUS="0,1,2,3,4,5,6,7"
 FREE_GPU_COUNT=8
 export CUDA_VISIBLE_DEVICES=${FREE_GPUS}
 echo "Using fixed GPUs: ${FREE_GPUS}"
 
-export RAY_TMPDIR=/home/zhang430/.cache/ray_tmp_${FREE_GPU_COUNT}gpu
+export RAY_TMPDIR=${CACHE_ROOT}/ray_tmp_${FREE_GPU_COUNT}gpu
 export NCCL_P2P_DISABLE=1
 
 # Set WandB credentials
-export WANDB_API_KEY="de10a9d8ee68dcfcae3324b99a557c99ec7a1f32"
+export WANDB_API_KEY="${WANDB_API_KEY:-}"
 
 mkdir -p $RAY_TMPDIR
 chmod -R 777 $RAY_TMPDIR 2>/dev/null || true
@@ -49,6 +66,7 @@ clip_ratio_high=0.28
 echo "=========================================="
 echo "Experiment: GRPO Baseline"
 echo "Dataset: ${DATASET}"
+echo "Model: ${MODEL_PATH}"
 echo "Using ${FREE_GPU_COUNT} GPUs: ${FREE_GPUS}"
 echo "CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES}"
 echo "----------------------------------------"
@@ -65,31 +83,20 @@ echo "----------------------------------------"
 echo "Start time: $(date)"
 echo "=========================================="
 
-# Detect if running in Docker container and set paths accordingly
+# Resolve dataset file paths from DATA_ROOT
 if [ "$DATASET" = "openr1" ]; then
-    # openr1 dataset paths
-    if [ -d "/workspace/project" ]; then
-        train_file="/data/openr1/train.parquet"
-        val_file="/data/openr1/test.parquet"
-    else
-        train_file="/home/zhang430/data/openr1/train.parquet"
-        val_file="/home/zhang430/data/openr1/test.parquet"
-    fi
+    DATASET_ROOT="${DATA_ROOT}/openr1"
+    train_file="${DATASET_ROOT}/train.parquet"
+    val_file="${DATASET_ROOT}/test.parquet"
     DATASET_NAME="openr1"
 else
-    # guru_rl92k dataset paths
-    if [ -d "/workspace/project" ]; then
-        DATA_ROOT="/data/guru_rl92k"
-    else
-        DATA_ROOT="/home/zhang430/data/guru_rl92k"
-    fi
-    train_file="${DATA_ROOT}/train/math__combined_54.4k.parquet"
-    val_file="[${DATA_ROOT}/online_eval/math__math_500.parquet,${DATA_ROOT}/online_eval/math__aime_repeated_8x_240.parquet]"
+    DATASET_ROOT="${DATA_ROOT}/guru_rl92k"
+    train_file="${DATASET_ROOT}/train/math__combined_54.4k.parquet"
+    val_file="[${DATASET_ROOT}/online_eval/math__math_500.parquet,${DATASET_ROOT}/online_eval/math__aime_repeated_8x_240.parquet]"
     DATASET_NAME="guru_rl92k_math"
 fi
 
 # Model configuration
-MODEL_PATH="Qwen/Qwen2.5-Math-1.5B"
 MODEL_ID=$(echo "${MODEL_PATH}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g')
 
 # Generate experiment name
@@ -102,7 +109,7 @@ if [ -d "/workspace/project" ]; then
     CKPTS_DIR="/checkpoints/${project_name}/${EXP_NAME}"
 else
     # Running locally
-    CKPTS_DIR="/home/zhang430/checkpoints/${project_name}/${EXP_NAME}"
+    CKPTS_DIR="${CHECKPOINT_ROOT}/${project_name}/${EXP_NAME}"
 fi
 
 # Change to project directory (handle both Docker and local environments)
@@ -111,7 +118,7 @@ if [ -d "/workspace/project" ]; then
     cd /workspace/project
 else
     # Running locally
-    cd /home/zhang430/code/mismatch_rl
+    cd ${PROJECT_ROOT}
 fi
 
 # Create logs, outputs, and checkpoint directories
@@ -120,7 +127,7 @@ chmod 777 logs outputs 2>/dev/null || true
 mkdir -p "${CKPTS_DIR}"
 chmod -R 777 "${CKPTS_DIR}" 2>/dev/null || true
 
-python3 -m verl.trainer.main_ppo \
+${PYTHON_BIN} -m verl.trainer.main_ppo \
     hydra.run.dir=outputs/${EXP_NAME}/${now:%Y-%m-%d}/${now:%H-%M-%S} \
     algorithm.adv_estimator=grpo \
     data.train_batch_size=${train_prompt_bsz} \
@@ -164,8 +171,8 @@ python3 -m verl.trainer.main_ppo \
     'trainer.logger=["console","wandb"]' \
     trainer.project_name=${project_name} \
     trainer.experiment_name=${EXP_NAME} \
-    +trainer.wandb_entity=mismatch \
-    +trainer.wandb_mode=online \
+    +trainer.wandb_entity=${WANDB_ENTITY} \
+    +trainer.wandb_mode=${WANDB_MODE} \
     +trainer.wandb_tags=["grpo","baseline"] \
     +trainer.wandb_config.clip_ratio_low=${clip_ratio_low} \
     +trainer.wandb_config.clip_ratio_high=${clip_ratio_high} \

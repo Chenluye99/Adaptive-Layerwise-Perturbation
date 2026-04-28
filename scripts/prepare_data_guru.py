@@ -6,7 +6,7 @@ from huggingface_hub import hf_hub_download, list_repo_files
 
 REPO_ID = "LLM360/guru-RL-92k"
 REPO_TYPE = "dataset"
-LOCAL_DATA_DIR = "/home/chenluy/data/guru_rl92k"
+LOCAL_DATA_DIR = os.path.expanduser(os.getenv("GURU_LOCAL_DATA_DIR", "~/data/guru_rl92k"))
 
 all_files = list_repo_files(REPO_ID, repo_type=REPO_TYPE)
 split_to_local = {"train": "train", "online_eval": "online_eval", "offline_eval": "offline_eval"}

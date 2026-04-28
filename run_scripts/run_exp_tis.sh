@@ -1,26 +1,25 @@
 #!/bin/bash
 # Unified Experiment: GRPO + Truncated Importance Sampling (TIS)
-# Usage: bash run_exp_tis.sh [level] [mode] [threshold] [veto_threshold] [dataset]
+# Usage: bash run_exp_tis.sh [level] [mode] [threshold] [veto_threshold] [dataset] [model]
 #
 # Prerequisites: conda activate verl_new
 #
 # Examples:
-#   bash run_exp_tis.sh token                    # Token-level TIS (guru)
-#   bash run_exp_tis.sh sequence                 # Sequence-level TIS (guru)
-#   bash run_exp_tis.sh sequence truncate 5.0    # Custom threshold (guru)
-#   bash run_exp_tis.sh token mask 3.0 0.001     # Mask with veto (guru)
-#   bash run_exp_tis.sh sequence truncate 5.0 null openr1  # Use openr1 dataset
+#   bash run_exp_tis.sh token truncate 5.0 null guru qwen2.5-1.5b-math
+#   bash run_exp_tis.sh sequence mask 3.0 0.001 openr1 qwen3-4b
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/utils_gpu.sh"
+source "${SCRIPT_DIR}/env_defaults.sh"
 
 # Parse arguments
-TIS_LEVEL="${1:-sequence}"             # token/sequence
-TIS_MODE="${2:-truncate}"              # truncate/mask/geometric
-TIS_THRESHOLD="${3:-5.0}"              # Upper threshold
-VETO_THRESHOLD="${4:-null}"            # Veto threshold (null=disabled)
-DATASET="${5:-guru}"                   # guru or openr1
+TIS_LEVEL="${1:-sequence}"               # token/sequence
+TIS_MODE="${2:-truncate}"                # truncate/mask/geometric
+TIS_THRESHOLD="${3:-5.0}"                # Upper threshold
+VETO_THRESHOLD="${4:-null}"              # Veto threshold (null=disabled)
+DATASET="${5:-guru}"                     # guru or openr1
+MODEL_CHOICE="${6:-qwen2.5-1.5b-math}"  # qwen2.5-1.5b-math or qwen3-4b
 
 # Validate level
 if [[ "$TIS_LEVEL" != "token" && "$TIS_LEVEL" != "sequence" ]]; then
@@ -33,6 +32,21 @@ if [[ "$TIS_MODE" != "truncate" && "$TIS_MODE" != "mask" && "$TIS_MODE" != "geom
     echo "Error: Invalid TIS mode. Use 'truncate', 'mask', or 'geometric'"
     exit 1
 fi
+
+case "${MODEL_CHOICE}" in
+    qwen2.5-1.5b-math|qwen2.5-math-1.5b|qwen2.5)
+        MODEL_PATH="Qwen/Qwen2.5-Math-1.5B"
+        ;;
+    qwen3-4b|qwen3)
+        MODEL_PATH="Qwen/Qwen3-4B"
+        ;;
+    *)
+        echo "Error: Invalid model '${MODEL_CHOICE}'. Use 'qwen2.5-1.5b-math' or 'qwen3-4b'."
+        exit 1
+        ;;
+esac
+
+PYTHON_BIN="${PYTHON_BIN:-python3}"
 
 # Get GPU configuration (fixed to 8 GPUs)
 if [ -n "$CUDA_VISIBLE_DEVICES" ]; then
@@ -68,7 +82,7 @@ elif [ "$TIS_MODE" = "geometric" ]; then
     RS_THRESHOLD="${TIS_THRESHOLD}"
 fi
 
-export RAY_TMPDIR=/home/zhang430/.cache/ray_tmp_${FREE_GPU_COUNT}gpu
+export RAY_TMPDIR=${CACHE_ROOT}/ray_tmp_${FREE_GPU_COUNT}gpu
 export NCCL_P2P_DISABLE=1
 
 mkdir -p $RAY_TMPDIR
@@ -98,6 +112,7 @@ echo "RS Mode: ${ROLLOUT_RS}"
 echo "IS Threshold: ${TIS_THRESHOLD}"
 echo "RS Threshold: ${RS_THRESHOLD}"
 echo "Veto: ${VETO_THRESHOLD}"
+echo "Model: ${MODEL_PATH}"
 echo "Using ${FREE_GPU_COUNT} GPUs: ${FREE_GPUS}"
 echo "CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES}"
 echo "----------------------------------------"
@@ -113,28 +128,18 @@ echo "----------------------------------------"
 echo "Start time: $(date)"
 echo "=========================================="
 
-# Data files (handle both local and Docker environments)
+# Resolve dataset file paths from DATA_ROOT
 if [ "$DATASET" = "openr1" ]; then
-    # openr1 dataset paths
-    if [ -d "/workspace/project" ]; then
-        train_file="/data/openr1/train.parquet"
-        val_file="/data/openr1/test.parquet"
-    else
-        train_file="/home/zhang430/data/openr1/train.parquet"
-        val_file="/home/zhang430/data/openr1/test.parquet"
-    fi
+    DATASET_ROOT="${DATA_ROOT}/openr1"
+    train_file="${DATASET_ROOT}/train.parquet"
+    val_file="${DATASET_ROOT}/test.parquet"
     val_files_json='["'"${val_file}"'"]'
     DATASET_NAME="openr1"
 else
-    # guru_rl92k dataset paths
-    if [ -d "/workspace/project" ]; then
-        DATA_ROOT="/data/guru_rl92k"
-    else
-        DATA_ROOT="/home/zhang430/data/guru_rl92k"
-    fi
-    train_file="${DATA_ROOT}/train/math__combined_54.4k.parquet"
-    val_file_math="${DATA_ROOT}/online_eval/math__math_500.parquet"
-    val_file_aime="${DATA_ROOT}/online_eval/math__aime_repeated_8x_240.parquet"
+    DATASET_ROOT="${DATA_ROOT}/guru_rl92k"
+    train_file="${DATASET_ROOT}/train/math__combined_54.4k.parquet"
+    val_file_math="${DATASET_ROOT}/online_eval/math__math_500.parquet"
+    val_file_aime="${DATASET_ROOT}/online_eval/math__aime_repeated_8x_240.parquet"
     val_files_json='["'"${val_file_math}"'","'"${val_file_aime}"'"]'
     DATASET_NAME="guru_rl92k_math"
 fi
@@ -159,7 +164,6 @@ else
 fi
 
 # Model & dataset configuration
-MODEL_PATH="Qwen/Qwen2.5-Math-1.5B"
 MODEL_ID=$(echo "${MODEL_PATH}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g')
 
 # Generate experiment name
@@ -178,20 +182,20 @@ if [ -d "/workspace/project" ]; then
     CKPTS_DIR="/checkpoints/${project_name}/${EXP_NAME}"
 else
     # Running locally
-    CKPTS_DIR="/home/zhang430/checkpoints/${project_name}/${EXP_NAME}"
+    CKPTS_DIR="${CHECKPOINT_ROOT}/${project_name}/${EXP_NAME}"
 fi
 
 # Change to project directory (handle both local and Docker environments)
 if [ -d "/workspace/project" ]; then
     cd /workspace/project
 else
-    cd /home/zhang430/code/mismatch_rl
+    cd ${PROJECT_ROOT}
 fi
 
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
-python3 -m verl.trainer.main_ppo \
+${PYTHON_BIN} -m verl.trainer.main_ppo \
     algorithm.adv_estimator=grpo \
     data.train_files=${train_file} \
     data.val_files=${val_files_json} \
@@ -239,8 +243,8 @@ python3 -m verl.trainer.main_ppo \
     'trainer.logger=["console","wandb"]' \
     trainer.project_name=${project_name} \
     trainer.experiment_name=${EXP_NAME} \
-    +trainer.wandb_entity=mismatch \
-    +trainer.wandb_mode=online \
+    +trainer.wandb_entity=${WANDB_ENTITY} \
+    +trainer.wandb_mode=${WANDB_MODE} \
     +trainer.wandb_tags=["grpo","tis","${TIS_LEVEL}","${TIS_MODE}"] \
     +trainer.wandb_config.tis_level=${TIS_LEVEL} \
     +trainer.wandb_config.tis_mode=${TIS_MODE} \

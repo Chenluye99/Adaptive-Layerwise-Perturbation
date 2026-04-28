@@ -1,21 +1,23 @@
 #!/bin/bash
 # Experiment: GRPO Bypass (bypass old logprob for rollout)
-# Usage: bash run_exp_bypass.sh [loss_mode] [dataset]
+# Usage: bash run_exp_bypass.sh [loss_mode] [dataset] [model]
 #
 # Prerequisites: conda activate verl_new
 #
 # Examples:
-#   bash run_exp_bypass.sh          # Default: sequence, guru dataset
-#   bash run_exp_bypass.sh token    # Token-level, guru dataset
-#   bash run_exp_bypass.sh sequence openr1   # Sequence-level, openr1 dataset
+#   bash run_exp_bypass.sh                                   # Default: sequence + guru + Qwen2.5-Math-1.5B
+#   bash run_exp_bypass.sh token guru qwen2.5-1.5b-math     # Token-level + Qwen2.5-Math-1.5B
+#   bash run_exp_bypass.sh sequence openr1 qwen3-4b         # Sequence-level + Qwen3-4B
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/utils_gpu.sh"
+source "${SCRIPT_DIR}/env_defaults.sh"
 
 # Parse arguments
-LOSS_MODE="${1:-sequence}"  # token/sequence/cum-token/cum-turn
-DATASET="${2:-guru}"  # guru or openr1
+LOSS_MODE="${1:-sequence}"               # token/sequence/cum-token/cum-turn
+DATASET="${2:-guru}"                     # guru or openr1
+MODEL_CHOICE="${3:-qwen2.5-1.5b-math}"  # qwen2.5-1.5b-math or qwen3-4b
 
 # Validate loss mode
 if [[ "$LOSS_MODE" != "token" && "$LOSS_MODE" != "sequence" && "$LOSS_MODE" != "cum-token" && "$LOSS_MODE" != "cum-turn" ]]; then
@@ -23,13 +25,28 @@ if [[ "$LOSS_MODE" != "token" && "$LOSS_MODE" != "sequence" && "$LOSS_MODE" != "
     exit 1
 fi
 
+case "${MODEL_CHOICE}" in
+    qwen2.5-1.5b-math|qwen2.5-math-1.5b|qwen2.5)
+        MODEL_PATH="Qwen/Qwen2.5-Math-1.5B"
+        ;;
+    qwen3-4b|qwen3)
+        MODEL_PATH="Qwen/Qwen3-4B"
+        ;;
+    *)
+        echo "Error: Invalid model '${MODEL_CHOICE}'. Use 'qwen2.5-1.5b-math' or 'qwen3-4b'."
+        exit 1
+        ;;
+esac
+
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+
 FREE_GPUS="0,1,2,3,4,5,6,7"
 FREE_GPU_COUNT=8
 export CUDA_VISIBLE_DEVICES=${FREE_GPUS}
 echo "Using fixed GPUs: ${CUDA_VISIBLE_DEVICES}"
 
-# Set temp directories (use /home/zhang430 or /workspace/project instead of /tmp to avoid OOM)
-# Detect if running in Docker container and set paths accordingly
+# Set temp directories (use repository cache path instead of /tmp to reduce OOM risk).
+# Detect if running in Docker container and set paths accordingly.
 if [ -d "/workspace/project" ]; then
     # Running in Docker container - use workspace path
     BASE_TMP_DIR="/workspace/project/.cache"
@@ -37,7 +54,7 @@ if [ -d "/workspace/project" ]; then
     ROLLOUT_DUMP_DIR="${BASE_TMP_DIR}/rollout_dump"
 else
     # Running locally
-    BASE_TMP_DIR="/home/zhang430/.cache"
+    BASE_TMP_DIR="${CACHE_ROOT}"
     export RAY_TMPDIR=${BASE_TMP_DIR}/ray_tmp_${FREE_GPU_COUNT}gpu
     ROLLOUT_DUMP_DIR="${BASE_TMP_DIR}/rollout_dump"
 fi
@@ -63,7 +80,7 @@ export RAY_object_store_memory=32212254720
 export RAY_object_spilling_config="{\"type\":\"filesystem\",\"params\":{\"directory_path\":\"${RAY_TMPDIR}/spill\"}}"
 
 # Set WandB credentials
-export WANDB_API_KEY="de10a9d8ee68dcfcae3324b99a557c99ec7a1f32"
+export WANDB_API_KEY="${WANDB_API_KEY:-}"
 
 # Create all temp directories
 mkdir -p $RAY_TMPDIR
@@ -97,6 +114,7 @@ echo "=========================================="
 echo "Experiment: GRPO Bypass"
 echo "Dataset: ${DATASET}"
 echo "Loss Mode: ${LOSS_MODE}"
+echo "Model: ${MODEL_PATH}"
 echo "Using ${FREE_GPU_COUNT} GPUs: ${FREE_GPUS}"
 echo "CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES}"
 echo "----------------------------------------"
@@ -113,31 +131,20 @@ echo "----------------------------------------"
 echo "Start time: $(date)"
 echo "=========================================="
 
-# Detect if running in Docker container and set paths accordingly
+# Resolve dataset file paths from DATA_ROOT
 if [ "$DATASET" = "openr1" ]; then
-    # openr1 dataset paths
-    if [ -d "/workspace/project" ]; then
-        train_file="/data/openr1/train.parquet"
-        val_file="/data/openr1/test.parquet"
-    else
-        train_file="/home/zhang430/data/openr1/train.parquet"
-        val_file="/home/zhang430/data/openr1/test.parquet"
-    fi
+    DATASET_ROOT="${DATA_ROOT}/openr1"
+    train_file="${DATASET_ROOT}/train.parquet"
+    val_file="${DATASET_ROOT}/test.parquet"
     DATASET_NAME="openr1"
 else
-    # guru_rl92k dataset paths
-    if [ -d "/workspace/project" ]; then
-        DATA_ROOT="/data/guru_rl92k"
-    else
-        DATA_ROOT="/home/zhang430/data/guru_rl92k"
-    fi
-    train_file="${DATA_ROOT}/train/math__combined_54.4k.parquet"
-    val_file="[${DATA_ROOT}/online_eval/math__math_500.parquet,${DATA_ROOT}/online_eval/math__aime_repeated_8x_240.parquet]"
+    DATASET_ROOT="${DATA_ROOT}/guru_rl92k"
+    train_file="${DATASET_ROOT}/train/math__combined_54.4k.parquet"
+    val_file="[${DATASET_ROOT}/online_eval/math__math_500.parquet,${DATASET_ROOT}/online_eval/math__aime_repeated_8x_240.parquet]"
     DATASET_NAME="guru_rl92k_math"
 fi
 
 # Model configuration
-MODEL_PATH="Qwen/Qwen2.5-Math-1.5B"
 MODEL_ID=$(echo "${MODEL_PATH}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g')
 
 # Generate experiment name
@@ -150,7 +157,7 @@ if [ -d "/workspace/project" ]; then
     CKPTS_DIR="/checkpoints/${project_name}/${EXP_NAME}"
 else
     # Running locally
-    CKPTS_DIR="/home/zhang430/checkpoints/${project_name}/${EXP_NAME}"
+    CKPTS_DIR="${CHECKPOINT_ROOT}/${project_name}/${EXP_NAME}"
 fi
 
 # Change to project directory (handle both Docker and local environments)
@@ -159,7 +166,7 @@ if [ -d "/workspace/project" ]; then
     cd /workspace/project
 else
     # Running locally
-    cd /home/zhang430/code/mismatch_rl
+    cd ${PROJECT_ROOT}
 fi
 
 # Create logs, outputs, and checkpoint directories
@@ -168,7 +175,7 @@ chmod 777 logs outputs 2>/dev/null || true
 mkdir -p "${CKPTS_DIR}"
 chmod -R 777 "${CKPTS_DIR}" 2>/dev/null || true
 
-python3 -m verl.trainer.main_ppo \
+${PYTHON_BIN} -m verl.trainer.main_ppo \
     hydra.run.dir=outputs/${EXP_NAME}/${now:%Y-%m-%d}/${now:%H-%M-%S} \
     algorithm.adv_estimator=grpo \
     data.train_files=${train_file} \
@@ -220,8 +227,8 @@ python3 -m verl.trainer.main_ppo \
     'trainer.logger=["console","wandb"]' \
     trainer.project_name=${project_name} \
     trainer.experiment_name=${EXP_NAME} \
-    +trainer.wandb_entity=mismatch \
-    +trainer.wandb_mode=online \
+    +trainer.wandb_entity=${WANDB_ENTITY} \
+    +trainer.wandb_mode=${WANDB_MODE} \
     +trainer.wandb_tags=["grpo","bypass","${LOSS_MODE}"] \
     +trainer.wandb_config.loss_mode=${LOSS_MODE} \
     +trainer.wandb_config.clip_ratio_low=${clip_ratio_low} \
